@@ -299,8 +299,12 @@ export const uploadPresignedPost = async (upload: { url: string; fields: Record<
     })
     formData.append('file', file)
 
-    const response = await fetch(upload.url, { method: 'POST', body: formData })
-    if (!response.ok) {
-        throw new Error('File upload failed')
+    try {
+        const response = await fetch(upload.url, { method: 'POST', body: formData })
+        if (!response.ok) {
+            throw new Error('File upload failed')
+        }
+    } catch (error) {
+        throw error
     }
 }

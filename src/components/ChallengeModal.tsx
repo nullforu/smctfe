@@ -6,6 +6,7 @@ import { getCategoryKey, getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { navigate } from '../lib/router'
 import { useAuth } from '../lib/auth'
 import { useApi } from '../lib/useApi'
+import Markdown from './Markdown'
 
 interface SubmissionState {
     status: 'idle' | 'loading' | 'success' | 'error'
@@ -188,7 +189,6 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
             clearTimeout(timeoutId)
             setStackPolling(false)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [auth.user, challenge.stack_enabled, stackInfo, stackNextInterval])
 
     return (
@@ -238,7 +238,7 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                 </div>
 
                 <div className='mt-6 text-text'>
-                    <p className='whitespace-pre-wrap'>{challenge.description}</p>
+                    <Markdown className='break-keep' content={challenge.description} />
                 </div>
 
                 {challenge.has_file ? (

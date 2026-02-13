@@ -22,6 +22,8 @@ export const formatApiError = (
 
         return { message: error.message, fieldErrors }
     }
+
+    console.log('Unknown error format:', error)
     return { message: translate('errors.network'), fieldErrors: {} }
 }
 

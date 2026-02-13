@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { uploadPresignedPost } from '../../lib/api'
 import { CHALLENGE_CATEGORIES } from '../../lib/constants'
 import { formatApiError, isZipFile, type FieldErrors } from '../../lib/utils'
@@ -26,6 +26,7 @@ const CreateChallenge = () => {
     const [challengeFileError, setChallengeFileError] = useState('')
     const [challengeFileUploading, setChallengeFileUploading] = useState(false)
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+    const fileInputRef = useRef<HTMLInputElement | null>(null)
 
     const submit = async () => {
         setLoading(true)
@@ -80,6 +81,10 @@ const CreateChallenge = () => {
             setStackEnabled(false)
             setStackTargetPort(80)
             setStackPodSpec('')
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
         } catch (error) {
             const formatted = formatApiError(error, t)
             setErrorMessage(formatted.message)
@@ -220,6 +225,7 @@ const CreateChallenge = () => {
                             className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                             type='file'
                             accept='.zip'
+                            ref={fileInputRef}
                             onChange={(event) => {
                                 const target = event.currentTarget
                                 setChallengeFile(target.files?.[0] ?? null)
