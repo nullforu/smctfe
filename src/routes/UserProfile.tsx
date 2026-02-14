@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Stack, UserDetail, SolvedChallenge } from '../lib/types'
+import type { CtfState, Stack, UserDetail, SolvedChallenge } from '../lib/types'
 import { formatApiError, formatDateTime, parseRouteId } from '../lib/utils'
 import { navigate } from '../lib/router'
 import ProfileHeader from '../components/UserProfile/ProfileHeader'
@@ -29,6 +29,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
     const [stacksLoading, setStacksLoading] = useState(false)
     const [stacksError, setStacksError] = useState('')
     const [stackDeletingId, setStackDeletingId] = useState<number | null>(null)
+    const [stacksCtfState, setStacksCtfState] = useState<CtfState>('active')
     const [editingUsername, setEditingUsername] = useState(false)
     const [usernameInput, setUsernameInput] = useState('')
     const [savingUsername, setSavingUsername] = useState(false)
@@ -82,7 +83,9 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
         setStacksError('')
 
         try {
-            setStacks(await api.stacks())
+            const response = await api.stacks()
+            setStacks(response.stacks)
+            setStacksCtfState(response.ctf_state)
         } catch (error) {
             setStacksError(formatApiError(error, t).message)
         } finally {
@@ -220,6 +223,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                                 stacksError={stacksError}
                                 stacksLoading={stacksLoading}
                                 stackDeletingId={stackDeletingId}
+                                ctfState={stacksCtfState}
                                 onRefresh={loadStacks}
                                 onDelete={deleteStack}
                                 formatOptionalDateTime={formatOptionalDateTime}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ApiError } from '../lib/api'
 import { formatApiError } from '../lib/utils'
-import type { Challenge, Stack } from '../lib/types'
+import type { Challenge, CtfState, Stack } from '../lib/types'
 import { getCategoryKey, getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { navigate } from '../lib/router'
 import { useAuth } from '../lib/auth'
@@ -16,6 +16,7 @@ interface SubmissionState {
 interface ChallengeModalProps {
     challenge: Challenge
     isSolved: boolean
+    ctfState: CtfState
     onClose: () => void
     onSolved: () => void
 }
@@ -23,7 +24,7 @@ interface ChallengeModalProps {
 const STACK_POLL_FAST_MS = 10000
 const STACK_POLL_SLOW_MS = 60000
 
-const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeModalProps) => {
+const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: ChallengeModalProps) => {
     const t = useT()
     const api = useApi()
     const { state: auth } = useAuth()
@@ -40,6 +41,7 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
     const [stackNextInterval, setStackNextInterval] = useState(STACK_POLL_FAST_MS)
 
     const isSuccessful = useMemo(() => submission.status === 'success', [submission.status])
+    const isCtfEnded = ctfState === 'ended'
 
     const submitFlag = async () => {
         if (isSolved) {
@@ -58,6 +60,10 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                 setSubmission({ status: 'success', message: t('challenge.correct') })
                 setFlagInput('')
                 onSolved()
+            } else if (result.ctf_state === 'not_started') {
+                setSubmission({ status: 'error', message: t('challenge.ctfNotStarted') })
+            } else if (result.ctf_state === 'ended') {
+                setSubmission({ status: 'error', message: t('challenge.ctfEndedNotice') })
             } else {
                 setSubmission({ status: 'error', message: t('challenge.incorrect') })
             }
@@ -82,7 +88,11 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
 
         try {
             const result = await api.requestChallengeFileDownload(challenge.id)
-            window.open(result.url, '_blank', 'noopener')
+            if ('url' in result) {
+                window.open(result.url, '_blank', 'noopener')
+            } else {
+                setDownloadMessage(t('challenge.downloadNotStarted'))
+            }
         } catch (error) {
             const formatted = formatApiError(error, t)
             setDownloadMessage(formatted.message)
@@ -103,9 +113,15 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
 
         try {
             const result = await api.getStack(challenge.id)
-            setStackInfo(result)
-            setStackNextInterval(result?.status === 'running' ? STACK_POLL_SLOW_MS : STACK_POLL_FAST_MS)
-            setStackMessage('')
+            if ('stack_id' in result) {
+                setStackInfo(result)
+                setStackNextInterval(result?.status === 'running' ? STACK_POLL_SLOW_MS : STACK_POLL_FAST_MS)
+                setStackMessage('')
+            } else {
+                setStackInfo(null)
+                setStackNextInterval(STACK_POLL_FAST_MS)
+                setStackMessage(t('challenge.stackNotStarted'))
+            }
         } catch (error) {
             if (error instanceof ApiError && error.status === 404) {
                 setStackInfo(null)
@@ -129,7 +145,13 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
 
         try {
             const created = await api.createStack(challenge.id)
-            setStackInfo(created)
+            if ('stack_id' in created) {
+                setStackInfo(created)
+            } else if (created.ctf_state === 'ended') {
+                setStackMessage(t('challenge.stackEndedNotice'))
+            } else if (created.ctf_state === 'not_started') {
+                setStackMessage(t('challenge.stackNotStarted'))
+            }
         } catch (error) {
             const formatted = formatApiError(error, t)
             setStackMessage(formatted.message)
@@ -268,7 +290,7 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                     </div>
                 ) : null}
 
-                <div className='mt-8 space-y-6'>
+                <div className='mt-6 space-y-6'>
                     {challenge.stack_enabled ? (
                         <div className='rounded-xl border border-border bg-surface-muted p-4 text-sm text-text'>
                             <div className='flex flex-wrap items-center justify-between gap-3'>
@@ -305,7 +327,7 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                                                         : t('challenge.deleteStack')}
                                                 </button>
                                             </>
-                                        ) : (
+                                        ) : !isCtfEnded ? (
                                             <button
                                                 className='rounded-lg bg-contrast px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-contrast/80 disabled:opacity-60 cursor-pointer'
                                                 type='button'
@@ -314,7 +336,7 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                                             >
                                                 {stackLoading ? t('auth.creating') : t('challenge.createStack')}
                                             </button>
-                                        )}
+                                        ) : null}
                                     </div>
                                 ) : null}
                             </div>
@@ -323,6 +345,8 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                                 <p className='mt-2 text-xs text-warning'>{t('challenge.stackLoginRequired')}</p>
                             ) : isSolved ? (
                                 <p className='mt-2 text-xs text-text-subtle'>{t('challenge.stackSolvedNoNew')}</p>
+                            ) : isCtfEnded && !stackInfo ? (
+                                <p className='mt-2 text-xs text-text-subtle'>{t('challenge.stackEndedNotice')}</p>
                             ) : stackInfo ? (
                                 <div className='mt-3 grid gap-2 text-xs text-text-muted'>
                                     <div className='flex flex-wrap items-center gap-2'>
@@ -351,7 +375,11 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                             {stackMessage ? <p className='mt-2 text-xs text-danger'>{stackMessage}</p> : null}
                         </div>
                     ) : null}
-                    {!auth.user ? (
+                    {isCtfEnded ? (
+                        <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
+                            {t('challenge.ctfEndedNotice')}
+                        </div>
+                    ) : !auth.user ? (
                         <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
                             {t('challenge.loginToSubmitPrefix')}{' '}
                             <a
@@ -379,9 +407,9 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                                 submitFlag()
                             }}
                         >
-                            <div>
-                                <label className='block text-sm font-medium text-text mb-2'>
-                                    {t('challenge.enterFlag')}
+                            <div className='flex flex-col gap-3 md:flex-row md:items-end'>
+                                <label className='flex-1 text-sm font-medium text-text'>
+                                    <span className='block mb-2'>{t('challenge.enterFlag')}</span>
                                     <input
                                         className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                         type='text'
@@ -391,14 +419,16 @@ const ChallengeModal = ({ challenge, isSolved, onClose, onSolved }: ChallengeMod
                                         autoComplete='off'
                                     />
                                 </label>
+                                <button
+                                    className='w-full md:w-auto rounded-xl bg-accent px-6 py-3 text-sm font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                    type='submit'
+                                    disabled={submission.status === 'loading'}
+                                >
+                                    {submission.status === 'loading'
+                                        ? t('challenge.submitting')
+                                        : t('challenge.submit')}
+                                </button>
                             </div>
-                            <button
-                                className='w-full rounded-xl bg-accent py-3 text-sm font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                                type='submit'
-                                disabled={submission.status === 'loading'}
-                            >
-                                {submission.status === 'loading' ? t('challenge.submitting') : t('challenge.submit')}
-                            </button>
                             {submission.message ? (
                                 <div
                                     className={`rounded-xl border px-4 py-3 text-sm ${

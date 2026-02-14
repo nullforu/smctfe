@@ -8,6 +8,8 @@ export interface AppConfigState {
     description: string
     header_title: string
     header_description: string
+    ctf_start_at?: string | null
+    ctf_end_at?: string | null
     updated_at?: string
 }
 
@@ -52,6 +54,8 @@ export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
                 description: value.description ?? defaultConfig.description,
                 header_title: value.header_title ?? defaultConfig.header_title,
                 header_description: value.header_description ?? defaultConfig.header_description,
+                ctf_start_at: value.ctf_start_at ?? null,
+                ctf_end_at: value.ctf_end_at ?? null,
                 updated_at: value.updated_at,
             })
         },

@@ -31,11 +31,15 @@ export interface AuthResponse {
     user: AuthUser
 }
 
+export type CtfState = 'active' | 'not_started' | 'ended'
+
 export interface AppConfig {
     title: string
     description: string
     header_title: string
     header_description: string
+    ctf_start_at?: string | null
+    ctf_end_at?: string | null
     updated_at: string
 }
 
@@ -44,6 +48,8 @@ export interface AdminConfigUpdatePayload {
     description?: string
     header_title?: string
     header_description?: string
+    ctf_start_at?: string | null
+    ctf_end_at?: string | null
 }
 
 export interface Challenge {
@@ -125,8 +131,20 @@ export interface FlagSubmissionPayload {
     flag: string
 }
 
-export interface FlagSubmissionResult {
-    correct: boolean
+export interface CtfStateResponse {
+    ctf_state: CtfState
+}
+
+export interface ChallengesResponse extends CtfStateResponse {
+    challenges: Challenge[]
+}
+
+export interface StacksResponse extends CtfStateResponse {
+    stacks: Stack[]
+}
+
+export interface FlagSubmissionResult extends CtfStateResponse {
+    correct?: boolean
 }
 
 export interface SolvedChallenge {

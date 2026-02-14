@@ -3,7 +3,10 @@ import type {
     AuthUser,
     AppConfig,
     AdminConfigUpdatePayload,
+    CtfState,
+    CtfStateResponse,
     Challenge,
+    ChallengesResponse,
     ChallengeCreatePayload,
     ChallengeCreateResponse,
     ChallengeUpdatePayload,
@@ -14,6 +17,7 @@ import type {
     TeamLeaderboardResponse,
     PresignedURL,
     Stack,
+    StacksResponse,
     Team,
     TeamCreatePayload,
     TeamSummary,
@@ -88,6 +92,17 @@ const extractRateLimit = (response: Response, data: any): RateLimitInfo | undefi
     return undefined
 }
 
+const resolveCtfState = (data: any): CtfState => {
+    switch (data?.ctf_state) {
+        case 'not_started':
+        case 'ended':
+        case 'active':
+            return data.ctf_state
+        default:
+            return 'active'
+    }
+}
+
 export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, translate }: ApiDeps) => {
     const buildHeaders = (withAuth: boolean, tokenOverride?: string) => {
         const headers: Record<string, string> = { Accept: 'application/json' }
@@ -152,20 +167,27 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             body,
             auth = false,
             retryOnAuth = true,
+            noCache = false,
         }: {
             method?: string
             body?: unknown
             auth?: boolean
             retryOnAuth?: boolean
+            noCache?: boolean
         } = {},
     ): Promise<T> => {
         const headers = buildHeaders(auth)
         if (body !== undefined) headers['Content-Type'] = 'application/json'
+        if (noCache) {
+            headers['Cache-Control'] = 'no-cache'
+            headers.Pragma = 'no-cache'
+        }
 
         const response = await fetch(`${API_BASE}${path}`, {
             method,
             headers,
             body: body !== undefined ? JSON.stringify(body) : undefined,
+            cache: noCache ? 'no-store' : 'default',
         })
 
         if (response.ok) {
@@ -179,11 +201,16 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 const newToken = await getFreshToken()
                 const retryHeaders = buildHeaders(true, newToken)
                 if (body !== undefined) retryHeaders['Content-Type'] = 'application/json'
+                if (noCache) {
+                    retryHeaders['Cache-Control'] = 'no-cache'
+                    retryHeaders.Pragma = 'no-cache'
+                }
 
                 const retryResponse = await fetch(`${API_BASE}${path}`, {
                     method,
                     headers: retryHeaders,
                     body: body !== undefined ? JSON.stringify(body) : undefined,
+                    cache: noCache ? 'no-store' : 'default',
                 })
 
                 if (retryResponse.ok) {
@@ -216,7 +243,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
     }
 
     return {
-        config: () => request<AppConfig>(`/api/config`),
+        config: (opts?: { noCache?: boolean }) => request<AppConfig>(`/api/config`, { noCache: opts?.noCache }),
         updateAdminConfig: (payload: AdminConfigUpdatePayload) =>
             request<AppConfig>(`/api/admin/config`, { method: 'PUT', body: payload, auth: true }),
         register: (payload: RegisterPayload) =>
@@ -238,7 +265,13 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
         },
         me: () => request<AuthUser>(`/api/me`, { auth: true }),
         updateMe: (username: string) => request<AuthUser>(`/api/me`, { method: 'PUT', body: { username }, auth: true }),
-        challenges: () => request<Challenge[]>(`/api/challenges`),
+        challenges: async () => {
+            const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges`)
+            return {
+                ctf_state: resolveCtfState(data),
+                challenges: Array.isArray(data?.challenges) ? data.challenges : [],
+            } as ChallengesResponse
+        },
         submitFlag: (id: number, flag: string) =>
             request<FlagSubmissionResult>(`/api/challenges/${id}/submit`, {
                 method: 'POST',
@@ -270,13 +303,26 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
         deleteChallengeFile: (id: number) =>
             request<Challenge>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
         requestChallengeFileDownload: (id: number) =>
-            request<PresignedURL>(`/api/challenges/${id}/file/download`, { method: 'POST', auth: true }),
+            request<PresignedURL | CtfStateResponse>(`/api/challenges/${id}/file/download`, {
+                method: 'POST',
+                auth: true,
+            }),
         createStack: (challengeID: number) =>
-            request<Stack>(`/api/challenges/${challengeID}/stack`, { method: 'POST', auth: true }),
-        getStack: (challengeID: number) => request<Stack>(`/api/challenges/${challengeID}/stack`, { auth: true }),
+            request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { method: 'POST', auth: true }),
+        getStack: (challengeID: number) =>
+            request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { auth: true }),
         deleteStack: (challengeID: number) =>
-            request<void>(`/api/challenges/${challengeID}/stack`, { method: 'DELETE', auth: true }),
-        stacks: () => request<Stack[]>(`/api/stacks`, { auth: true }),
+            request<{ status?: string; ctf_state?: CtfState }>(`/api/challenges/${challengeID}/stack`, {
+                method: 'DELETE',
+                auth: true,
+            }),
+        stacks: async () => {
+            const data = await request<{ ctf_state?: CtfState; stacks?: Stack[] }>(`/api/stacks`, { auth: true })
+            return {
+                ctf_state: resolveCtfState(data),
+                stacks: Array.isArray(data?.stacks) ? data.stacks : [],
+            } as StacksResponse
+        },
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
         createRegistrationKeys: (payload: RegistrationKeyCreatePayload) =>
             request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),

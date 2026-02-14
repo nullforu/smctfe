@@ -13,6 +13,8 @@ const SiteConfig = () => {
     const [configDescription, setConfigDescription] = useState('')
     const [headerTitle, setHeaderTitle] = useState('')
     const [headerDescription, setHeaderDescription] = useState('')
+    const [ctfStartAt, setCtfStartAt] = useState('')
+    const [ctfEndAt, setCtfEndAt] = useState('')
     const [configLoading, setConfigLoading] = useState(false)
     const [configErrorMessage, setConfigErrorMessage] = useState('')
     const [configSuccessMessage, setConfigSuccessMessage] = useState('')
@@ -29,11 +31,13 @@ const SiteConfig = () => {
         setConfigFieldErrors({})
 
         try {
-            const response = await api.config()
+            const response = await api.config({ noCache: true })
             setConfigTitle(response.title)
             setConfigDescription(response.description)
             setHeaderTitle(response.header_title)
             setHeaderDescription(response.header_description)
+            setCtfStartAt(response.ctf_start_at ?? '')
+            setCtfEndAt(response.ctf_end_at ?? '')
         } catch (error) {
             const formatted = formatApiError(error, t)
             setConfigErrorMessage(formatted.message)
@@ -49,16 +53,21 @@ const SiteConfig = () => {
         setConfigFieldErrors({})
 
         try {
-            const response = await api.updateAdminConfig({
+            const payload = {
                 title: configTitle,
                 description: configDescription,
                 header_title: headerTitle,
                 header_description: headerDescription,
-            })
+                ctf_start_at: ctfStartAt.trim() ? ctfStartAt.trim() : null,
+                ctf_end_at: ctfEndAt.trim() ? ctfEndAt.trim() : null,
+            }
+            const response = await api.updateAdminConfig(payload)
             setConfigTitle(response.title)
             setConfigDescription(response.description)
             setHeaderTitle(response.header_title)
             setHeaderDescription(response.header_description)
+            setCtfStartAt(response.ctf_start_at ?? '')
+            setCtfEndAt(response.ctf_end_at ?? '')
             setConfig(response)
             setConfigSuccessMessage(t('admin.site.saved'))
         } catch (error) {
@@ -148,6 +157,43 @@ const SiteConfig = () => {
                             {t('admin.site.siteTitle')}: {configFieldErrors.title}
                         </p>
                     ) : null}
+                </div>
+                <div>
+                    <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-ctf-start-at'>
+                        {t('admin.site.ctfStartAt')}
+                    </label>
+                    <input
+                        id='admin-ctf-start-at'
+                        className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                        type='text'
+                        value={ctfStartAt}
+                        onChange={(event) => setCtfStartAt(event.target.value)}
+                        placeholder={t('admin.site.ctfStartAtPlaceholder')}
+                    />
+                    {configFieldErrors.ctf_start_at ? (
+                        <p className='mt-2 text-xs text-danger'>
+                            {t('admin.site.ctfStartAt')}: {configFieldErrors.ctf_start_at}
+                        </p>
+                    ) : null}
+                </div>
+                <div>
+                    <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-ctf-end-at'>
+                        {t('admin.site.ctfEndAt')}
+                    </label>
+                    <input
+                        id='admin-ctf-end-at'
+                        className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                        type='text'
+                        value={ctfEndAt}
+                        onChange={(event) => setCtfEndAt(event.target.value)}
+                        placeholder={t('admin.site.ctfEndAtPlaceholder')}
+                    />
+                    {configFieldErrors.ctf_end_at ? (
+                        <p className='mt-2 text-xs text-danger'>
+                            {t('admin.site.ctfEndAt')}: {configFieldErrors.ctf_end_at}
+                        </p>
+                    ) : null}
+                    <p className='mt-2 text-xs text-text-subtle'>{t('admin.site.ctfTimeHint')}</p>
                 </div>
                 <div>
                     <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-site-description'>

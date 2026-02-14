@@ -1,4 +1,4 @@
-import type { Stack } from '../../lib/types'
+import type { CtfState, Stack } from '../../lib/types'
 import { useT } from '../../lib/i18n'
 
 interface ActiveStacksCardProps {
@@ -6,6 +6,7 @@ interface ActiveStacksCardProps {
     stacksError: string
     stacksLoading: boolean
     stackDeletingId: number | null
+    ctfState: CtfState
     onRefresh: () => void
     onDelete: (challengeId: number) => void
     formatOptionalDateTime: (value?: string | null) => string
@@ -16,6 +17,7 @@ const ActiveStacksCard = ({
     stacksError,
     stacksLoading,
     stackDeletingId,
+    ctfState,
     onRefresh,
     onDelete,
     formatOptionalDateTime,
@@ -39,6 +41,10 @@ const ActiveStacksCard = ({
                 <p className='mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2 text-xs text-danger'>
                     {stacksError}
                 </p>
+            ) : ctfState === 'not_started' ? (
+                <div className='mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning-strong'>
+                    {t('profile.stacksNotStarted')}
+                </div>
             ) : activeStacks.length === 0 ? (
                 <div className='mt-4 rounded-xl border border-border bg-surface-muted p-5 text-center'>
                     <p className='text-sm text-text-muted'>{t('profile.noActiveStacks')}</p>

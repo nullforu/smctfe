@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router'
 import Markdown from '../components/Markdown'
-import { useT } from '../lib/i18n'
+import { getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 import { useConfig } from '../lib/config'
 
@@ -13,6 +13,19 @@ const Home = ({ routeParams = {} }: RouteProps) => {
     const t = useT()
     const { state: auth } = useAuth()
     const { config: appConfig } = useConfig()
+    const locale = useLocale()
+    const localeTag = getLocaleTag(locale)
+
+    const formatTimestamp = (value: string) => {
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) return value
+        return date.toLocaleString(localeTag)
+    }
+
+    const ctfTimes = [
+        { label: t('home.ctfStartAt'), value: appConfig.ctf_start_at },
+        { label: t('home.ctfEndAt'), value: appConfig.ctf_end_at },
+    ].filter((item) => typeof item.value === 'string' && item.value.trim().length > 0)
 
     return (
         <section className='fade-in'>
@@ -42,6 +55,22 @@ const Home = ({ routeParams = {} }: RouteProps) => {
                             </a>
                         ) : null}
                     </div>
+                    {ctfTimes.length > 0 ? (
+                        <div className='mt-6 max-w-xl rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm text-text sm:mt-8'>
+                            <div className='grid gap-2 sm:grid-cols-2'>
+                                {ctfTimes.map((item) => (
+                                    <div key={item.label} className='flex flex-col gap-1'>
+                                        <span className='text-xs uppercase tracking-wide text-text-muted'>
+                                            {item.label}
+                                        </span>
+                                        <span className='text-sm text-text'>
+                                            {formatTimestamp(item.value as string)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </section>

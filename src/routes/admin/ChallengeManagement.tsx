@@ -40,7 +40,8 @@ const ChallengeManagement = () => {
         setErrorMessage('')
 
         try {
-            setChallenges(await api.challenges())
+            const response = await api.challenges()
+            setChallenges(response.challenges)
         } catch (error) {
             const formatted = formatApiError(error, t)
             setErrorMessage(formatted.message)
