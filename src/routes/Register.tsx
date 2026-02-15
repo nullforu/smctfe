@@ -129,13 +129,16 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                                 id='register-key'
                                 className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
-                                inputMode='numeric'
-                                pattern='[0-9]*'
-                                maxLength={6}
+                                inputMode='text'
+                                autoCapitalize='characters'
+                                maxLength={16}
                                 value={registrationKey}
-                                onChange={(event) => setRegistrationKey(event.target.value)}
+                                onChange={(event) =>
+                                    setRegistrationKey(event.target.value.toUpperCase().replace(/\s/g, ''))
+                                }
                                 placeholder={t('auth.registrationKeyPlaceholder')}
                                 autoComplete='one-time-code'
+                                spellCheck={false}
                             />
                             {fieldErrors.registration_key ? (
                                 <p className='mt-2 text-xs text-danger'>

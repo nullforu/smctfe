@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { formatApiError, formatDateTime, type FieldErrors } from '../../lib/utils'
 import type { RegistrationKey, TeamSummary } from '../../lib/types'
 import FormMessage from '../../components/FormMessage'
@@ -22,6 +22,7 @@ const RegistrationKeys = () => {
     const [createKeysSuccessMessage, setCreateKeysSuccessMessage] = useState('')
     const [keyCount, setKeyCount] = useState(1)
     const [selectedTeamId, setSelectedTeamId] = useState<string>('')
+    const [maxUses, setMaxUses] = useState(1)
 
     useEffect(() => {
         loadKeys()
@@ -75,10 +76,12 @@ const RegistrationKeys = () => {
             const payload = {
                 count: Number(keyCount),
                 team_id: Number(selectedTeamId),
+                max_uses: Number(maxUses),
             }
             const created = await api.createRegistrationKeys(payload)
             setCreateKeysSuccessMessage(t('admin.keys.createdCount', { count: created.length }))
             setKeyCount(1)
+            setMaxUses(1)
             await loadKeys()
         } catch (error) {
             const formatted = formatApiError(error, t)
@@ -98,7 +101,7 @@ const RegistrationKeys = () => {
                     submitKeys()
                 }}
             >
-                <div className='grid gap-4 md:grid-cols-[1fr_1fr_auto]'>
+                <div className='grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto]'>
                     <div>
                         <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-key-count'>
                             {t('common.count')}
@@ -114,6 +117,27 @@ const RegistrationKeys = () => {
                         {createKeysFieldErrors.count ? (
                             <p className='mt-2 text-xs text-danger'>
                                 {t('common.count')}: {createKeysFieldErrors.count}
+                            </p>
+                        ) : null}
+                    </div>
+                    <div>
+                        <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-key-max-uses'>
+                            {t('admin.keys.maxUses')}
+                        </label>
+                        <input
+                            id='admin-key-max-uses'
+                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                            type='number'
+                            min={1}
+                            value={maxUses}
+                            onChange={(event) => {
+                                const nextValue = Number(event.target.value)
+                                setMaxUses(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 1)
+                            }}
+                        />
+                        {createKeysFieldErrors.max_uses ? (
+                            <p className='mt-2 text-xs text-danger'>
+                                {t('admin.keys.maxUses')}: {createKeysFieldErrors.max_uses}
                             </p>
                         ) : null}
                     </div>
@@ -182,27 +206,63 @@ const RegistrationKeys = () => {
                             <thead className='text-xs uppercase tracking-wide text-text-subtle'>
                                 <tr>
                                     <th className='py-2 pr-4'>{t('common.code')}</th>
-                                    <th className='py-2 pr-4'>{t('common.createdBy')}</th>
                                     <th className='py-2 pr-4'>{t('common.team')}</th>
+                                    <th className='py-2 pr-4'>{t('admin.keys.usage')}</th>
+                                    <th className='py-2 pr-4'>{t('common.createdBy')}</th>
                                     <th className='py-2 pr-4'>{t('common.createdAt')}</th>
-                                    <th className='py-2 pr-4'>{t('common.usedBy')}</th>
-                                    <th className='py-2 pr-4'>{t('common.usedIp')}</th>
-                                    <th className='py-2'>{t('common.usedAt')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {registrationKeys.map((key) => (
-                                    <tr key={key.id} className='border-t border-border/70'>
-                                        <td className='py-3 pr-4 font-mono text-text'>{key.code}</td>
-                                        <td className='py-3 pr-4'>{key.created_by_username}</td>
-                                        <td className='py-3 pr-4'>{key.team_name}</td>
-                                        <td className='py-3 pr-4'>{formatDateTime(key.created_at, localeTag)}</td>
-                                        <td className='py-3 pr-4'>{key.used_by_username ?? '-'}</td>
-                                        <td className='py-3 pr-4 font-mono text-xs'>{key.used_by_ip ?? '-'}</td>
-                                        <td className='py-3'>
-                                            {key.used_at ? formatDateTime(key.used_at, localeTag) : '-'}
-                                        </td>
-                                    </tr>
+                                    <Fragment key={key.id}>
+                                        <tr className='border-t border-border/70'>
+                                            <td className='py-3 pr-4 font-mono text-text'>{key.code}</td>
+                                            <td className='py-3 pr-4'>{key.team_name}</td>
+                                            <td className='py-3 pr-4'>
+                                                <div className='font-medium text-text'>
+                                                    {t('admin.keys.usageCount', {
+                                                        used: key.used_count,
+                                                        max: key.max_uses,
+                                                    })}
+                                                </div>
+                                                <div className='text-xs text-text-subtle'>
+                                                    {t('admin.keys.lastUsedAt')}:{' '}
+                                                    {key.last_used_at
+                                                        ? formatDateTime(key.last_used_at, localeTag)
+                                                        : t('common.na')}
+                                                </div>
+                                            </td>
+                                            <td className='py-3 pr-4'>{key.created_by_username}</td>
+                                            <td className='py-3 pr-4'>{formatDateTime(key.created_at, localeTag)}</td>
+                                        </tr>
+                                        {key.uses && key.uses.length > 0 ? (
+                                            <tr className='border-t border-border/40 bg-surface/40'>
+                                                <td className='py-3 pr-4' colSpan={5}>
+                                                    <div className='text-xs uppercase tracking-wide text-text-muted'>
+                                                        {t('admin.keys.usesLabel')}
+                                                    </div>
+                                                    <ul className='mt-2 space-y-2 text-xs text-text'>
+                                                        {key.uses.map((use) => (
+                                                            <li
+                                                                key={`${use.used_by}-${use.used_at}`}
+                                                                className='flex flex-wrap gap-3'
+                                                            >
+                                                                <span className='font-medium text-text'>
+                                                                    {use.used_by_username}
+                                                                </span>
+                                                                <span className='font-mono text-text-subtle'>
+                                                                    {use.used_by_ip ?? t('common.na')}
+                                                                </span>
+                                                                <span className='text-text-subtle'>
+                                                                    {formatDateTime(use.used_at, localeTag)}
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        ) : null}
+                                    </Fragment>
                                 ))}
                             </tbody>
                         </table>

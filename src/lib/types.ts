@@ -238,16 +238,24 @@ export interface RegistrationKey {
     created_by_username: string
     team_id: number
     team_name: string
-    used_by?: number
-    used_by_username?: string
-    used_by_ip?: string
+    max_uses: number
+    used_count: number
     created_at: string
-    used_at?: string
+    last_used_at?: string | null
+    uses?: RegistrationKeyUse[]
+}
+
+export interface RegistrationKeyUse {
+    used_by: number
+    used_by_username: string
+    used_by_ip?: string | null
+    used_at: string
 }
 
 export interface RegistrationKeyCreatePayload {
     count: number
     team_id: number
+    max_uses?: number
 }
 
 export interface Team {
