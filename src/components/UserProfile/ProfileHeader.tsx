@@ -8,7 +8,11 @@ interface ProfileHeaderProps {
 const ProfileHeader = ({ user }: ProfileHeaderProps) => {
     const t = useT()
     const roleClasses = (role: string) =>
-        role === 'admin' ? 'bg-secondary/20 text-secondary' : 'bg-accent/20 text-accent-strong'
+        role === 'admin'
+            ? 'bg-secondary/20 text-secondary'
+            : role === 'blocked'
+              ? 'bg-danger/20 text-danger'
+              : 'bg-accent/20 text-accent-strong'
 
     return (
         <div className='flex flex-wrap items-end justify-between gap-4'>

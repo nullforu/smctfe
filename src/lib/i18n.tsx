@@ -144,6 +144,7 @@ export const translateCategory = (
 const roleKeyMap: Record<string, string> = {
     admin: 'roles.admin',
     user: 'roles.user',
+    blocked: 'roles.blocked',
 }
 
 export const getRoleKey = (role: string) => roleKeyMap[role] ?? role

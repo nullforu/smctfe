@@ -328,6 +328,12 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),
         createTeam: (payload: TeamCreatePayload) =>
             request<Team>(`/api/admin/teams`, { method: 'POST', body: payload, auth: true }),
+        moveUserTeam: (id: number, team_id: number) =>
+            request<AuthUser>(`/api/admin/users/${id}/team`, { method: 'POST', body: { team_id }, auth: true }),
+        blockUser: (id: number, reason: string) =>
+            request<AuthUser>(`/api/admin/users/${id}/block`, { method: 'POST', body: { reason }, auth: true }),
+        unblockUser: (id: number) =>
+            request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
         teams: () => request<TeamSummary[]>(`/api/teams`),
         teamDetail: (id: number) => request<TeamDetail>(`/api/teams/${id}`),
         teamMembers: (id: number) => request<TeamMember[]>(`/api/teams/${id}/members`),

@@ -5,6 +5,8 @@ export interface AuthUser {
     role: string
     team_id: number
     team_name: string
+    blocked_reason: string | null
+    blocked_at: string | null
 }
 
 export interface RegisterPayload {
@@ -221,6 +223,8 @@ export interface UserListItem {
     role: string
     team_id: number
     team_name: string
+    blocked_reason: string | null
+    blocked_at: string | null
 }
 
 export interface UserDetail {
@@ -229,6 +233,8 @@ export interface UserDetail {
     role: string
     team_id: number
     team_name: string
+    blocked_reason: string | null
+    blocked_at: string | null
 }
 
 export interface RegistrationKey {
@@ -280,6 +286,8 @@ export interface TeamMember {
     id: number
     username: string
     role: string
+    blocked_reason: string | null
+    blocked_at: string | null
 }
 
 export interface TeamDetail extends TeamSummary {}

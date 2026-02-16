@@ -115,7 +115,9 @@ const Users = ({ routeParams = {} }: RouteProps) => {
                                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
                                                         user.role === 'admin'
                                                             ? 'bg-secondary/20 text-secondary'
-                                                            : 'bg-accent/20 text-accent-strong'
+                                                            : user.role === 'blocked'
+                                                              ? 'bg-danger/20 text-danger'
+                                                              : 'bg-accent/20 text-accent-strong'
                                                     }`}
                                                 >
                                                     {t(getRoleKey(user.role))}

@@ -20,6 +20,7 @@ const Header = ({ user }: HeaderProps) => {
     const { clearAuth } = useAuth()
     const api = useApi()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const isBlocked = user?.role === 'blocked'
 
     const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev)
     const closeMobileMenu = () => setMobileMenuOpen(false)
@@ -45,6 +46,19 @@ const Header = ({ user }: HeaderProps) => {
 
     return (
         <>
+            {isBlocked ? (
+                <div className='border-b border-danger/30 bg-danger/10'>
+                    <div className='mx-auto max-w-6xl px-6 py-3 text-sm text-danger'>
+                        <p className='font-medium'>{t('blocked.bannerTitle')}</p>
+                        <p className='text-xs text-danger/80'>{t('blocked.bannerBody')}</p>
+                        {user?.blocked_reason ? (
+                            <p className='mt-1 text-xs text-danger/80'>
+                                {t('blocked.reasonLabel')}: {user.blocked_reason}
+                            </p>
+                        ) : null}
+                    </div>
+                </div>
+            ) : null}
             <header className='border-b border-border bg-surface/70 backdrop-blur'>
                 <div className='mx-auto flex max-w-6xl items-center justify-between px-6 py-4'>
                     <button
