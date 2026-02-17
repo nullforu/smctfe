@@ -6,6 +6,7 @@ import Teams from './admin/Teams'
 import SiteConfig from './admin/SiteConfig'
 import Users from './admin/Users'
 import Stacks from './admin/Stacks'
+import Report from './admin/Report'
 import { useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 
@@ -21,6 +22,7 @@ type AdminTabId =
     | 'stacks'
     | 'registration_keys'
     | 'site_config'
+    | 'report'
 const TAB_PARAM = 'tab'
 const ADMIN_TAB_IDS: AdminTabId[] = [
     'challenge_create',
@@ -30,6 +32,7 @@ const ADMIN_TAB_IDS: AdminTabId[] = [
     'stacks',
     'registration_keys',
     'site_config',
+    'report',
 ]
 
 const getTabFromUrl = (): AdminTabId | null => {
@@ -51,6 +54,7 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
             { id: 'stacks', label: t('admin.tab.stacks') },
             { id: 'registration_keys', label: t('admin.tab.registrationKeys') },
             { id: 'site_config', label: t('admin.tab.siteConfig') },
+            { id: 'report', label: t('admin.tab.report') },
         ],
         [t],
     )
@@ -142,6 +146,8 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
                                 <Teams />
                             ) : activeTab === 'site_config' ? (
                                 <SiteConfig />
+                            ) : activeTab === 'report' ? (
+                                <Report />
                             ) : null}
                         </div>
                     </div>

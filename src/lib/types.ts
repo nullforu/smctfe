@@ -170,6 +170,20 @@ export interface AdminStackDeleteResponse {
     stack_id: string
 }
 
+export interface AdminReportResponse {
+    challenges: Challenge[]
+    teams: TeamSummary[]
+    users: UserListItem[]
+    stacks: Stack[]
+    registration_keys: RegistrationKey[]
+    submissions: SubmissionRecord[]
+    app_config: AppConfig
+    timeline: TimelineResponse
+    team_timeline: TeamTimelineResponse
+    leaderboard: LeaderboardResponse
+    team_leaderboard: TeamLeaderboardResponse
+}
+
 export interface FlagSubmissionResult extends CtfStateResponse {
     correct?: boolean
 }
@@ -240,6 +254,10 @@ export interface TeamTimelineSubmission {
 
 export interface TeamTimelineResponse {
     submissions: TeamTimelineSubmission[]
+}
+
+export interface SubmissionRecord {
+    [key: string]: unknown
 }
 
 export interface UserListItem {

@@ -12,6 +12,7 @@ import type {
     ChallengeUpdatePayload,
     ChallengeFileUploadResponse,
     AdminChallengeDetail,
+    AdminReportResponse,
     AdminStackDeleteResponse,
     AdminStackListItem,
     AdminStacksResponse,
@@ -335,6 +336,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
         adminStack: (stackId: string) => request<Stack>(`/api/admin/stacks/${stackId}`, { auth: true }),
         deleteAdminStack: (stackId: string) =>
             request<AdminStackDeleteResponse>(`/api/admin/stacks/${stackId}`, { method: 'DELETE', auth: true }),
+        adminReport: () => request<AdminReportResponse>(`/api/admin/report`, { auth: true, noCache: true }),
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
         createRegistrationKeys: (payload: RegistrationKeyCreatePayload) =>
             request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),

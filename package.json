@@ -10,13 +10,16 @@
         "format": "prettier --write ."
     },
     "dependencies": {
+        "@monaco-editor/react": "^4.7.0",
         "@tailwindcss/vite": "^4.1.18",
+        "js-yaml": "^4.1.1",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-markdown": "^10.1.0",
         "tailwindcss": "^4.1.18"
     },
     "devDependencies": {
+        "@types/js-yaml": "^4.0.9",
         "@types/node": "^24.10.1",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",

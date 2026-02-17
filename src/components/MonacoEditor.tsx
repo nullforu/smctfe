@@ -48,9 +48,17 @@ interface MonacoEditorProps {
     template?: keyof typeof valueTemplates
     readonly?: boolean
     language?: string
+    height?: string
 }
 
-const MonacoEditor = ({ value, onChange, template, readonly = false, language }: MonacoEditorProps) => {
+const MonacoEditor = ({
+    value,
+    onChange,
+    template,
+    readonly = false,
+    language,
+    height = '200px',
+}: MonacoEditorProps) => {
     const { theme } = useTheme()
     const monaco = useMonaco()
 
@@ -104,7 +112,7 @@ const MonacoEditor = ({ value, onChange, template, readonly = false, language }:
 
     return (
         <Editor
-            height='200px'
+            height={height}
             width='100%'
             defaultLanguage={language ?? 'markdown'}
             value={value || (template ? valueTemplates[template] : '')}
