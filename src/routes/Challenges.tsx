@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { formatApiError } from '../lib/utils'
 import type { Challenge, CtfState } from '../lib/types'
-import ChallengeCard from '../components/ChallengeCard'
 import ChallengeModal from '../components/ChallengeModal'
+import ChallengesView from '../components/ChallengesView'
 import { getLocaleTag, getCategoryKey, useLocale, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
 import { useConfig } from '../lib/config'
@@ -121,117 +121,43 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
     const inactiveSummary =
         inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
+    const summaryText = [solvedSummary, inactiveSummary].filter(Boolean).join(' ')
 
-    const renderChallengeGrid = (items: Challenge[]) => (
-        <div className='mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-            {items.map((challenge) => (
-                <ChallengeCard
-                    key={challenge.id}
-                    challenge={challenge}
-                    isSolved={solvedIds.has(challenge.id)}
-                    onClick={() => setSelectedChallenge(challenge)}
-                />
-            ))}
-        </div>
+    const groupedCategories = useMemo(
+        () =>
+            orderedCategories.map((category) => ({
+                id: category,
+                label: t(getCategoryKey(category)),
+                items: challengesByCategory.get(category) ?? [],
+            })),
+        [orderedCategories, challengesByCategory, t],
     )
-
-    const renderGroupedChallenges = () => (
-        <div className='mt-6 space-y-8'>
-            {orderedCategories.map((category) => {
-                const items = challengesByCategory.get(category) ?? []
-                if (items.length === 0) return null
-
-                return (
-                    <div key={category}>
-                        <h3 className='text-lg font-semibold text-text'>{t(getCategoryKey(category))}</h3>
-                        <div className='mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                            {items.map((challenge) => (
-                                <ChallengeCard
-                                    key={challenge.id}
-                                    challenge={challenge}
-                                    isSolved={solvedIds.has(challenge.id)}
-                                    onClick={() => setSelectedChallenge(challenge)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )
-            })}
-        </div>
-    )
-
-    const renderChallenges = () => (groupByCategory ? renderGroupedChallenges() : renderChallengeGrid(challenges))
-
-    const renderBody = () => {
-        if (loading) {
-            return (
-                <div className='mt-6 rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>
-                    {t('challenges.loading')}
-                </div>
-            )
-        }
-
-        if (errorMessage) {
-            return (
-                <div className='mt-6 rounded-2xl border border-danger/40 bg-danger/10 p-6 text-sm text-danger'>
-                    {errorMessage}
-                </div>
-            )
-        }
-
-        if (showNotStarted) {
-            return (
-                <div className='mt-6 space-y-3 rounded-2xl border border-warning/40 bg-warning/10 p-6 text-sm text-warning-strong'>
-                    <p>{t('challenges.notStarted')}</p>
-                    <div className='text-xs text-text-muted'>
-                        <p>
-                            {t('challenges.startAt')}: {formatTimestamp(config.ctf_start_at)}
-                        </p>
-                        <p>
-                            {t('challenges.endAt')}: {formatTimestamp(config.ctf_end_at)}
-                        </p>
-                    </div>
-                </div>
-            )
-        }
-
-        return (
-            <>
-                {showEnded ? (
-                    <div className='mt-6 rounded-2xl border border-warning/40 bg-warning/10 p-6 text-sm text-warning-strong'>
-                        {t('challenges.ended')}
-                    </div>
-                ) : null}
-                {renderChallenges()}
-            </>
-        )
-    }
 
     return (
-        <section className='fade-in'>
-            <div className='flex flex-wrap items-end justify-between gap-4'>
-                <div>
-                    <h2 className='text-3xl text-text'>{t('challenges.title')}</h2>
-                </div>
-                {showSolvedSummary ? (
-                    <div className='rounded-full border border-border bg-surface px-4 py-2 text-xs text-text'>
-                        {solvedSummary} {inactiveSummary}
-                    </div>
-                ) : null}
-            </div>
-            <div className='mt-4 flex items-center justify-end'>
-                <label className='flex items-center gap-2 text-xs text-text-muted'>
-                    <input
-                        className='h-4 w-4 accent-accent'
-                        type='checkbox'
-                        checked={groupByCategory}
-                        onChange={(event) => setGroupByCategory(event.target.checked)}
-                    />
-                    <span>{t('challenges.groupByCategory')}</span>
-                </label>
-            </div>
-
-            {renderBody()}
+        <>
+            <ChallengesView
+                title={t('challenges.title')}
+                summaryText={summaryText}
+                showSummary={showSolvedSummary}
+                groupByCategory={groupByCategory}
+                toggleLabel={t('challenges.groupByCategory')}
+                onGroupByCategoryChange={setGroupByCategory}
+                loading={loading}
+                loadingText={t('challenges.loading')}
+                errorMessage={errorMessage}
+                notStarted={showNotStarted}
+                notStartedText={t('challenges.notStarted')}
+                startAtLabel={t('challenges.startAt')}
+                startAtValue={formatTimestamp(config.ctf_start_at)}
+                endAtLabel={t('challenges.endAt')}
+                endAtValue={formatTimestamp(config.ctf_end_at)}
+                ended={showEnded}
+                endedText={t('challenges.ended')}
+                challenges={challenges}
+                groupedCategories={groupedCategories}
+                solvedIds={solvedIds}
+                onSelectChallenge={setSelectedChallenge}
+            />
 
             {selectedChallenge ? (
                 <ChallengeModal
@@ -242,7 +168,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
                     onSolved={loadSolved}
                 />
             ) : null}
-        </section>
+        </>
     )
 }
 
