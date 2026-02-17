@@ -5,6 +5,7 @@ import RegistrationKeys from './admin/RegistrationKeys'
 import Teams from './admin/Teams'
 import SiteConfig from './admin/SiteConfig'
 import Users from './admin/Users'
+import Stacks from './admin/Stacks'
 import { useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 
@@ -12,13 +13,21 @@ interface RouteProps {
     routeParams?: Record<string, string>
 }
 
-type AdminTabId = 'challenge_create' | 'challenge_management' | 'users' | 'teams' | 'registration_keys' | 'site_config'
+type AdminTabId =
+    | 'challenge_create'
+    | 'challenge_management'
+    | 'users'
+    | 'teams'
+    | 'stacks'
+    | 'registration_keys'
+    | 'site_config'
 const TAB_PARAM = 'tab'
 const ADMIN_TAB_IDS: AdminTabId[] = [
     'challenge_create',
     'challenge_management',
     'users',
     'teams',
+    'stacks',
     'registration_keys',
     'site_config',
 ]
@@ -39,6 +48,7 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
             { id: 'challenge_management', label: t('admin.tab.challengeManagement') },
             { id: 'users', label: t('admin.tab.users') },
             { id: 'teams', label: t('admin.tab.teams') },
+            { id: 'stacks', label: t('admin.tab.stacks') },
             { id: 'registration_keys', label: t('admin.tab.registrationKeys') },
             { id: 'site_config', label: t('admin.tab.siteConfig') },
         ],
@@ -124,6 +134,8 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
                                 <ChallengeManagement />
                             ) : activeTab === 'registration_keys' ? (
                                 <RegistrationKeys />
+                            ) : activeTab === 'stacks' ? (
+                                <Stacks />
                             ) : activeTab === 'users' ? (
                                 <Users />
                             ) : activeTab === 'teams' ? (

@@ -12,6 +12,9 @@ import type {
     ChallengeUpdatePayload,
     ChallengeFileUploadResponse,
     AdminChallengeDetail,
+    AdminStackDeleteResponse,
+    AdminStackListItem,
+    AdminStacksResponse,
     FlagSubmissionResult,
     LeaderboardResponse,
     TeamLeaderboardResponse,
@@ -323,6 +326,15 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 stacks: Array.isArray(data?.stacks) ? data.stacks : [],
             } as StacksResponse
         },
+        adminStacks: async () => {
+            const data = await request<{ stacks?: AdminStackListItem[] }>(`/api/admin/stacks`, { auth: true })
+            return {
+                stacks: Array.isArray(data?.stacks) ? data.stacks : [],
+            } as AdminStacksResponse
+        },
+        adminStack: (stackId: string) => request<Stack>(`/api/admin/stacks/${stackId}`, { auth: true }),
+        deleteAdminStack: (stackId: string) =>
+            request<AdminStackDeleteResponse>(`/api/admin/stacks/${stackId}`, { method: 'DELETE', auth: true }),
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
         createRegistrationKeys: (payload: RegistrationKeyCreatePayload) =>
             request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),

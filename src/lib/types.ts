@@ -114,6 +114,21 @@ export interface Stack {
     updated_at: string
 }
 
+export interface AdminStackListItem {
+    stack_id: string
+    ttl_expires_at?: string | null
+    created_at: string
+    updated_at: string
+    user_id: number
+    username: string
+    email: string
+    team_id: number
+    team_name: string
+    challenge_id: number
+    challenge_title: string
+    challenge_category: string
+}
+
 export interface PresignedPost {
     url: string
     fields: Record<string, string>
@@ -144,6 +159,15 @@ export interface ChallengesResponse extends CtfStateResponse {
 
 export interface StacksResponse extends CtfStateResponse {
     stacks: Stack[]
+}
+
+export interface AdminStacksResponse {
+    stacks: AdminStackListItem[]
+}
+
+export interface AdminStackDeleteResponse {
+    deleted: boolean
+    stack_id: string
 }
 
 export interface FlagSubmissionResult extends CtfStateResponse {
