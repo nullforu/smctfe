@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { uploadPresignedPost } from '../../lib/api'
 import { CHALLENGE_CATEGORIES } from '../../lib/constants'
 import { formatApiError, isZipFile, type FieldErrors } from '../../lib/utils'
+import MonacoEditor from '../../components/MonacoEditor'
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
@@ -12,7 +13,7 @@ const CreateChallenge = () => {
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
-    const [title, setTitle] = useState('')
+    const [title, setTitle] = useState('Example title: Enter a concise and clear title')
     const [description, setDescription] = useState('')
     const [category, setCategory] = useState<string>(CHALLENGE_CATEGORIES[0])
     const [points, setPoints] = useState(100)
@@ -121,16 +122,15 @@ const CreateChallenge = () => {
                     ) : null}
                 </div>
                 <div>
-                    <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-description'>
-                        {t('common.description')}
-                    </label>
-                    <textarea
-                        id='admin-description'
-                        className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                        rows={5}
-                        value={description}
-                        onChange={(event) => setDescription(event.target.value)}
-                    ></textarea>
+                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.description')}</p>
+                    <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                        <MonacoEditor
+                            template='markdown'
+                            language='markdown'
+                            value={description}
+                            onChange={(value) => setDescription(value)}
+                        />
+                    </div>
                     {fieldErrors.description ? (
                         <p className='mt-2 text-xs text-danger'>
                             {t('common.description')}: {fieldErrors.description}
@@ -285,13 +285,14 @@ const CreateChallenge = () => {
                                 >
                                     {t('admin.create.podSpec')}
                                 </label>
-                                <textarea
-                                    id='admin-stack-pod-spec'
-                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-xs text-text focus:border-accent focus:outline-none'
-                                    rows={7}
-                                    value={stackPodSpec}
-                                    onChange={(event) => setStackPodSpec(event.target.value)}
-                                ></textarea>
+                                <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                    <MonacoEditor
+                                        template='yaml'
+                                        language='yaml'
+                                        value={stackPodSpec}
+                                        onChange={(value) => setStackPodSpec(value)}
+                                    />
+                                </div>
                                 {fieldErrors.stack_pod_spec ? (
                                     <p className='mt-2 text-xs text-danger'>
                                         {t('admin.create.podSpec')}: {fieldErrors.stack_pod_spec}

@@ -5,6 +5,7 @@ import FormMessage from '../../components/FormMessage'
 import { useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
 import { useConfig } from '../../lib/config'
+import MonacoEditor from '../../components/MonacoEditor'
 
 type ConfigField = 'header_title' | 'header_description' | 'title' | 'description' | 'ctf_start_at' | 'ctf_end_at'
 
@@ -258,22 +259,19 @@ const SiteConfig = () => {
                         ) : null}
                     </div>
                     <div>
-                        <label
-                            className='text-xs uppercase tracking-wide text-text-muted'
-                            htmlFor='admin-header-description'
-                        >
+                        <p className='text-xs uppercase tracking-wide text-text-muted'>
                             {t('admin.site.headerDescription')}
-                        </label>
+                        </p>
                         {editingField === 'header_description' ? (
                             <div className='mt-2 space-y-2'>
-                                <textarea
-                                    id='admin-header-description'
-                                    className='h-28 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                    value={headerDescription}
-                                    onChange={(event) => setHeaderDescription(event.target.value)}
-                                    placeholder={t('admin.site.headerDescriptionPlaceholder')}
-                                    disabled={configLoading}
-                                ></textarea>
+                                <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                    <MonacoEditor
+                                        language='markdown'
+                                        value={headerDescription}
+                                        onChange={(value) => setHeaderDescription(value)}
+                                        readonly={configLoading}
+                                    />
+                                </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
                                         className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
@@ -491,22 +489,18 @@ const SiteConfig = () => {
                         <p className='mt-2 text-xs text-text-subtle'>{t('admin.site.ctfTimeHint')}</p>
                     </div>
                     <div>
-                        <label
-                            className='text-xs uppercase tracking-wide text-text-muted'
-                            htmlFor='admin-site-description'
-                        >
-                            {t('admin.site.description')}
-                        </label>
+                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.site.description')}</p>
                         {editingField === 'description' ? (
                             <div className='mt-2 space-y-2'>
-                                <textarea
-                                    id='admin-site-description'
-                                    className='h-32 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                    value={configDescription}
-                                    onChange={(event) => setConfigDescription(event.target.value)}
-                                    placeholder={t('admin.site.siteDescriptionPlaceholder')}
-                                    disabled={configLoading}
-                                ></textarea>
+                                <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                    <MonacoEditor
+                                        template='markdown'
+                                        language='markdown'
+                                        value={configDescription}
+                                        onChange={(value) => setConfigDescription(value)}
+                                        readonly={configLoading}
+                                    />
+                                </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
                                         className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'

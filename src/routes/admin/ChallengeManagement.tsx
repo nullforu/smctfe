@@ -6,6 +6,7 @@ import type { Challenge, ChallengeUpdatePayload } from '../../lib/types'
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
+import MonacoEditor from '../../components/MonacoEditor'
 
 const ChallengeManagement = () => {
     const t = useT()
@@ -507,16 +508,13 @@ const ChallengeManagement = () => {
                                                             </label>
                                                             {editingField === 'description' ? (
                                                                 <div className='mt-2 space-y-2'>
-                                                                    <textarea
-                                                                        id={`manage-description-${challenge.id}`}
-                                                                        className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                        rows={5}
-                                                                        value={editDescription}
-                                                                        onChange={(event) =>
-                                                                            setEditDescription(event.target.value)
-                                                                        }
-                                                                        disabled={manageLoading}
-                                                                    ></textarea>
+                                                                    <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                                                        <MonacoEditor
+                                                                            value={editDescription}
+                                                                            onChange={setEditDescription}
+                                                                        />
+                                                                    </div>
+
                                                                     <div className='flex flex-wrap items-center gap-3'>
                                                                         <button
                                                                             className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
@@ -983,27 +981,19 @@ const ChallengeManagement = () => {
                                                                                 ) : null}
                                                                             </div>
                                                                             <div>
-                                                                                <label
-                                                                                    className='text-xs uppercase tracking-wide text-text-muted'
-                                                                                    htmlFor={`manage-stack-pod-spec-${challenge.id}`}
-                                                                                >
+                                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>
                                                                                     {t('admin.create.podSpec')}
-                                                                                </label>
-                                                                                <textarea
-                                                                                    id={`manage-stack-pod-spec-${challenge.id}`}
-                                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-xs text-text focus:border-accent focus:outline-none'
-                                                                                    rows={7}
-                                                                                    placeholder={t(
-                                                                                        'admin.manage.podSpecPlaceholder',
-                                                                                    )}
-                                                                                    value={editStackPodSpec}
-                                                                                    onChange={(event) =>
-                                                                                        setEditStackPodSpec(
-                                                                                            event.target.value,
-                                                                                        )
-                                                                                    }
-                                                                                    disabled={manageLoading}
-                                                                                ></textarea>
+                                                                                </p>
+                                                                                <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                                                                    <MonacoEditor
+                                                                                        language='yaml'
+                                                                                        value={editStackPodSpec}
+                                                                                        onChange={(value) =>
+                                                                                            setEditStackPodSpec(value)
+                                                                                        }
+                                                                                        readonly={manageLoading}
+                                                                                    />
+                                                                                </div>
                                                                                 {manageFieldErrors.stack_pod_spec ? (
                                                                                     <p className='mt-2 text-xs text-danger'>
                                                                                         {t('admin.create.podSpec')}:{' '}
