@@ -127,6 +127,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                 setStackInfo(null)
                 setStackNextInterval(STACK_POLL_FAST_MS)
                 setStackMessage('')
+                console.log('test')
                 return
             }
             const formatted = formatApiError(error, t)
@@ -186,7 +187,8 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
         }
 
         if (isSolved) {
-            setStackMessage(t('challenge.stackSolvedNoNew'))
+            setStackPolling(false)
+            return
         }
 
         loadStack()

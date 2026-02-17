@@ -115,6 +115,7 @@
     "challenges.inactiveCount": "(비활성 문제 {count}개)",
     "challenges.solvedLabel": "해결됨",
     "challenges.inactiveLabel": "비활성",
+    "challenges.groupByCategory": "카테고리별로 보기",
     "challenges.notStarted": "대회가 아직 시작되지 않았습니다. 시작 후 문제를 볼 수 있습니다.",
     "challenges.startAt": "시작",
     "challenges.endAt": "종료",

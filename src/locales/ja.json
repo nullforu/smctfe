@@ -115,6 +115,7 @@
     "challenges.inactiveCount": "（無効 {count} 件）",
     "challenges.solvedLabel": "解決済み",
     "challenges.inactiveLabel": "無効",
+    "challenges.groupByCategory": "カテゴリ別に表示",
     "challenges.notStarted": "CTF はまだ開始されていません。開始後に問題が表示されます。",
     "challenges.startAt": "開始",
     "challenges.endAt": "終了",

@@ -115,6 +115,7 @@
     "challenges.inactiveCount": "({count} inactive)",
     "challenges.solvedLabel": "Solved",
     "challenges.inactiveLabel": "Inactive",
+    "challenges.groupByCategory": "Group by category",
     "challenges.notStarted": "The CTF hasn't started yet. Challenges will be available once it begins.",
     "challenges.startAt": "Starts",
     "challenges.endAt": "Ends",
