@@ -168,17 +168,12 @@ const AdminUsers = () => {
     }, [loadData])
 
     return (
-        <section className='space-y-6'>
-            <div className='flex flex-wrap items-center justify-between gap-4'>
-                <div>
-                    <h3 className='text-lg text-text'>{t('admin.users.title')}</h3>
-                    <p className='mt-1 text-xs text-text-subtle'>{t('admin.users.subtitle')}</p>
-                </div>
+        <section className='space-y-4'>
+            <div className='flex items-center justify-between'>
                 <button
-                    className='rounded-xl border border-border bg-surface px-4 py-2 text-sm text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
+                    className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
                     onClick={loadData}
                     disabled={loading}
-                    type='button'
                 >
                     {loading ? t('common.loading') : t('common.refresh')}
                 </button>

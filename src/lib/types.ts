@@ -95,6 +95,7 @@ export interface ChallengeUpdatePayload {
     category?: string
     points?: number
     minimum_points?: number
+    flag?: string
     is_active?: boolean
     stack_enabled?: boolean
     stack_target_port?: number

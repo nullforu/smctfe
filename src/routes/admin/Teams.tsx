@@ -58,7 +58,16 @@ const Teams = () => {
     }
 
     return (
-        <div className='space-y-6'>
+        <section className='space-y-4'>
+            <div className='flex items-center justify-between'>
+                <button
+                    className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
+                    onClick={loadTeams}
+                    disabled={teamsLoading}
+                >
+                    {teamsLoading ? t('common.loading') : t('common.refresh')}
+                </button>
+            </div>
             <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
                 <form
                     className='space-y-4'
@@ -67,48 +76,49 @@ const Teams = () => {
                         submitTeam()
                     }}
                 >
-                    <div>
-                        <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-team-name'>
-                            {t('common.teamName')}
-                        </label>
-                        <input
-                            id='admin-team-name'
-                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                            type='text'
-                            value={teamName}
-                            onChange={(event) => setTeamName(event.target.value)}
-                            placeholder={t('admin.teams.placeholder')}
-                        />
-                        {createTeamFieldErrors.name ? (
-                            <p className='mt-2 text-xs text-danger'>
-                                {t('common.name')}: {createTeamFieldErrors.name}
-                            </p>
-                        ) : null}
+                    <div className='flex flex-col gap-3 md:flex-row md:items-end'>
+                        <div className='flex-1'>
+                            <label
+                                className='text-xs uppercase tracking-wide text-text-muted'
+                                htmlFor='admin-team-name'
+                            >
+                                {t('common.teamName')}
+                            </label>
+                            <input
+                                id='admin-team-name'
+                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                type='text'
+                                value={teamName}
+                                onChange={(event) => setTeamName(event.target.value)}
+                                placeholder={t('admin.teams.placeholder')}
+                            />
+                            {createTeamFieldErrors.name ? (
+                                <p className='mt-2 text-xs text-danger'>
+                                    {t('common.name')}: {createTeamFieldErrors.name}
+                                </p>
+                            ) : null}
+                        </div>
+
+                        <button
+                            className='rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer md:shrink-0'
+                            type='submit'
+                            disabled={createTeamLoading}
+                        >
+                            {createTeamLoading ? t('admin.teams.creating') : t('admin.teams.createTeam')}
+                        </button>
                     </div>
+
                     {createTeamErrorMessage ? <FormMessage variant='error' message={createTeamErrorMessage} /> : null}
+
                     {createTeamSuccessMessage ? (
                         <FormMessage variant='success' message={createTeamSuccessMessage} />
                     ) : null}
-                    <button
-                        className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                        type='submit'
-                        disabled={createTeamLoading}
-                    >
-                        {createTeamLoading ? t('admin.teams.creating') : t('admin.teams.createTeam')}
-                    </button>
                 </form>
             </div>
 
             <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
                 <div className='flex items-center justify-between'>
                     <h3 className='text-lg text-text'>{t('common.teams')}</h3>
-                    <button
-                        className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
-                        onClick={loadTeams}
-                        disabled={teamsLoading}
-                    >
-                        {teamsLoading ? t('common.loading') : t('common.refresh')}
-                    </button>
                 </div>
 
                 {teamsErrorMessage ? (
@@ -142,7 +152,7 @@ const Teams = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     )
 }
 

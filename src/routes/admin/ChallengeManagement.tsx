@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { uploadPresignedPost } from '../../lib/api'
 import { CHALLENGE_CATEGORIES } from '../../lib/constants'
 import { formatApiError, isZipFile, type FieldErrors } from '../../lib/utils'
-import type { Challenge } from '../../lib/types'
+import type { Challenge, ChallengeUpdatePayload } from '../../lib/types'
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
@@ -17,15 +17,20 @@ const ChallengeManagement = () => {
     const [expandedChallengeId, setExpandedChallengeId] = useState<number | null>(null)
     const [manageLoading, setManageLoading] = useState(false)
     const [manageFieldErrors, setManageFieldErrors] = useState<FieldErrors>({})
+    const [editingField, setEditingField] = useState<
+        'title' | 'description' | 'category' | 'points' | 'minimum_points' | 'flag' | 'is_active' | 'stack' | null
+    >(null)
     const [editTitle, setEditTitle] = useState('')
     const [editDescription, setEditDescription] = useState('')
     const [editCategory, setEditCategory] = useState<string>(CHALLENGE_CATEGORIES[0])
     const [editPoints, setEditPoints] = useState(100)
     const [editMinimumPoints, setEditMinimumPoints] = useState(100)
+    const [editFlag, setEditFlag] = useState('')
     const [editIsActive, setEditIsActive] = useState(true)
     const [editStackEnabled, setEditStackEnabled] = useState(false)
     const [editStackTargetPort, setEditStackTargetPort] = useState(80)
     const [editStackPodSpec, setEditStackPodSpec] = useState('')
+    const [loadedStackPodSpec, setLoadedStackPodSpec] = useState('')
     const [editFile, setEditFile] = useState<File | null>(null)
     const [editFileError, setEditFileError] = useState('')
     const [editFileUploading, setEditFileUploading] = useState(false)
@@ -57,6 +62,8 @@ const ChallengeManagement = () => {
         setEditFileError('')
         setEditFileSuccess('')
         setEditFile(null)
+        setEditingField(null)
+        setEditFlag('')
 
         if (expandedChallengeId === challenge.id) {
             setExpandedChallengeId(null)
@@ -73,13 +80,16 @@ const ChallengeManagement = () => {
         setEditStackEnabled(challenge.stack_enabled)
         setEditStackTargetPort(challenge.stack_target_port || 80)
         setEditStackPodSpec('')
+        setLoadedStackPodSpec('')
 
         if (challenge.stack_enabled) {
             try {
                 setManageLoading(true)
                 const detail = await api.adminChallenge(challenge.id)
                 setEditStackTargetPort(detail.stack_target_port || challenge.stack_target_port || 80)
-                setEditStackPodSpec(detail.stack_pod_spec ?? '')
+                const podSpecValue = detail.stack_pod_spec ?? ''
+                setEditStackPodSpec(podSpecValue)
+                setLoadedStackPodSpec(podSpecValue)
             } catch (error) {
                 const formatted = formatApiError(error, t)
                 setErrorMessage(formatted.message)
@@ -89,24 +99,126 @@ const ChallengeManagement = () => {
         }
     }
 
-    const submitEdit = async (challenge: Challenge) => {
-        setManageLoading(true)
+    const beginEdit = (field: typeof editingField) => {
+        setEditingField(field)
+        setManageFieldErrors({})
+        setErrorMessage('')
+        setSuccessMessage('')
+        if (field === 'flag') {
+            setEditFlag('')
+        }
+    }
+
+    const cancelEdit = (field: typeof editingField, challenge: Challenge) => {
+        setEditingField(null)
+        setManageFieldErrors({})
+        if (field === 'title') setEditTitle(challenge.title)
+        if (field === 'description') setEditDescription(challenge.description)
+        if (field === 'category') setEditCategory(challenge.category)
+        if (field === 'points') setEditPoints(challenge.initial_points)
+        if (field === 'minimum_points') setEditMinimumPoints(challenge.minimum_points)
+        if (field === 'flag') setEditFlag('')
+        if (field === 'is_active') setEditIsActive(challenge.is_active)
+        if (field === 'stack') {
+            setEditStackEnabled(challenge.stack_enabled)
+            setEditStackTargetPort(challenge.stack_target_port || 80)
+            setEditStackPodSpec(loadedStackPodSpec)
+        }
+    }
+
+    const saveField = async (challenge: Challenge, field: typeof editingField) => {
         setManageFieldErrors({})
         setErrorMessage('')
         setSuccessMessage('')
 
+        if (!field) return
+
+        const payload: ChallengeUpdatePayload = {}
+
+        if (field === 'title') {
+            if (editTitle === challenge.title) {
+                setEditingField(null)
+                return
+            }
+            payload.title = editTitle
+        }
+
+        if (field === 'description') {
+            if (editDescription === challenge.description) {
+                setEditingField(null)
+                return
+            }
+            payload.description = editDescription
+        }
+
+        if (field === 'category') {
+            if (editCategory === challenge.category) {
+                setEditingField(null)
+                return
+            }
+            payload.category = editCategory
+        }
+
+        if (field === 'points') {
+            if (Number(editPoints) === challenge.initial_points) {
+                setEditingField(null)
+                return
+            }
+            payload.points = Number(editPoints)
+        }
+
+        if (field === 'minimum_points') {
+            if (Number(editMinimumPoints) === challenge.minimum_points) {
+                setEditingField(null)
+                return
+            }
+            payload.minimum_points = Number(editMinimumPoints)
+        }
+
+        if (field === 'flag') {
+            const trimmed = editFlag.trim()
+            if (!trimmed) {
+                setManageFieldErrors({ flag: t('errors.required') })
+                return
+            }
+            payload.flag = trimmed
+        }
+
+        if (field === 'is_active') {
+            if (editIsActive === challenge.is_active) {
+                setEditingField(null)
+                return
+            }
+            payload.is_active = editIsActive
+        }
+
+        if (field === 'stack') {
+            const stackChanged =
+                editStackEnabled !== challenge.stack_enabled ||
+                Number(editStackTargetPort) !== Number(challenge.stack_target_port || 80) ||
+                editStackPodSpec !== loadedStackPodSpec
+
+            if (!stackChanged) {
+                setEditingField(null)
+                return
+            }
+
+            payload.stack_enabled = editStackEnabled
+
+            if (editStackEnabled) {
+                if (!editStackPodSpec.trim()) {
+                    setManageFieldErrors({ stack_pod_spec: t('errors.required') })
+                    return
+                }
+                payload.stack_target_port = Number(editStackTargetPort)
+                payload.stack_pod_spec = editStackPodSpec
+            }
+        }
+
+        setManageLoading(true)
+
         try {
-            const updated = await api.updateChallenge(challenge.id, {
-                title: editTitle,
-                description: editDescription,
-                category: editCategory,
-                points: Number(editPoints),
-                minimum_points: Number(editMinimumPoints),
-                is_active: editIsActive,
-                stack_enabled: editStackEnabled,
-                stack_target_port: editStackEnabled ? Number(editStackTargetPort) : undefined,
-                stack_pod_spec: editStackEnabled && editStackPodSpec.trim() ? editStackPodSpec : undefined,
-            })
+            const updated = await api.updateChallenge(challenge.id, payload)
 
             setChallenges((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
             setSuccessMessage(t('admin.manage.successUpdated', { title: updated.title }))
@@ -119,7 +231,14 @@ const ChallengeManagement = () => {
             setEditIsActive(updated.is_active)
             setEditStackEnabled(updated.stack_enabled)
             setEditStackTargetPort(updated.stack_target_port || 80)
-            setEditStackPodSpec('')
+            if (!updated.stack_enabled) {
+                setEditStackPodSpec('')
+                setLoadedStackPodSpec('')
+            } else {
+                setLoadedStackPodSpec(editStackPodSpec)
+            }
+            setEditFlag('')
+            setEditingField(null)
         } catch (error) {
             const formatted = formatApiError(error, t)
             setErrorMessage(formatted.message)
@@ -313,13 +432,7 @@ const ChallengeManagement = () => {
                                         {expandedChallengeId === challenge.id ? (
                                             <tr className='bg-surface/70'>
                                                 <td colSpan={9} className='px-6 py-6'>
-                                                    <form
-                                                        className='space-y-5'
-                                                        onSubmit={(event) => {
-                                                            event.preventDefault()
-                                                            submitEdit(challenge)
-                                                        }}
-                                                    >
+                                                    <div className='space-y-5'>
                                                         <div>
                                                             <label
                                                                 className='text-xs uppercase tracking-wide text-text-muted'
@@ -327,13 +440,58 @@ const ChallengeManagement = () => {
                                                             >
                                                                 {t('common.title')}
                                                             </label>
-                                                            <input
-                                                                id={`manage-title-${challenge.id}`}
-                                                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                type='text'
-                                                                value={editTitle}
-                                                                onChange={(event) => setEditTitle(event.target.value)}
-                                                            />
+                                                            {editingField === 'title' ? (
+                                                                <div className='mt-2 space-y-2'>
+                                                                    <input
+                                                                        id={`manage-title-${challenge.id}`}
+                                                                        className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                        type='text'
+                                                                        value={editTitle}
+                                                                        onChange={(event) =>
+                                                                            setEditTitle(event.target.value)
+                                                                        }
+                                                                        disabled={manageLoading}
+                                                                    />
+                                                                    <div className='flex flex-wrap items-center gap-3'>
+                                                                        <button
+                                                                            className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                saveField(challenge, 'title')
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {manageLoading
+                                                                                ? t('admin.site.saving')
+                                                                                : t('common.save')}
+                                                                        </button>
+                                                                        <button
+                                                                            className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                cancelEdit('title', challenge)
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {t('common.cancel')}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <span>{editTitle}</span>
+                                                                    <button
+                                                                        className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                        type='button'
+                                                                        onClick={() => beginEdit('title')}
+                                                                        disabled={
+                                                                            manageLoading || editingField !== null
+                                                                        }
+                                                                    >
+                                                                        {t('common.edit')}
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                             {manageFieldErrors.title ? (
                                                                 <p className='mt-2 text-xs text-danger'>
                                                                     {t('common.title')}: {manageFieldErrors.title}
@@ -347,15 +505,60 @@ const ChallengeManagement = () => {
                                                             >
                                                                 {t('common.description')}
                                                             </label>
-                                                            <textarea
-                                                                id={`manage-description-${challenge.id}`}
-                                                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                rows={5}
-                                                                value={editDescription}
-                                                                onChange={(event) =>
-                                                                    setEditDescription(event.target.value)
-                                                                }
-                                                            ></textarea>
+                                                            {editingField === 'description' ? (
+                                                                <div className='mt-2 space-y-2'>
+                                                                    <textarea
+                                                                        id={`manage-description-${challenge.id}`}
+                                                                        className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                        rows={5}
+                                                                        value={editDescription}
+                                                                        onChange={(event) =>
+                                                                            setEditDescription(event.target.value)
+                                                                        }
+                                                                        disabled={manageLoading}
+                                                                    ></textarea>
+                                                                    <div className='flex flex-wrap items-center gap-3'>
+                                                                        <button
+                                                                            className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                saveField(challenge, 'description')
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {manageLoading
+                                                                                ? t('admin.site.saving')
+                                                                                : t('common.save')}
+                                                                        </button>
+                                                                        <button
+                                                                            className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                cancelEdit('description', challenge)
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {t('common.cancel')}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <p className='whitespace-pre-wrap'>
+                                                                        {editDescription}
+                                                                    </p>
+                                                                    <button
+                                                                        className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                        type='button'
+                                                                        onClick={() => beginEdit('description')}
+                                                                        disabled={
+                                                                            manageLoading || editingField !== null
+                                                                        }
+                                                                    >
+                                                                        {t('common.edit')}
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                             {manageFieldErrors.description ? (
                                                                 <p className='mt-2 text-xs text-danger'>
                                                                     {t('common.description')}:{' '}
@@ -371,20 +574,63 @@ const ChallengeManagement = () => {
                                                                 >
                                                                     {t('common.category')}
                                                                 </label>
-                                                                <select
-                                                                    id={`manage-category-${challenge.id}`}
-                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                    value={editCategory}
-                                                                    onChange={(event) =>
-                                                                        setEditCategory(event.target.value)
-                                                                    }
-                                                                >
-                                                                    {CHALLENGE_CATEGORIES.map((option) => (
-                                                                        <option key={option} value={option}>
-                                                                            {t(getCategoryKey(option))}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
+                                                                {editingField === 'category' ? (
+                                                                    <div className='mt-2 space-y-2'>
+                                                                        <select
+                                                                            id={`manage-category-${challenge.id}`}
+                                                                            className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                            value={editCategory}
+                                                                            onChange={(event) =>
+                                                                                setEditCategory(event.target.value)
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {CHALLENGE_CATEGORIES.map((option) => (
+                                                                                <option key={option} value={option}>
+                                                                                    {t(getCategoryKey(option))}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <div className='flex flex-wrap items-center gap-3'>
+                                                                            <button
+                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    saveField(challenge, 'category')
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {manageLoading
+                                                                                    ? t('admin.site.saving')
+                                                                                    : t('common.save')}
+                                                                            </button>
+                                                                            <button
+                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    cancelEdit('category', challenge)
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {t('common.cancel')}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <span>{t(getCategoryKey(editCategory))}</span>
+                                                                        <button
+                                                                            className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                            type='button'
+                                                                            onClick={() => beginEdit('category')}
+                                                                            disabled={
+                                                                                manageLoading || editingField !== null
+                                                                            }
+                                                                        >
+                                                                            {t('common.edit')}
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                                 {manageFieldErrors.category ? (
                                                                     <p className='mt-2 text-xs text-danger'>
                                                                         {t('common.category')}:{' '}
@@ -399,16 +645,61 @@ const ChallengeManagement = () => {
                                                                 >
                                                                     {t('common.points')}
                                                                 </label>
-                                                                <input
-                                                                    id={`manage-points-${challenge.id}`}
-                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                    type='number'
-                                                                    min={1}
-                                                                    value={editPoints}
-                                                                    onChange={(event) =>
-                                                                        setEditPoints(Number(event.target.value))
-                                                                    }
-                                                                />
+                                                                {editingField === 'points' ? (
+                                                                    <div className='mt-2 space-y-2'>
+                                                                        <input
+                                                                            id={`manage-points-${challenge.id}`}
+                                                                            className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                            type='number'
+                                                                            min={0}
+                                                                            value={editPoints}
+                                                                            onChange={(event) =>
+                                                                                setEditPoints(
+                                                                                    Number(event.target.value),
+                                                                                )
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        />
+                                                                        <div className='flex flex-wrap items-center gap-3'>
+                                                                            <button
+                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    saveField(challenge, 'points')
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {manageLoading
+                                                                                    ? t('admin.site.saving')
+                                                                                    : t('common.save')}
+                                                                            </button>
+                                                                            <button
+                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    cancelEdit('points', challenge)
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {t('common.cancel')}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <span>{editPoints}</span>
+                                                                        <button
+                                                                            className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                            type='button'
+                                                                            onClick={() => beginEdit('points')}
+                                                                            disabled={
+                                                                                manageLoading || editingField !== null
+                                                                            }
+                                                                        >
+                                                                            {t('common.edit')}
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                                 {manageFieldErrors.points ? (
                                                                     <p className='mt-2 text-xs text-danger'>
                                                                         {t('common.points')}: {manageFieldErrors.points}
@@ -422,16 +713,67 @@ const ChallengeManagement = () => {
                                                                 >
                                                                     {t('common.minimum')}
                                                                 </label>
-                                                                <input
-                                                                    id={`manage-minimum-points-${challenge.id}`}
-                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                    type='number'
-                                                                    min={0}
-                                                                    value={editMinimumPoints}
-                                                                    onChange={(event) =>
-                                                                        setEditMinimumPoints(Number(event.target.value))
-                                                                    }
-                                                                />
+                                                                {editingField === 'minimum_points' ? (
+                                                                    <div className='mt-2 space-y-2'>
+                                                                        <input
+                                                                            id={`manage-minimum-points-${challenge.id}`}
+                                                                            className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                            type='number'
+                                                                            min={0}
+                                                                            value={editMinimumPoints}
+                                                                            onChange={(event) =>
+                                                                                setEditMinimumPoints(
+                                                                                    Number(event.target.value),
+                                                                                )
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        />
+                                                                        <div className='flex flex-wrap items-center gap-3'>
+                                                                            <button
+                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    saveField(
+                                                                                        challenge,
+                                                                                        'minimum_points',
+                                                                                    )
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {manageLoading
+                                                                                    ? t('admin.site.saving')
+                                                                                    : t('common.save')}
+                                                                            </button>
+                                                                            <button
+                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                type='button'
+                                                                                onClick={() =>
+                                                                                    cancelEdit(
+                                                                                        'minimum_points',
+                                                                                        challenge,
+                                                                                    )
+                                                                                }
+                                                                                disabled={manageLoading}
+                                                                            >
+                                                                                {t('common.cancel')}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <span>{editMinimumPoints}</span>
+                                                                        <button
+                                                                            className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                            type='button'
+                                                                            onClick={() => beginEdit('minimum_points')}
+                                                                            disabled={
+                                                                                manageLoading || editingField !== null
+                                                                            }
+                                                                        >
+                                                                            {t('common.edit')}
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                                 {manageFieldErrors.minimum_points ? (
                                                                     <p className='mt-2 text-xs text-danger'>
                                                                         {t('common.minimum')}:{' '}
@@ -440,86 +782,289 @@ const ChallengeManagement = () => {
                                                                 ) : null}
                                                             </div>
                                                         </div>
-                                                        <label className='flex items-center gap-3 text-sm text-text'>
-                                                            <input
-                                                                type='checkbox'
-                                                                checked={editIsActive}
-                                                                onChange={(event) =>
-                                                                    setEditIsActive(event.target.checked)
-                                                                }
-                                                                className='h-4 w-4 rounded border-border'
-                                                            />
-                                                            {t('common.active')}
-                                                        </label>
-                                                        <div className='rounded-2xl border border-border bg-surface/60 p-4'>
-                                                            <label className='flex items-center gap-3 text-sm text-text'>
-                                                                <input
-                                                                    type='checkbox'
-                                                                    checked={editStackEnabled}
-                                                                    onChange={(event) =>
-                                                                        setEditStackEnabled(event.target.checked)
-                                                                    }
-                                                                    className='h-4 w-4 rounded border-border'
-                                                                />
-                                                                {t('admin.create.provideStack')}
+                                                        <div>
+                                                            <label
+                                                                className='text-xs uppercase tracking-wide text-text-muted'
+                                                                htmlFor={`manage-flag-${challenge.id}`}
+                                                            >
+                                                                {t('common.flag')}
                                                             </label>
-                                                            {editStackEnabled ? (
-                                                                <div className='mt-4 grid gap-4'>
-                                                                    <div>
-                                                                        <label
-                                                                            className='text-xs uppercase tracking-wide text-text-muted'
-                                                                            htmlFor={`manage-stack-target-port-${challenge.id}`}
+                                                            {editingField === 'flag' ? (
+                                                                <div className='mt-2 space-y-2'>
+                                                                    <input
+                                                                        id={`manage-flag-${challenge.id}`}
+                                                                        className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                        type='password'
+                                                                        value={editFlag}
+                                                                        onChange={(event) =>
+                                                                            setEditFlag(event.target.value)
+                                                                        }
+                                                                        placeholder={t('admin.manage.flagPlaceholder')}
+                                                                        disabled={manageLoading}
+                                                                    />
+                                                                    <div className='flex flex-wrap items-center gap-3'>
+                                                                        <button
+                                                                            className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() => saveField(challenge, 'flag')}
+                                                                            disabled={manageLoading}
                                                                         >
-                                                                            {t('admin.create.targetPort')}
-                                                                        </label>
-                                                                        <input
-                                                                            id={`manage-stack-target-port-${challenge.id}`}
-                                                                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                            type='number'
-                                                                            min={1}
-                                                                            max={65535}
-                                                                            value={editStackTargetPort}
-                                                                            onChange={(event) =>
-                                                                                setEditStackTargetPort(
-                                                                                    Number(event.target.value),
-                                                                                )
+                                                                            {manageLoading
+                                                                                ? t('admin.site.saving')
+                                                                                : t('common.save')}
+                                                                        </button>
+                                                                        <button
+                                                                            className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                cancelEdit('flag', challenge)
                                                                             }
-                                                                        />
-                                                                        {manageFieldErrors.stack_target_port ? (
-                                                                            <p className='mt-2 text-xs text-danger'>
-                                                                                {t('admin.create.targetPort')}:{' '}
-                                                                                {manageFieldErrors.stack_target_port}
-                                                                            </p>
-                                                                        ) : null}
-                                                                    </div>
-                                                                    <div>
-                                                                        <label
-                                                                            className='text-xs uppercase tracking-wide text-text-muted'
-                                                                            htmlFor={`manage-stack-pod-spec-${challenge.id}`}
+                                                                            disabled={manageLoading}
                                                                         >
-                                                                            {t('admin.create.podSpec')}
-                                                                        </label>
-                                                                        <textarea
-                                                                            id={`manage-stack-pod-spec-${challenge.id}`}
-                                                                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-xs text-text focus:border-accent focus:outline-none'
-                                                                            rows={7}
-                                                                            placeholder={t(
-                                                                                'admin.manage.podSpecPlaceholder',
-                                                                            )}
-                                                                            value={editStackPodSpec}
-                                                                            onChange={(event) =>
-                                                                                setEditStackPodSpec(event.target.value)
-                                                                            }
-                                                                        ></textarea>
-                                                                        {manageFieldErrors.stack_pod_spec ? (
-                                                                            <p className='mt-2 text-xs text-danger'>
-                                                                                {t('admin.create.podSpec')}:{' '}
-                                                                                {manageFieldErrors.stack_pod_spec}
-                                                                            </p>
-                                                                        ) : null}
+                                                                            {t('common.cancel')}
+                                                                        </button>
                                                                     </div>
                                                                 </div>
+                                                            ) : (
+                                                                <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <span>{t('admin.manage.flagMasked')}</span>
+                                                                    <button
+                                                                        className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                        type='button'
+                                                                        onClick={() => beginEdit('flag')}
+                                                                        disabled={
+                                                                            manageLoading || editingField !== null
+                                                                        }
+                                                                    >
+                                                                        {t('common.edit')}
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            {manageFieldErrors.flag ? (
+                                                                <p className='mt-2 text-xs text-danger'>
+                                                                    {t('common.flag')}: {manageFieldErrors.flag}
+                                                                </p>
                                                             ) : null}
+                                                            <p className='mt-2 text-xs text-text-subtle'>
+                                                                {t('admin.manage.flagHint')}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <label className='text-xs uppercase tracking-wide text-text-muted'>
+                                                                {t('common.active')}
+                                                            </label>
+                                                            {editingField === 'is_active' ? (
+                                                                <div className='mt-2 space-y-2'>
+                                                                    <label className='flex items-center gap-3 text-sm text-text'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={editIsActive}
+                                                                            onChange={(event) =>
+                                                                                setEditIsActive(event.target.checked)
+                                                                            }
+                                                                            className='h-4 w-4 rounded border-border'
+                                                                            disabled={manageLoading}
+                                                                        />
+                                                                        {editIsActive
+                                                                            ? t('admin.manage.statusActive')
+                                                                            : t('admin.manage.statusInactive')}
+                                                                    </label>
+                                                                    <div className='flex flex-wrap items-center gap-3'>
+                                                                        <button
+                                                                            className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                saveField(challenge, 'is_active')
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {manageLoading
+                                                                                ? t('admin.site.saving')
+                                                                                : t('common.save')}
+                                                                        </button>
+                                                                        <button
+                                                                            className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                cancelEdit('is_active', challenge)
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {t('common.cancel')}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <span>
+                                                                        {editIsActive
+                                                                            ? t('admin.manage.statusActive')
+                                                                            : t('admin.manage.statusInactive')}
+                                                                    </span>
+                                                                    <button
+                                                                        className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                        type='button'
+                                                                        onClick={() => beginEdit('is_active')}
+                                                                        disabled={
+                                                                            manageLoading || editingField !== null
+                                                                        }
+                                                                    >
+                                                                        {t('common.edit')}
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className='rounded-2xl border border-border bg-surface/60 p-4'>
+                                                            <div className='flex items-center justify-between gap-4'>
+                                                                <p className='text-xs uppercase tracking-wide text-text-subtle'>
+                                                                    {t('admin.create.provideStack')}
+                                                                </p>
+                                                                {editingField !== 'stack' ? (
+                                                                    <button
+                                                                        className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
+                                                                        type='button'
+                                                                        onClick={() => beginEdit('stack')}
+                                                                        disabled={
+                                                                            manageLoading || editingField !== null
+                                                                        }
+                                                                    >
+                                                                        {t('common.edit')}
+                                                                    </button>
+                                                                ) : null}
+                                                            </div>
+                                                            {editingField === 'stack' ? (
+                                                                <div className='mt-3 space-y-3'>
+                                                                    <label className='flex items-center gap-3 text-sm text-text'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={editStackEnabled}
+                                                                            onChange={(event) =>
+                                                                                setEditStackEnabled(
+                                                                                    event.target.checked,
+                                                                                )
+                                                                            }
+                                                                            className='h-4 w-4 rounded border-border'
+                                                                            disabled={manageLoading}
+                                                                        />
+                                                                        {editStackEnabled
+                                                                            ? t('common.active')
+                                                                            : t('common.inactive')}
+                                                                    </label>
+                                                                    {editStackEnabled ? (
+                                                                        <div className='grid gap-4'>
+                                                                            <div>
+                                                                                <label
+                                                                                    className='text-xs uppercase tracking-wide text-text-muted'
+                                                                                    htmlFor={`manage-stack-target-port-${challenge.id}`}
+                                                                                >
+                                                                                    {t('admin.create.targetPort')}
+                                                                                </label>
+                                                                                <input
+                                                                                    id={`manage-stack-target-port-${challenge.id}`}
+                                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                    type='number'
+                                                                                    min={1}
+                                                                                    max={65535}
+                                                                                    value={editStackTargetPort}
+                                                                                    onChange={(event) =>
+                                                                                        setEditStackTargetPort(
+                                                                                            Number(event.target.value),
+                                                                                        )
+                                                                                    }
+                                                                                    disabled={manageLoading}
+                                                                                />
+                                                                                {manageFieldErrors.stack_target_port ? (
+                                                                                    <p className='mt-2 text-xs text-danger'>
+                                                                                        {t('admin.create.targetPort')}:{' '}
+                                                                                        {
+                                                                                            manageFieldErrors.stack_target_port
+                                                                                        }
+                                                                                    </p>
+                                                                                ) : null}
+                                                                            </div>
+                                                                            <div>
+                                                                                <label
+                                                                                    className='text-xs uppercase tracking-wide text-text-muted'
+                                                                                    htmlFor={`manage-stack-pod-spec-${challenge.id}`}
+                                                                                >
+                                                                                    {t('admin.create.podSpec')}
+                                                                                </label>
+                                                                                <textarea
+                                                                                    id={`manage-stack-pod-spec-${challenge.id}`}
+                                                                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-xs text-text focus:border-accent focus:outline-none'
+                                                                                    rows={7}
+                                                                                    placeholder={t(
+                                                                                        'admin.manage.podSpecPlaceholder',
+                                                                                    )}
+                                                                                    value={editStackPodSpec}
+                                                                                    onChange={(event) =>
+                                                                                        setEditStackPodSpec(
+                                                                                            event.target.value,
+                                                                                        )
+                                                                                    }
+                                                                                    disabled={manageLoading}
+                                                                                ></textarea>
+                                                                                {manageFieldErrors.stack_pod_spec ? (
+                                                                                    <p className='mt-2 text-xs text-danger'>
+                                                                                        {t('admin.create.podSpec')}:{' '}
+                                                                                        {
+                                                                                            manageFieldErrors.stack_pod_spec
+                                                                                        }
+                                                                                    </p>
+                                                                                ) : null}
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : null}
+                                                                    <div className='flex flex-wrap items-center gap-3'>
+                                                                        <button
+                                                                            className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                saveField(challenge, 'stack')
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {manageLoading
+                                                                                ? t('admin.site.saving')
+                                                                                : t('common.save')}
+                                                                        </button>
+                                                                        <button
+                                                                            className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                cancelEdit('stack', challenge)
+                                                                            }
+                                                                            disabled={manageLoading}
+                                                                        >
+                                                                            {t('common.cancel')}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className='mt-3 space-y-1 text-sm text-text'>
+                                                                    <p>
+                                                                        {editStackEnabled
+                                                                            ? t('common.active')
+                                                                            : t('common.inactive')}
+                                                                    </p>
+                                                                    {editStackEnabled ? (
+                                                                        <>
+                                                                            <p>
+                                                                                {t('admin.create.targetPort')}:{' '}
+                                                                                {editStackTargetPort}
+                                                                            </p>
+                                                                            <p>
+                                                                                {t('admin.create.podSpec')}:{' '}
+                                                                                {loadedStackPodSpec
+                                                                                    ? t(
+                                                                                          'admin.manage.podSpecConfigured',
+                                                                                      )
+                                                                                    : t('admin.manage.podSpecMissing')}
+                                                                            </p>
+                                                                        </>
+                                                                    ) : null}
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <div className='rounded-xl border border-border bg-surface/60 p-4 text-sm text-text'>
@@ -589,17 +1134,8 @@ const ChallengeManagement = () => {
                                                             >
                                                                 {t('common.cancel')}
                                                             </button>
-                                                            <button
-                                                                className='rounded-xl bg-accent px-5 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                                                                type='submit'
-                                                                disabled={manageLoading}
-                                                            >
-                                                                {manageLoading
-                                                                    ? t('admin.site.saving')
-                                                                    : t('common.saveChanges')}
-                                                            </button>
                                                         </div>
-                                                    </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ) : null}

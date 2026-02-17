@@ -152,10 +152,12 @@ const App = () => {
         return <RouteComponent routeParams={routeParams} />
     }, [RouteComponent, booting, routeParams, t])
 
+    const isAdminPage = RouteComponent === Admin
+
     return (
         <div className='min-h-screen'>
             <Header user={auth.user} />
-            <main className='mx-auto w-full max-w-6xl px-6 py-10'>{content}</main>
+            <main className={`mx-auto w-full ${isAdminPage ? 'max-w-400' : 'max-w-6xl'} px-6 py-10`}>{content}</main>
             <footer className='border-t border-border py-6 text-center text-xs text-text-subtle'>
                 <p>{t('footer.copyright')}</p>
             </footer>
