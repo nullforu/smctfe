@@ -284,13 +284,11 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             }),
         leaderboard: () => request<LeaderboardResponse>(`/api/leaderboard`),
         leaderboardTeams: () => request<TeamLeaderboardResponse>(`/api/leaderboard/teams`),
-        timeline: (windowMinutes?: number) => {
-            const windowParam = typeof windowMinutes === 'number' ? `?window=${windowMinutes}` : ''
-            return request<TimelineResponse>(`/api/timeline${windowParam}`)
+        timeline: () => {
+            return request<TimelineResponse>(`/api/timeline`)
         },
-        timelineTeams: (windowMinutes?: number) => {
-            const windowParam = typeof windowMinutes === 'number' ? `?window=${windowMinutes}` : ''
-            return request<TeamTimelineResponse>(`/api/timeline/teams${windowParam}`)
+        timelineTeams: () => {
+            return request<TeamTimelineResponse>(`/api/timeline/teams`)
         },
         createChallenge: (payload: ChallengeCreatePayload) =>
             request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: payload, auth: true }),
