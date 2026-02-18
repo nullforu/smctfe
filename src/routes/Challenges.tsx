@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { formatApiError } from '../lib/utils'
+import { formatApiError, formatDateTime } from '../lib/utils'
 import type { Challenge, CtfState } from '../lib/types'
 import ChallengeModal from '../components/ChallengeModal'
 import ChallengesView from '../components/ChallengesView'
@@ -71,10 +71,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
 
     const formatTimestamp = (value?: string | null) => {
         if (!value) return t('common.na')
-        const date = new Date(value)
-
-        if (Number.isNaN(date.getTime())) return value
-        return date.toLocaleString(localeTag)
+        return formatDateTime(value, localeTag)
     }
 
     const loadChallenges = async () => {

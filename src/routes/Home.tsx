@@ -3,6 +3,7 @@ import Markdown from '../components/Markdown'
 import { getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 import { useConfig } from '../lib/config'
+import { formatDateTime } from '../lib/utils'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -17,9 +18,7 @@ const Home = ({ routeParams = {} }: RouteProps) => {
     const localeTag = getLocaleTag(locale)
 
     const formatTimestamp = (value: string) => {
-        const date = new Date(value)
-        if (Number.isNaN(date.getTime())) return value
-        return date.toLocaleString(localeTag)
+        return formatDateTime(value, localeTag)
     }
 
     const ctfTimes = [

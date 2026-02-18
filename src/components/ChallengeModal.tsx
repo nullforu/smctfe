@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ApiError } from '../lib/api'
-import { formatApiError } from '../lib/utils'
+import { formatApiError, formatDateTime } from '../lib/utils'
 import type { Challenge, CtfState, Stack } from '../lib/types'
 import { getCategoryKey, getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { navigate } from '../lib/router'
@@ -103,9 +103,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
 
     const formatTimestamp = (value?: string | null) => {
         if (!value) return t('common.na')
-        const date = new Date(value)
-        if (Number.isNaN(date.getTime())) return value
-        return date.toLocaleString(localeTag)
+        return formatDateTime(value, localeTag)
     }
 
     const loadStack = async () => {

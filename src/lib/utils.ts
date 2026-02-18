@@ -46,7 +46,7 @@ export const formatDateTime = (value: string, localeTag: string) => {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        timeZone: 'UTC',
+        timeZone: 'Asia/Seoul',
     })
 }
 
