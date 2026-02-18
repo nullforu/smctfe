@@ -1,4 +1,9 @@
-# React + TypeScript + Vite
+# Frontend of SMCTF CTF Platform
+
+- See [nullforu/smctf](https://github.com/nullforu/smctf) for the backend of the platform.
+- See [nullforu/smctf-docs](https://github.com/nullforu/smctf-docs) for the documentation of the platform.
+
+<!-- # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -70,4 +75,4 @@ export default defineConfig([
         },
     },
 ])
-```
+``` -->
