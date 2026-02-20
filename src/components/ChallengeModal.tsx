@@ -357,9 +357,34 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                     </div>
                                     <div>
                                         <span className='font-medium text-text'>{t('challenge.stackEndpoint')}</span>
-                                        <span className='ml-2'>
+
+                                        <span
+                                            className='ml-2 cursor-pointer hover:underline'
+                                            onClick={() => {
+                                                if (stackInfo.node_public_ip && stackInfo.node_port) {
+                                                    const url = `http://${stackInfo.node_public_ip}:${stackInfo.node_port}`
+                                                    window.open(url, '_blank', 'noopener')
+                                                }
+                                            }}
+                                        >
                                             {stackInfo.node_public_ip && stackInfo.node_port
-                                                ? `${stackInfo.node_public_ip}:${stackInfo.node_port}`
+                                                ? `http://${stackInfo.node_public_ip}:${stackInfo.node_port}`
+                                                : t('challenge.stackPending')}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className='font-medium text-text'>{t('challenge.stackNCEndpoint')}</span>
+                                        <span
+                                            className='ml-2 font-mono cursor-pointer hover:underline'
+                                            onClick={() => {
+                                                if (stackInfo.node_public_ip && stackInfo.node_port) {
+                                                    const url = `nc ${stackInfo.node_public_ip} ${stackInfo.node_port}`
+                                                    navigator.clipboard.writeText(url)
+                                                }
+                                            }}
+                                        >
+                                            {stackInfo.node_public_ip && stackInfo.node_port
+                                                ? `nc ${stackInfo.node_public_ip} ${stackInfo.node_port}`
                                                 : t('challenge.stackPending')}
                                         </span>
                                     </div>

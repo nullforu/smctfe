@@ -357,6 +357,7 @@
     "challenge.stackNotStarted": "CTF 開始前はスタックを利用できません。",
     "challenge.stackStatus": "状態:",
     "challenge.stackEndpoint": "エンドポイント:",
+    "challenge.stackNCEndpoint": "nc:",
     "challenge.stackTtl": "TTL:",
     "challenge.stackPending": "保留中",
     "challenge.stackNoActive": "アクティブなスタックがありません。インスタンス情報を取得するには作成してください。",

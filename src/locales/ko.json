@@ -357,6 +357,7 @@
     "challenge.stackNotStarted": "대회 시작 전에는 스택을 사용할 수 없습니다.",
     "challenge.stackStatus": "상태:",
     "challenge.stackEndpoint": "엔드포인트:",
+    "challenge.stackNCEndpoint": "nc:",
     "challenge.stackTtl": "TTL:",
     "challenge.stackPending": "대기 중",
     "challenge.stackNoActive": "활성된 스택이 없습니다. 인스턴스 정보를 보려면 스택을 생성하세요.",

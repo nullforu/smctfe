@@ -357,6 +357,7 @@
     "challenge.stackNotStarted": "Stacks are unavailable until the CTF begins.",
     "challenge.stackStatus": "Status:",
     "challenge.stackEndpoint": "Endpoint:",
+    "challenge.stackNCEndpoint": "nc:",
     "challenge.stackTtl": "TTL:",
     "challenge.stackPending": "Pending",
     "challenge.stackNoActive": "No active stack. Create one to get your instance details.",
