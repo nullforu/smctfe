@@ -346,11 +346,20 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             request<AuthUser>(`/api/admin/users/${id}/block`, { method: 'POST', body: { reason }, auth: true }),
         unblockUser: (id: number) =>
             request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
-        teams: () => request<TeamSummary[]>(`/api/teams`),
+        teams: async () => {
+            const data = await request<TeamSummary[]>(`/api/teams`)
+            return data.filter((team) => team.name.toLowerCase() !== 'admin')
+        },
         teamDetail: (id: number) => request<TeamDetail>(`/api/teams/${id}`),
-        teamMembers: (id: number) => request<TeamMember[]>(`/api/teams/${id}/members`),
+        teamMembers: async (id: number) => {
+            const data = await request<TeamMember[]>(`/api/teams/${id}/members`)
+            return data.filter((member) => member.role.toLowerCase() !== 'admin')
+        },
         teamSolved: (id: number) => request<TeamSolvedChallenge[]>(`/api/teams/${id}/solved`),
-        users: () => request<UserListItem[]>(`/api/users`),
+        users: async () => {
+            const data = await request<UserListItem[]>(`/api/users`)
+            return data.filter((user) => user.role.toLowerCase() !== 'admin')
+        },
         user: (id: number) => request<UserDetail>(`/api/users/${id}`),
         userSolved: (id: number) => request<SolvedChallenge[]>(`/api/users/${id}/solved`),
     }
