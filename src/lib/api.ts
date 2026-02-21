@@ -96,6 +96,8 @@ const extractRateLimit = (response: Response, data: any): RateLimitInfo | undefi
     return undefined
 }
 
+const isAdmin = (user: AuthUser | null): boolean => user?.role.toLowerCase() === 'admin'
+
 const resolveCtfState = (data: any): CtfState => {
     switch (data?.ctf_state) {
         case 'not_started':
@@ -283,10 +285,14 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 auth: true,
             }),
         leaderboard: () => request<LeaderboardResponse>(`/api/leaderboard`),
-        leaderboardTeams: () => request<TeamLeaderboardResponse>(`/api/leaderboard/teams`),
-        timeline: () => {
-            return request<TimelineResponse>(`/api/timeline`)
+        leaderboardTeams: async () => {
+            const data = await request<TeamLeaderboardResponse>(`/api/leaderboard/teams`)
+            return {
+                challenges: data.challenges,
+                entries: data.entries.filter((entry) => entry.team_name.toLowerCase() !== 'admin'),
+            } as TeamLeaderboardResponse
         },
+        timeline: () => request<TimelineResponse>(`/api/timeline`, { auth: true }),
         timelineTeams: () => {
             return request<TeamTimelineResponse>(`/api/timeline/teams`)
         },
@@ -348,16 +354,22 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
         teams: async () => {
             const data = await request<TeamSummary[]>(`/api/teams`)
+            if (isAdmin(getAuth().user)) return data
+
             return data.filter((team) => team.name.toLowerCase() !== 'admin')
         },
         teamDetail: (id: number) => request<TeamDetail>(`/api/teams/${id}`),
         teamMembers: async (id: number) => {
             const data = await request<TeamMember[]>(`/api/teams/${id}/members`)
+            if (isAdmin(getAuth().user)) return data
+
             return data.filter((member) => member.role.toLowerCase() !== 'admin')
         },
         teamSolved: (id: number) => request<TeamSolvedChallenge[]>(`/api/teams/${id}/solved`),
         users: async () => {
             const data = await request<UserListItem[]>(`/api/users`)
+            if (isAdmin(getAuth().user)) return data
+
             return data.filter((user) => user.role.toLowerCase() !== 'admin')
         },
         user: (id: number) => request<UserDetail>(`/api/users/${id}`),
