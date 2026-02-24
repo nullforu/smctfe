@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { uploadPresignedPost } from '../../lib/api'
 import { CHALLENGE_CATEGORIES } from '../../lib/constants'
 import { formatApiError, isZipFile, type FieldErrors } from '../../lib/utils'
@@ -6,6 +6,7 @@ import MonacoEditor from '../../components/MonacoEditor'
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
+import type { Challenge } from '../../lib/types'
 
 const CreateChallenge = () => {
     const t = useT()
@@ -20,6 +21,7 @@ const CreateChallenge = () => {
     const [minimumPoints, setMinimumPoints] = useState(100)
     const [flag, setFlag] = useState('')
     const [isActive, setIsActive] = useState(true)
+    const [previousChallengeId, setPreviousChallengeId] = useState<number | ''>('')
     const [stackEnabled, setStackEnabled] = useState(false)
     const [stackTargetPort, setStackTargetPort] = useState(80)
     const [stackPodSpec, setStackPodSpec] = useState('')
@@ -27,7 +29,27 @@ const CreateChallenge = () => {
     const [challengeFileError, setChallengeFileError] = useState('')
     const [challengeFileUploading, setChallengeFileUploading] = useState(false)
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+    const [availableChallenges, setAvailableChallenges] = useState<Challenge[]>([])
     const fileInputRef = useRef<HTMLInputElement | null>(null)
+    const sortedChallenges = [...availableChallenges].sort((a, b) => a.id - b.id)
+    const formatChallengeOption = (challenge: Challenge) => {
+        const categoryValue = 'category' in challenge && challenge.category ? challenge.category : t('common.na')
+        return `#${challenge.id} ${challenge.title} (${t(getCategoryKey(categoryValue))})`
+    }
+
+    useEffect(() => {
+        const loadChallenges = async () => {
+            try {
+                const data = await api.challenges()
+                setAvailableChallenges(data.challenges)
+            } catch (error) {
+                const formatted = formatApiError(error, t)
+                setErrorMessage(formatted.message)
+            }
+        }
+
+        void loadChallenges()
+    }, [api, t])
 
     const submit = async () => {
         setLoading(true)
@@ -50,6 +72,7 @@ const CreateChallenge = () => {
                 minimum_points: Number(minimumPoints),
                 flag,
                 is_active: isActive,
+                previous_challenge_id: previousChallengeId === '' ? undefined : Number(previousChallengeId),
                 stack_enabled: stackEnabled,
                 stack_target_port: stackEnabled ? Number(stackTargetPort) : undefined,
                 stack_pod_spec: stackEnabled ? stackPodSpec : undefined,
@@ -78,6 +101,7 @@ const CreateChallenge = () => {
             setMinimumPoints(100)
             setFlag('')
             setIsActive(true)
+            setPreviousChallengeId('')
             setChallengeFile(null)
             setStackEnabled(false)
             setStackTargetPort(80)
@@ -213,6 +237,35 @@ const CreateChallenge = () => {
                         {fieldErrors.flag ? (
                             <p className='mt-2 text-xs text-danger'>
                                 {t('common.flag')}: {fieldErrors.flag}
+                            </p>
+                        ) : null}
+                    </div>
+                    <div>
+                        <label
+                            className='text-xs uppercase tracking-wide text-text-muted'
+                            htmlFor='admin-previous-challenge'
+                        >
+                            {t('admin.create.previousChallenge')}
+                        </label>
+                        <select
+                            id='admin-previous-challenge'
+                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                            value={previousChallengeId === '' ? '' : String(previousChallengeId)}
+                            onChange={(event) => {
+                                const value = event.target.value
+                                setPreviousChallengeId(value === '' ? '' : Number(value))
+                            }}
+                        >
+                            <option value=''>{t('admin.create.previousChallengeNone')}</option>
+                            {sortedChallenges.map((challenge) => (
+                                <option key={challenge.id} value={challenge.id}>
+                                    {formatChallengeOption(challenge)}
+                                </option>
+                            ))}
+                        </select>
+                        {fieldErrors.previous_challenge_id ? (
+                            <p className='mt-2 text-xs text-danger'>
+                                {t('admin.create.previousChallenge')}: {fieldErrors.previous_challenge_id}
                             </p>
                         ) : null}
                     </div>

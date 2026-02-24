@@ -6,6 +6,7 @@ import type {
     CtfState,
     CtfStateResponse,
     Challenge,
+    ChallengeDetail,
     ChallengesResponse,
     ChallengeCreatePayload,
     ChallengeCreateResponse,
@@ -272,7 +273,9 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
         me: () => request<AuthUser>(`/api/me`, { auth: true }),
         updateMe: (username: string) => request<AuthUser>(`/api/me`, { method: 'PUT', body: { username }, auth: true }),
         challenges: async () => {
-            const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges`)
+            const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges`, {
+                auth: true,
+            })
             return {
                 ctf_state: resolveCtfState(data),
                 challenges: Array.isArray(data?.challenges) ? data.challenges : [],
@@ -300,7 +303,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: payload, auth: true }),
         adminChallenge: (id: number) => request<AdminChallengeDetail>(`/api/admin/challenges/${id}`, { auth: true }),
         updateChallenge: (id: number, payload: ChallengeUpdatePayload) =>
-            request<Challenge>(`/api/admin/challenges/${id}`, { method: 'PUT', body: payload, auth: true }),
+            request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: payload, auth: true }),
         deleteChallenge: (id: number) => request<void>(`/api/admin/challenges/${id}`, { method: 'DELETE', auth: true }),
         requestChallengeFileUpload: (id: number, filename: string) =>
             request<ChallengeFileUploadResponse>(`/api/admin/challenges/${id}/file/upload`, {
@@ -309,7 +312,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 auth: true,
             }),
         deleteChallengeFile: (id: number) =>
-            request<Challenge>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
+            request<ChallengeDetail>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
         requestChallengeFileDownload: (id: number) =>
             request<PresignedURL | CtfStateResponse>(`/api/challenges/${id}/file/download`, {
                 method: 'POST',

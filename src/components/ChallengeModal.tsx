@@ -42,8 +42,26 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
 
     const isSuccessful = useMemo(() => submission.status === 'success', [submission.status])
     const isCtfEnded = ctfState === 'ended'
+    const isLocked = challenge.is_locked === true
+    const detail = !isLocked && 'description' in challenge ? challenge : null
+    const isActive = 'is_active' in challenge ? challenge.is_active !== false : true
+    const categoryValue = 'category' in challenge ? challenge.category : ''
+    const hasCategory = Boolean(categoryValue)
+    const hasDescription = !!detail?.description
+    const solveCount = 'solve_count' in challenge ? challenge.solve_count : null
+    const hasFile = !!detail?.has_file
+    const stackEnabled = !!detail?.stack_enabled
+    const previousChallengeId = isLocked
+        ? (challenge.previous_challenge_id ?? null)
+        : (detail?.previous_challenge_id ?? null)
+    const previousChallengeTitle = isLocked ? (challenge.previous_challenge_title ?? null) : null
+    const previousChallengeCategory = isLocked ? (challenge.previous_challenge_category ?? null) : null
 
     const submitFlag = async () => {
+        if (isLocked) {
+            return
+        }
+
         if (isSolved) {
             setSubmission({ status: 'success', message: t('challenge.correct') })
             return
@@ -81,7 +99,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     }
 
     const downloadFile = async () => {
-        if (!challenge.has_file || downloadLoading) return
+        if (!hasFile || downloadLoading) return
 
         setDownloadLoading(true)
         setDownloadMessage('')
@@ -107,7 +125,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     }
 
     const loadStack = async () => {
-        if (!auth.user || !challenge.stack_enabled) return
+        if (!auth.user || !stackEnabled) return
 
         try {
             const result = await api.getStack(challenge.id)
@@ -176,7 +194,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     }
 
     useEffect(() => {
-        if (!auth.user || !challenge.stack_enabled) {
+        if (!auth.user || !stackEnabled) {
             setStackInfo(null)
             setStackMessage('')
             setStackPolling(false)
@@ -190,10 +208,10 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
         }
 
         loadStack()
-    }, [auth.user, challenge.stack_enabled, challenge.id, isSolved])
+    }, [auth.user, stackEnabled, challenge.id, isSolved])
 
     useEffect(() => {
-        if (!auth.user || !challenge.stack_enabled || !stackInfo) {
+        if (!auth.user || !stackEnabled || !stackInfo) {
             setStackPolling(false)
             return
         }
@@ -211,7 +229,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
             clearTimeout(timeoutId)
             setStackPolling(false)
         }
-    }, [auth.user, challenge.stack_enabled, stackInfo, stackNextInterval])
+    }, [auth.user, stackEnabled, stackInfo, stackNextInterval])
 
     return (
         <div
@@ -237,39 +255,62 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                     <div>
                         <h2 className='text-2xl text-text'>{challenge.title}</h2>
                         <div className='mt-2 flex flex-wrap items-center gap-2 text-sm'>
-                            <span className='rounded-full bg-surface-subtle px-3 py-1 text-xs font-medium text-text'>
-                                {t(getCategoryKey(challenge.category))}
-                            </span>
+                            {hasCategory ? (
+                                <span className='rounded-full bg-surface-subtle px-3 py-1 text-xs font-medium text-text'>
+                                    {t(getCategoryKey(categoryValue))}
+                                </span>
+                            ) : null}
                             <span className='text-text-muted'>
                                 {t('common.pointsShort', { points: challenge.points })}
                             </span>
-                            <span className='text-text-muted'>
-                                {t('challenge.solvedCount', { count: challenge.solve_count })}
-                            </span>
+                            {solveCount !== null ? (
+                                <span className='text-text-muted'>
+                                    {t('challenge.solvedCount', { count: solveCount })}
+                                </span>
+                            ) : null}
                         </div>
                     </div>
-                    {isSolved ? (
+                    {isLocked ? (
+                        <span className='rounded-full bg-warning/20 px-4 py-1.5 text-sm text-warning-strong'>
+                            {t('challenge.lockedLabel')}
+                        </span>
+                    ) : isSolved ? (
                         <span className='rounded-full bg-success/20 px-4 py-1.5 text-sm text-success'>
                             {t('challenge.solvedLabel')}
                         </span>
-                    ) : !challenge.is_active ? (
+                    ) : !isActive ? (
                         <span className='rounded-full bg-surface/10 px-4 py-1.5 text-sm text-text-muted'>
                             {t('challenge.inactiveLabel')}
                         </span>
                     ) : null}
                 </div>
 
-                <div className='mt-6 text-text'>
-                    <Markdown className='break-keep' content={challenge.description} />
-                </div>
+                {isLocked ? (
+                    <div className='mt-6 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
+                        <p>{t('challenge.lockedNotice')}</p>
+                        {previousChallengeId ? (
+                            <p className='mt-2 text-xs text-warning-strong'>
+                                {t('challenge.lockedRequirement', {
+                                    id: previousChallengeId,
+                                    title: previousChallengeTitle ?? t('common.na'),
+                                    category: previousChallengeCategory ?? t('common.na'),
+                                })}
+                            </p>
+                        ) : null}
+                    </div>
+                ) : (
+                    <div className='mt-6 text-text'>
+                        <Markdown className='break-keep' content={hasDescription ? (detail?.description ?? '') : ''} />
+                    </div>
+                )}
 
-                {challenge.has_file ? (
+                {hasFile ? (
                     <div className='mt-6'>
                         <div className='rounded-xl border border-border bg-surface-muted p-4 text-sm text-text'>
                             <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div>
                                     <p className='font-medium'>{t('challenge.fileTitle')}</p>
-                                    <p className='text-xs text-text-subtle'>{challenge.file_name ?? 'challenge.zip'}</p>
+                                    <p className='text-xs text-text-subtle'>{detail?.file_name ?? 'challenge.zip'}</p>
                                 </div>
                                 {auth.user ? (
                                     <button
@@ -291,7 +332,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                 ) : null}
 
                 <div className='mt-6 space-y-6'>
-                    {challenge.stack_enabled ? (
+                    {stackEnabled ? (
                         <div className='rounded-xl border border-border bg-surface-muted p-4 text-sm text-text'>
                             <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div>
@@ -400,7 +441,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                             {stackMessage ? <p className='mt-2 text-xs text-danger'>{stackMessage}</p> : null}
                         </div>
                     ) : null}
-                    {isCtfEnded ? (
+                    {isLocked ? null : isCtfEnded ? (
                         <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
                             {t('challenge.ctfEndedNotice')}
                         </div>
@@ -420,7 +461,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                         <div className='rounded-xl border border-success/40 bg-success/10 p-4 text-sm text-success'>
                             {t('challenge.correct')}
                         </div>
-                    ) : !challenge.is_active ? (
+                    ) : !isActive ? (
                         <div className='rounded-xl border border-border/40 bg-surface/10 p-4 text-sm text-text-muted'>
                             {t('challenge.inactiveMessage')}
                         </div>

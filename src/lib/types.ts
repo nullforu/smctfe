@@ -54,7 +54,7 @@ export interface AdminConfigUpdatePayload {
     ctf_end_at?: string | null
 }
 
-export interface Challenge {
+export interface ChallengeDetail {
     id: number
     title: string
     description: string
@@ -68,9 +68,28 @@ export interface Challenge {
     file_name?: string | null
     stack_enabled: boolean
     stack_target_port: number
+    previous_challenge_id?: number | null
+    is_locked?: false
 }
 
-export interface AdminChallengeDetail extends Challenge {
+export interface LockedChallenge {
+    id: number
+    title: string
+    category: string
+    points: number
+    initial_points: number
+    minimum_points: number
+    solve_count: number
+    is_active: boolean
+    previous_challenge_id?: number | null
+    previous_challenge_title?: string | null
+    previous_challenge_category?: string | null
+    is_locked: true
+}
+
+export type Challenge = ChallengeDetail | LockedChallenge
+
+export interface AdminChallengeDetail extends ChallengeDetail {
     stack_pod_spec?: string | null
 }
 
@@ -82,12 +101,13 @@ export interface ChallengeCreatePayload {
     minimum_points?: number
     flag: string
     is_active: boolean
+    previous_challenge_id?: number | null
     stack_enabled?: boolean
     stack_target_port?: number
     stack_pod_spec?: string
 }
 
-export interface ChallengeCreateResponse extends Challenge {}
+export interface ChallengeCreateResponse extends ChallengeDetail {}
 
 export interface ChallengeUpdatePayload {
     title?: string
@@ -97,6 +117,7 @@ export interface ChallengeUpdatePayload {
     minimum_points?: number
     flag?: string
     is_active?: boolean
+    previous_challenge_id?: number | null
     stack_enabled?: boolean
     stack_target_port?: number
     stack_pod_spec?: string
@@ -141,7 +162,7 @@ export interface PresignedURL {
 }
 
 export interface ChallengeFileUploadResponse {
-    challenge: Challenge
+    challenge: ChallengeDetail
     upload: PresignedPost
 }
 
@@ -171,7 +192,7 @@ export interface AdminStackDeleteResponse {
 }
 
 export interface AdminReportResponse {
-    challenges: Challenge[]
+    challenges: ChallengeDetail[]
     teams: TeamSummary[]
     users: UserListItem[]
     stacks: Stack[]

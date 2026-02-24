@@ -45,14 +45,20 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const [ctfState, setCtfState] = useState<CtfState>('active')
     const [groupByCategory, setGroupByCategory] = useState<boolean>(() => loadGroupByCategory())
 
-    const activeChallenges = useMemo(() => challenges.filter((challenge) => challenge.is_active), [challenges])
-    const inactiveChallenges = useMemo(() => challenges.filter((challenge) => !challenge.is_active), [challenges])
+    const activeChallenges = useMemo(
+        () => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active !== false : true)),
+        [challenges],
+    )
+    const inactiveChallenges = useMemo(
+        () => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active === false : false)),
+        [challenges],
+    )
     const solvedCount = useMemo(() => solvedIds.size, [solvedIds])
 
     const challengesByCategory = useMemo(() => {
         const grouped = new Map<string, Challenge[]>()
         for (const challenge of challenges) {
-            const category = challenge.category || t('common.na')
+            const category = 'category' in challenge && challenge.category ? challenge.category : t('common.na')
             const existing = grouped.get(category) ?? []
             existing.push(challenge)
             grouped.set(category, existing)
