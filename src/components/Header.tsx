@@ -46,14 +46,14 @@ const Header = ({ user }: HeaderProps) => {
 
     return (
         <>
-            <div className='border-b border-danger/30 bg-danger/10'>
+            {/* <div className='border-b border-danger/30 bg-danger/10'>
                 <div className='mx-auto max-w-6xl px-6 py-3 text-sm text-danger'>
                     <p className='font-medium'>테스트 서버 운영 중이 아닙니다.</p>
                     <p className='text-xs text-danger/80'>
                         프론트엔드 UI를 둘러볼 수는 있지만 로그인이나 문제 풀이 등은 불가능합니다.
                     </p>
                 </div>
-            </div>
+            </div> */}
             {isBlocked ? (
                 <div className='border-b border-danger/30 bg-danger/10'>
                     <div className='mx-auto max-w-6xl px-6 py-3 text-sm text-danger'>
