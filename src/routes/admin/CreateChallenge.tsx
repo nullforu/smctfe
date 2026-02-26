@@ -6,7 +6,9 @@ import MonacoEditor from '../../components/MonacoEditor'
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
-import type { Challenge } from '../../lib/types'
+import type { Challenge, TargetPortSpec } from '../../lib/types'
+
+type TargetPortRow = TargetPortSpec & { id: string }
 
 const CreateChallenge = () => {
     const t = useT()
@@ -23,7 +25,13 @@ const CreateChallenge = () => {
     const [isActive, setIsActive] = useState(true)
     const [previousChallengeId, setPreviousChallengeId] = useState<number | ''>('')
     const [stackEnabled, setStackEnabled] = useState(false)
-    const [stackTargetPort, setStackTargetPort] = useState(80)
+    const portIdRef = useRef(0)
+    const newPortRow = (port?: TargetPortSpec): TargetPortRow => ({
+        id: `port-${portIdRef.current++}`,
+        container_port: port?.container_port ?? 80,
+        protocol: port?.protocol ?? 'TCP',
+    })
+    const [stackTargetPorts, setStackTargetPorts] = useState<TargetPortRow[]>([newPortRow()])
     const [stackPodSpec, setStackPodSpec] = useState('')
     const [challengeFile, setChallengeFile] = useState<File | null>(null)
     const [challengeFileError, setChallengeFileError] = useState('')
@@ -74,7 +82,12 @@ const CreateChallenge = () => {
                 is_active: isActive,
                 previous_challenge_id: previousChallengeId === '' ? undefined : Number(previousChallengeId),
                 stack_enabled: stackEnabled,
-                stack_target_port: stackEnabled ? Number(stackTargetPort) : undefined,
+                stack_target_ports: stackEnabled
+                    ? stackTargetPorts.map(({ container_port, protocol }) => ({
+                          container_port,
+                          protocol,
+                      }))
+                    : undefined,
                 stack_pod_spec: stackEnabled ? stackPodSpec : undefined,
             })
 
@@ -104,7 +117,7 @@ const CreateChallenge = () => {
             setPreviousChallengeId('')
             setChallengeFile(null)
             setStackEnabled(false)
-            setStackTargetPort(80)
+            setStackTargetPorts([newPortRow()])
             setStackPodSpec('')
 
             if (fileInputRef.current) {
@@ -310,25 +323,81 @@ const CreateChallenge = () => {
                     {stackEnabled ? (
                         <div className='mt-4 grid gap-4'>
                             <div>
-                                <label
-                                    className='text-xs uppercase tracking-wide text-text-muted'
-                                    htmlFor='admin-stack-target-port'
-                                >
-                                    {t('admin.create.targetPort')}
-                                </label>
-                                <input
-                                    id='admin-stack-target-port'
-                                    className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                    type='number'
-                                    min={1}
-                                    max={65535}
-                                    value={stackTargetPort}
-                                    onChange={(event) => setStackTargetPort(Number(event.target.value))}
-                                />
-                                {fieldErrors.stack_target_port ? (
+                                <div className='flex flex-wrap items-center justify-between gap-2'>
+                                    <label className='text-xs uppercase tracking-wide text-text-muted'>
+                                        {t('admin.create.targetPorts')}
+                                    </label>
+                                    <button
+                                        className='text-xs text-accent hover:underline disabled:opacity-60 cursor-pointer'
+                                        type='button'
+                                        onClick={() =>
+                                            setStackTargetPorts((prev) =>
+                                                prev.length >= 24 ? prev : [...prev, newPortRow()],
+                                            )
+                                        }
+                                        disabled={stackTargetPorts.length >= 24}
+                                    >
+                                        {t('common.add')}
+                                    </button>
+                                </div>
+                                <div className='mt-3 grid gap-3'>
+                                    {stackTargetPorts.map((port, index) => (
+                                        <div
+                                            key={port.id}
+                                            className='grid gap-3 sm:grid-cols-[1fr_120px_auto] items-center'
+                                        >
+                                            <input
+                                                className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                type='number'
+                                                min={1}
+                                                max={65535}
+                                                value={port.container_port}
+                                                onChange={(event) => {
+                                                    const value = Number(event.target.value)
+                                                    setStackTargetPorts((prev) =>
+                                                        prev.map((item, idx) =>
+                                                            idx === index ? { ...item, container_port: value } : item,
+                                                        ),
+                                                    )
+                                                }}
+                                            />
+                                            <select
+                                                className='w-full min-w-[90px] rounded-xl border border-border bg-surface px-3 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                value={port.protocol}
+                                                onChange={(event) => {
+                                                    const value = event.target.value as TargetPortSpec['protocol']
+                                                    setStackTargetPorts((prev) =>
+                                                        prev.map((item, idx) =>
+                                                            idx === index ? { ...item, protocol: value } : item,
+                                                        ),
+                                                    )
+                                                }}
+                                            >
+                                                <option value='TCP'>TCP</option>
+                                                <option value='UDP'>UDP</option>
+                                            </select>
+                                            <button
+                                                className='min-w-[72px] rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                type='button'
+                                                onClick={() =>
+                                                    setStackTargetPorts((prev) =>
+                                                        prev.filter((_, idx) => idx !== index),
+                                                    )
+                                                }
+                                                disabled={stackTargetPorts.length <= 1}
+                                            >
+                                                {t('common.remove')}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                {fieldErrors.stack_target_ports ? (
                                     <p className='mt-2 text-xs text-danger'>
-                                        {t('admin.create.targetPort')}: {fieldErrors.stack_target_port}
+                                        {t('admin.create.targetPorts')}: {fieldErrors.stack_target_ports}
                                     </p>
+                                ) : null}
+                                {stackTargetPorts.length >= 24 ? (
+                                    <p className='mt-2 text-xs text-text-muted'>{t('admin.create.maxPorts')}</p>
                                 ) : null}
                             </div>
                             <div>

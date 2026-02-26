@@ -32,6 +32,9 @@ spec:
       image: nginx:stable
       ports:
         - containerPort: 80
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
       resources:
         requests:
           cpu: "50m"

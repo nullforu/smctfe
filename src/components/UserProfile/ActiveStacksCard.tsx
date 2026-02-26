@@ -23,6 +23,10 @@ const ActiveStacksCard = ({
     formatOptionalDateTime,
 }: ActiveStacksCardProps) => {
     const t = useT()
+    const formatEndpoints = (stack: Stack) => {
+        if (!stack.node_public_ip || stack.ports.length === 0) return t('common.pending')
+        return stack.ports.map((port) => `${port.protocol} ${stack.node_public_ip}:${port.node_port}`).join(', ')
+    }
 
     return (
         <div className='mt-6 rounded-2xl border border-border bg-surface p-6'>
@@ -63,11 +67,7 @@ const ActiveStacksCard = ({
                                     </p>
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3 text-xs text-text-muted'>
-                                    <span>
-                                        {stack.node_public_ip && stack.node_port
-                                            ? `${stack.node_public_ip}:${stack.node_port}`
-                                            : t('common.pending')}
-                                    </span>
+                                    <span>{formatEndpoints(stack)}</span>
                                     <button
                                         className='rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 cursor-pointer'
                                         type='button'

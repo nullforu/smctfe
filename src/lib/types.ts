@@ -67,7 +67,7 @@ export interface ChallengeDetail {
     has_file: boolean
     file_name?: string | null
     stack_enabled: boolean
-    stack_target_port: number
+    stack_target_ports: TargetPortSpec[]
     previous_challenge_id?: number | null
     is_locked?: false
 }
@@ -93,6 +93,17 @@ export interface AdminChallengeDetail extends ChallengeDetail {
     stack_pod_spec?: string | null
 }
 
+export type PortProtocol = 'TCP' | 'UDP'
+
+export interface TargetPortSpec {
+    container_port: number
+    protocol: PortProtocol
+}
+
+export interface PortMapping extends TargetPortSpec {
+    node_port: number
+}
+
 export interface ChallengeCreatePayload {
     title: string
     description: string
@@ -103,7 +114,7 @@ export interface ChallengeCreatePayload {
     is_active: boolean
     previous_challenge_id?: number | null
     stack_enabled?: boolean
-    stack_target_port?: number
+    stack_target_ports?: TargetPortSpec[]
     stack_pod_spec?: string
 }
 
@@ -119,7 +130,7 @@ export interface ChallengeUpdatePayload {
     is_active?: boolean
     previous_challenge_id?: number | null
     stack_enabled?: boolean
-    stack_target_port?: number
+    stack_target_ports?: TargetPortSpec[]
     stack_pod_spec?: string
 }
 
@@ -128,8 +139,7 @@ export interface Stack {
     challenge_id: number
     status: string
     node_public_ip?: string | null
-    node_port?: number | null
-    target_port: number
+    ports: PortMapping[]
     ttl_expires_at?: string | null
     created_at: string
     updated_at: string

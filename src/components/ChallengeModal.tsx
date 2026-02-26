@@ -390,49 +390,70 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                 <p className='mt-2 text-xs text-text-subtle'>{t('challenge.stackEndedNotice')}</p>
                             ) : stackInfo ? (
                                 <div className='mt-3 grid gap-2 text-xs text-text-muted'>
-                                    <div className='flex flex-wrap items-center gap-2'>
-                                        <span className='font-medium text-text'>{t('challenge.stackStatus')}</span>
-                                        <span className='rounded-full bg-surface-subtle px-2 py-0.5 text-[11px]'>
-                                            {stackInfo.status}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className='font-medium text-text'>{t('challenge.stackEndpoint')}</span>
+                                    {(() => {
+                                        const endpoints =
+                                            stackInfo.node_public_ip && stackInfo.ports.length > 0
+                                                ? stackInfo.ports.map((port, index) => {
+                                                      const endpoint = `${port.protocol} ${port.container_port} / ${stackInfo.node_public_ip}:${port.node_port}`
+                                                      const nc = `nc${port.protocol === 'UDP' ? ' -u' : ''} ${stackInfo.node_public_ip} ${port.node_port}`
+                                                      return (
+                                                          <div
+                                                              key={`${port.container_port}-${port.protocol}-${index}`}
+                                                              className='space-y-1'
+                                                          >
+                                                              <div>
+                                                                  <span className='font-medium text-text'>
+                                                                      {t('challenge.stackEndpoint')}
+                                                                  </span>
+                                                                  <span className='ml-2'>
+                                                                      {t('challenge.stackPortIndex', {
+                                                                          index: index + 1,
+                                                                      })}
+                                                                      : {endpoint}
+                                                                  </span>
+                                                              </div>
+                                                              <div>
+                                                                  <span className='font-medium text-text'>
+                                                                      {t('challenge.stackNCEndpoint')}
+                                                                  </span>
+                                                                  <span className='ml-2 font-mono'>{nc}</span>
+                                                              </div>
+                                                          </div>
+                                                      )
+                                                  })
+                                                : t('challenge.stackPending')
 
-                                        <span
-                                            className='ml-2 cursor-pointer hover:underline'
-                                            onClick={() => {
-                                                if (stackInfo.node_public_ip && stackInfo.node_port) {
-                                                    const url = `http://${stackInfo.node_public_ip}:${stackInfo.node_port}`
-                                                    window.open(url, '_blank', 'noopener')
-                                                }
-                                            }}
-                                        >
-                                            {stackInfo.node_public_ip && stackInfo.node_port
-                                                ? `http://${stackInfo.node_public_ip}:${stackInfo.node_port}`
-                                                : t('challenge.stackPending')}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className='font-medium text-text'>{t('challenge.stackNCEndpoint')}</span>
-                                        <span
-                                            className='ml-2 font-mono cursor-pointer hover:underline'
-                                            onClick={() => {
-                                                if (stackInfo.node_public_ip && stackInfo.node_port) {
-                                                    const url = `nc ${stackInfo.node_public_ip} ${stackInfo.node_port}`
-                                                    navigator.clipboard.writeText(url)
-                                                }
-                                            }}
-                                        >
-                                            {stackInfo.node_public_ip && stackInfo.node_port
-                                                ? `nc ${stackInfo.node_public_ip} ${stackInfo.node_port}`
-                                                : t('challenge.stackPending')}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className='font-medium text-text'>{t('challenge.stackTtl')}</span>
-                                        <span className='ml-2'>{formatTimestamp(stackInfo.ttl_expires_at)}</span>
-                                    </div>
+                                        return (
+                                            <>
+                                                <div className='flex flex-wrap items-center gap-2'>
+                                                    <span className='font-medium text-text'>
+                                                        {t('challenge.stackStatus')}
+                                                    </span>
+                                                    <span className='rounded-full bg-surface-subtle px-2 py-0.5 text-[11px]'>
+                                                        {stackInfo.status}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className='font-medium text-text'>
+                                                        {t('challenge.stackPorts')}
+                                                    </span>
+                                                    {typeof endpoints === 'string' ? (
+                                                        <span className='ml-2'>{endpoints}</span>
+                                                    ) : (
+                                                        <div className='mt-2 grid gap-2'>{endpoints}</div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <span className='font-medium text-text'>
+                                                        {t('challenge.stackTtl')}
+                                                    </span>
+                                                    <span className='ml-2'>
+                                                        {formatTimestamp(stackInfo.ttl_expires_at)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )
+                                    })()}
                                 </div>
                             ) : (
                                 <p className='mt-2 text-xs text-text-subtle'>{t('challenge.stackNoActive')}</p>

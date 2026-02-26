@@ -1,8 +1,10 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { uploadPresignedPost } from '../../lib/api'
 import { CHALLENGE_CATEGORIES } from '../../lib/constants'
 import { formatApiError, isZipFile, type FieldErrors } from '../../lib/utils'
-import type { Challenge, ChallengeDetail, ChallengeUpdatePayload } from '../../lib/types'
+import type { Challenge, ChallengeDetail, ChallengeUpdatePayload, TargetPortSpec } from '../../lib/types'
+
+type TargetPortRow = TargetPortSpec & { id: string }
 import FormMessage from '../../components/FormMessage'
 import { getCategoryKey, useT } from '../../lib/i18n'
 import { useApi } from '../../lib/useApi'
@@ -39,7 +41,13 @@ const ChallengeManagement = () => {
     const [editFlag, setEditFlag] = useState('')
     const [editIsActive, setEditIsActive] = useState(true)
     const [editStackEnabled, setEditStackEnabled] = useState(false)
-    const [editStackTargetPort, setEditStackTargetPort] = useState(80)
+    const portIdRef = useRef(0)
+    const newPortRow = (port?: TargetPortSpec): TargetPortRow => ({
+        id: `port-${portIdRef.current++}`,
+        container_port: port?.container_port ?? 80,
+        protocol: port?.protocol ?? 'TCP',
+    })
+    const [editStackTargetPorts, setEditStackTargetPorts] = useState<TargetPortRow[]>([newPortRow()])
     const [editStackPodSpec, setEditStackPodSpec] = useState('')
     const [loadedStackPodSpec, setLoadedStackPodSpec] = useState('')
     const [loadedPreviousChallengeId, setLoadedPreviousChallengeId] = useState<number | null>(null)
@@ -103,7 +111,12 @@ const ChallengeManagement = () => {
             'previous_challenge_id' in challenge ? (challenge.previous_challenge_id ?? null) : null,
         )
         setEditStackEnabled('stack_enabled' in challenge ? challenge.stack_enabled : false)
-        setEditStackTargetPort('stack_target_port' in challenge ? challenge.stack_target_port || 80 : 80)
+        const challengePorts = 'stack_target_ports' in challenge ? challenge.stack_target_ports : []
+        setEditStackTargetPorts(
+            Array.isArray(challengePorts) && challengePorts.length > 0
+                ? challengePorts.map((port) => newPortRow(port))
+                : [newPortRow()],
+        )
         setEditStackPodSpec('')
         setLoadedStackPodSpec('')
 
@@ -119,7 +132,11 @@ const ChallengeManagement = () => {
             setEditPreviousChallengeId(detail.previous_challenge_id ?? '')
             setLoadedPreviousChallengeId(detail.previous_challenge_id ?? null)
             setEditStackEnabled(detail.stack_enabled)
-            setEditStackTargetPort(detail.stack_target_port || 80)
+            setEditStackTargetPorts(
+                detail.stack_target_ports && detail.stack_target_ports.length > 0
+                    ? detail.stack_target_ports.map((port) => newPortRow(port))
+                    : [newPortRow()],
+            )
             const podSpecValue = detail.stack_pod_spec ?? ''
             setEditStackPodSpec(podSpecValue)
             setLoadedStackPodSpec(podSpecValue)
@@ -156,7 +173,11 @@ const ChallengeManagement = () => {
         if (field === 'is_active') setEditIsActive(detail?.is_active ?? true)
         if (field === 'stack') {
             setEditStackEnabled(detail?.stack_enabled ?? false)
-            setEditStackTargetPort(detail?.stack_target_port || 80)
+            setEditStackTargetPorts(
+                detail?.stack_target_ports && detail.stack_target_ports.length > 0
+                    ? detail.stack_target_ports.map((port) => newPortRow(port))
+                    : [newPortRow()],
+            )
             setEditStackPodSpec(loadedStackPodSpec)
         }
     }
@@ -243,9 +264,12 @@ const ChallengeManagement = () => {
         }
 
         if (field === 'stack') {
+            const normalizePorts = (ports: TargetPortRow[] | TargetPortSpec[]) =>
+                ports.map((port) => ({ container_port: port.container_port, protocol: port.protocol }))
             const stackChanged =
                 editStackEnabled !== (detail?.stack_enabled ?? false) ||
-                Number(editStackTargetPort) !== Number(detail?.stack_target_port || 80) ||
+                JSON.stringify(normalizePorts(editStackTargetPorts)) !==
+                    JSON.stringify(detail?.stack_target_ports ?? []) ||
                 editStackPodSpec !== loadedStackPodSpec
 
             if (!stackChanged) {
@@ -260,7 +284,10 @@ const ChallengeManagement = () => {
                     setManageFieldErrors({ stack_pod_spec: t('errors.required') })
                     return
                 }
-                payload.stack_target_port = Number(editStackTargetPort)
+                payload.stack_target_ports = editStackTargetPorts.map(({ container_port, protocol }) => ({
+                    container_port,
+                    protocol,
+                }))
                 payload.stack_pod_spec = editStackPodSpec
             }
         }
@@ -282,7 +309,11 @@ const ChallengeManagement = () => {
             setEditPreviousChallengeId(updated.previous_challenge_id ?? '')
             setLoadedPreviousChallengeId(updated.previous_challenge_id ?? null)
             setEditStackEnabled(updated.stack_enabled)
-            setEditStackTargetPort(updated.stack_target_port || 80)
+            setEditStackTargetPorts(
+                updated.stack_target_ports && updated.stack_target_ports.length > 0
+                    ? updated.stack_target_ports.map((port) => newPortRow(port))
+                    : [newPortRow()],
+            )
             if (!updated.stack_enabled) {
                 setEditStackPodSpec('')
                 setLoadedStackPodSpec('')
@@ -1151,37 +1182,174 @@ const ChallengeManagement = () => {
                                                                         {editStackEnabled ? (
                                                                             <div className='grid gap-4'>
                                                                                 <div>
-                                                                                    <label
-                                                                                        className='text-xs uppercase tracking-wide text-text-muted'
-                                                                                        htmlFor={`manage-stack-target-port-${challenge.id}`}
-                                                                                    >
-                                                                                        {t('admin.create.targetPort')}
-                                                                                    </label>
-                                                                                    <input
-                                                                                        id={`manage-stack-target-port-${challenge.id}`}
-                                                                                        className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
-                                                                                        type='number'
-                                                                                        min={1}
-                                                                                        max={65535}
-                                                                                        value={editStackTargetPort}
-                                                                                        onChange={(event) =>
-                                                                                            setEditStackTargetPort(
-                                                                                                Number(
-                                                                                                    event.target.value,
-                                                                                                ),
-                                                                                            )
-                                                                                        }
-                                                                                        disabled={manageLoading}
-                                                                                    />
-                                                                                    {manageFieldErrors.stack_target_port ? (
+                                                                                    <div className='flex flex-wrap items-center justify-between gap-2'>
+                                                                                        <label className='text-xs uppercase tracking-wide text-text-muted'>
+                                                                                            {t(
+                                                                                                'admin.create.targetPorts',
+                                                                                            )}
+                                                                                        </label>
+                                                                                        <button
+                                                                                            className='text-xs text-accent hover:underline disabled:opacity-60 cursor-pointer'
+                                                                                            type='button'
+                                                                                            onClick={() =>
+                                                                                                setEditStackTargetPorts(
+                                                                                                    (prev) =>
+                                                                                                        prev.length >=
+                                                                                                        24
+                                                                                                            ? prev
+                                                                                                            : [
+                                                                                                                  ...prev,
+                                                                                                                  newPortRow(),
+                                                                                                              ],
+                                                                                                )
+                                                                                            }
+                                                                                            disabled={
+                                                                                                manageLoading ||
+                                                                                                editStackTargetPorts.length >=
+                                                                                                    24
+                                                                                            }
+                                                                                        >
+                                                                                            {t('common.add')}
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div className='mt-3 grid gap-3'>
+                                                                                        {editStackTargetPorts.map(
+                                                                                            (port, index) => (
+                                                                                                <div
+                                                                                                    key={port.id}
+                                                                                                    className='grid gap-3 sm:grid-cols-[1fr_120px_auto] items-center'
+                                                                                                >
+                                                                                                    <input
+                                                                                                        className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                                        type='number'
+                                                                                                        min={1}
+                                                                                                        max={65535}
+                                                                                                        value={
+                                                                                                            port.container_port
+                                                                                                        }
+                                                                                                        onChange={(
+                                                                                                            event,
+                                                                                                        ) => {
+                                                                                                            const value =
+                                                                                                                Number(
+                                                                                                                    event
+                                                                                                                        .target
+                                                                                                                        .value,
+                                                                                                                )
+                                                                                                            setEditStackTargetPorts(
+                                                                                                                (
+                                                                                                                    prev,
+                                                                                                                ) =>
+                                                                                                                    prev.map(
+                                                                                                                        (
+                                                                                                                            item,
+                                                                                                                            idx,
+                                                                                                                        ) =>
+                                                                                                                            idx ===
+                                                                                                                            index
+                                                                                                                                ? {
+                                                                                                                                      ...item,
+                                                                                                                                      container_port:
+                                                                                                                                          value,
+                                                                                                                                  }
+                                                                                                                                : item,
+                                                                                                                    ),
+                                                                                                            )
+                                                                                                        }}
+                                                                                                        disabled={
+                                                                                                            manageLoading
+                                                                                                        }
+                                                                                                    />
+                                                                                                    <select
+                                                                                                        className='w-full min-w-[90px] rounded-xl border border-border bg-surface px-3 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                                        value={
+                                                                                                            port.protocol
+                                                                                                        }
+                                                                                                        onChange={(
+                                                                                                            event,
+                                                                                                        ) => {
+                                                                                                            const value =
+                                                                                                                event
+                                                                                                                    .target
+                                                                                                                    .value as TargetPortSpec['protocol']
+                                                                                                            setEditStackTargetPorts(
+                                                                                                                (
+                                                                                                                    prev,
+                                                                                                                ) =>
+                                                                                                                    prev.map(
+                                                                                                                        (
+                                                                                                                            item,
+                                                                                                                            idx,
+                                                                                                                        ) =>
+                                                                                                                            idx ===
+                                                                                                                            index
+                                                                                                                                ? {
+                                                                                                                                      ...item,
+                                                                                                                                      protocol:
+                                                                                                                                          value,
+                                                                                                                                  }
+                                                                                                                                : item,
+                                                                                                                    ),
+                                                                                                            )
+                                                                                                        }}
+                                                                                                        disabled={
+                                                                                                            manageLoading
+                                                                                                        }
+                                                                                                    >
+                                                                                                        <option value='TCP'>
+                                                                                                            TCP
+                                                                                                        </option>
+                                                                                                        <option value='UDP'>
+                                                                                                            UDP
+                                                                                                        </option>
+                                                                                                    </select>
+                                                                                                    <button
+                                                                                                        className='min-w-[72px] rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                                        type='button'
+                                                                                                        onClick={() =>
+                                                                                                            setEditStackTargetPorts(
+                                                                                                                (
+                                                                                                                    prev,
+                                                                                                                ) =>
+                                                                                                                    prev.filter(
+                                                                                                                        (
+                                                                                                                            _,
+                                                                                                                            idx,
+                                                                                                                        ) =>
+                                                                                                                            idx !==
+                                                                                                                            index,
+                                                                                                                    ),
+                                                                                                            )
+                                                                                                        }
+                                                                                                        disabled={
+                                                                                                            manageLoading ||
+                                                                                                            editStackTargetPorts.length <=
+                                                                                                                1
+                                                                                                        }
+                                                                                                    >
+                                                                                                        {t(
+                                                                                                            'common.remove',
+                                                                                                        )}
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            ),
+                                                                                        )}
+                                                                                    </div>
+                                                                                    {manageFieldErrors.stack_target_ports ? (
                                                                                         <p className='mt-2 text-xs text-danger'>
                                                                                             {t(
-                                                                                                'admin.create.targetPort',
+                                                                                                'admin.create.targetPorts',
                                                                                             )}
                                                                                             :{' '}
                                                                                             {
-                                                                                                manageFieldErrors.stack_target_port
+                                                                                                manageFieldErrors.stack_target_ports
                                                                                             }
+                                                                                        </p>
+                                                                                    ) : null}
+                                                                                    {editStackTargetPorts.length >=
+                                                                                    24 ? (
+                                                                                        <p className='mt-2 text-xs text-text-muted'>
+                                                                                            {t('admin.create.maxPorts')}
                                                                                         </p>
                                                                                     ) : null}
                                                                                 </div>
@@ -1247,8 +1415,15 @@ const ChallengeManagement = () => {
                                                                         {editStackEnabled ? (
                                                                             <>
                                                                                 <p>
-                                                                                    {t('admin.create.targetPort')}:{' '}
-                                                                                    {editStackTargetPort}
+                                                                                    {t('admin.create.targetPorts')}:{' '}
+                                                                                    {editStackTargetPorts.length > 0
+                                                                                        ? editStackTargetPorts
+                                                                                              .map(
+                                                                                                  (port) =>
+                                                                                                      `${port.container_port}/${port.protocol}`,
+                                                                                              )
+                                                                                              .join(', ')
+                                                                                        : t('common.pending')}
                                                                                 </p>
                                                                                 <p>
                                                                                     {t('admin.create.podSpec')}:{' '}

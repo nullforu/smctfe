@@ -18,6 +18,27 @@ const AdminStacks = () => {
     const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
     const [detailErrorById, setDetailErrorById] = useState<Record<string, string>>({})
     const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null)
+    const formatTargetPorts = useCallback(
+        (ports: Stack['ports']) =>
+            ports.length > 0
+                ? ports.map((port) => `${port.container_port}/${port.protocol}`).join(', ')
+                : t('common.pending'),
+        [t],
+    )
+    const formatNodePorts = useCallback(
+        (ports: Stack['ports']) =>
+            ports.length > 0
+                ? ports.map((port) => `${port.protocol} ${port.node_port}`).join(', ')
+                : t('common.pending'),
+        [t],
+    )
+    const formatEndpoints = useCallback(
+        (detail: Stack) =>
+            detail.node_public_ip && detail.ports.length > 0
+                ? detail.ports.map((port) => `${port.protocol} ${detail.node_public_ip}:${port.node_port}`).join(', ')
+                : t('common.pending'),
+        [t],
+    )
 
     const formatOptionalDate = useCallback(
         (value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')),
@@ -227,9 +248,7 @@ const AdminStacks = () => {
                                                                         {t('admin.stacks.runtimeLabel')}
                                                                     </p>
                                                                     <p className='mt-1 text-sm text-text'>
-                                                                        {detail.node_public_ip && detail.node_port
-                                                                            ? `${detail.node_public_ip}:${detail.node_port}`
-                                                                            : t('common.pending')}
+                                                                        {formatEndpoints(detail)}
                                                                     </p>
                                                                 </div>
                                                                 <div>
@@ -237,7 +256,7 @@ const AdminStacks = () => {
                                                                         {t('admin.stacks.targetPortLabel')}
                                                                     </p>
                                                                     <p className='mt-1 text-sm text-text'>
-                                                                        {detail.target_port}
+                                                                        {formatTargetPorts(detail.ports)}
                                                                     </p>
                                                                 </div>
                                                                 <div>
@@ -277,7 +296,7 @@ const AdminStacks = () => {
                                                                         {t('admin.stacks.portLabel')}
                                                                     </p>
                                                                     <p className='mt-1 text-sm text-text'>
-                                                                        {detail.node_port ?? t('common.pending')}
+                                                                        {formatNodePorts(detail.ports)}
                                                                     </p>
                                                                 </div>
                                                             </div>
