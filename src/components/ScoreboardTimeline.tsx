@@ -14,6 +14,7 @@ import { useApi } from '../lib/useApi'
 
 interface ScoreboardTimelineProps {
     mode?: 'users' | 'teams'
+    refreshTrigger?: number
 }
 
 interface TooltipState {
@@ -29,7 +30,7 @@ interface TooltipState {
     username: string
 }
 
-const ScoreboardTimeline = ({ mode = 'users' }: ScoreboardTimelineProps) => {
+const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTimelineProps) => {
     const t = useT()
     const api = useApi()
     const locale = useLocale()
@@ -42,6 +43,7 @@ const ScoreboardTimeline = ({ mode = 'users' }: ScoreboardTimelineProps) => {
     const chartContainerRef = useRef<HTMLDivElement | null>(null)
     const tooltipBoxRef = useRef<HTMLDivElement | null>(null)
     const requestIdRef = useRef(0)
+    const lastModeRef = useRef<'users' | 'teams'>(mode)
     const resizeObserverRef = useRef<ResizeObserver | null>(null)
     const [loading, setLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState('')
@@ -101,10 +103,14 @@ const ScoreboardTimeline = ({ mode = 'users' }: ScoreboardTimelineProps) => {
         let active = true
         requestIdRef.current += 1
         const currentRequest = requestIdRef.current
-        setLoading(true)
+        const modeChanged = lastModeRef.current !== mode
+        lastModeRef.current = mode
+        setLoading(modeChanged || timeline === null)
         setErrorMessage('')
-        setChartModel(null)
-        setTooltip(null)
+        if (modeChanged) {
+            setChartModel(null)
+            setTooltip(null)
+        }
 
         const loadTimeline = async () => {
             try {
@@ -144,7 +150,7 @@ const ScoreboardTimeline = ({ mode = 'users' }: ScoreboardTimelineProps) => {
         return () => {
             active = false
         }
-    }, [api, mode, t])
+    }, [api, mode, refreshTrigger, t])
 
     useEffect(() => {
         if (timeline) {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ScoreboardTimeline from '../components/ScoreboardTimeline'
 import ScoreboardLeaderboard from '../components/ScoreboardLeaderboard'
 import { useT } from '../lib/i18n'
@@ -11,6 +11,71 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
     const [viewMode, setViewMode] = useState<'users' | 'teams'>('users')
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
+    const [liveUpdatesEnabled, setLiveUpdatesEnabled] = useState(true)
+    const reconnectTimeoutRef = useRef<number | null>(null)
+    const eventSourceRef = useRef<EventSource | null>(null)
+
+    useEffect(() => {
+        if (!liveUpdatesEnabled) {
+            if (reconnectTimeoutRef.current !== null) {
+                window.clearTimeout(reconnectTimeoutRef.current)
+                reconnectTimeoutRef.current = null
+            }
+            if (eventSourceRef.current) {
+                eventSourceRef.current.close()
+                eventSourceRef.current = null
+            }
+            return
+        }
+        if (typeof EventSource === 'undefined') return
+        const apiBase = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080'
+        const url = `${apiBase}/api/scoreboard/stream`
+        let active = true
+
+        const cleanupEventSource = () => {
+            if (eventSourceRef.current) {
+                eventSourceRef.current.close()
+                eventSourceRef.current = null
+            }
+        }
+
+        const scheduleReconnect = () => {
+            if (!active) return
+            if (reconnectTimeoutRef.current !== null) return
+            reconnectTimeoutRef.current = window.setTimeout(() => {
+                reconnectTimeoutRef.current = null
+                connect()
+            }, 1000)
+        }
+
+        const handleScoreboard = () => {
+            setRefreshTrigger((value) => value + 1)
+        }
+
+        const connect = () => {
+            cleanupEventSource()
+            const eventSource = new EventSource(url)
+            eventSourceRef.current = eventSource
+            eventSource.addEventListener('scoreboard', handleScoreboard)
+            eventSource.onerror = () => {
+                cleanupEventSource()
+                scheduleReconnect()
+            }
+        }
+
+        setRefreshTrigger((value) => value + 1)
+        connect()
+
+        return () => {
+            active = false
+            if (reconnectTimeoutRef.current !== null) {
+                window.clearTimeout(reconnectTimeoutRef.current)
+                reconnectTimeoutRef.current = null
+            }
+            cleanupEventSource()
+        }
+    }, [liveUpdatesEnabled])
 
     return (
         <section className='fade-in'>
@@ -41,12 +106,22 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
                             {t('scoreboard.teams')}
                         </button>
                     </div>
+                    <button
+                        className={`rounded-full border border-border px-3 py-2 text-xs font-semibold transition ${
+                            liveUpdatesEnabled ? 'bg-accent/20 text-accent-strong' : 'text-text-muted hover:text-text'
+                        }`}
+                        onClick={() => setLiveUpdatesEnabled((value) => !value)}
+                        type='button'
+                    >
+                        {t('scoreboard.liveUpdates')} ·{' '}
+                        {liveUpdatesEnabled ? t('scoreboard.liveOn') : t('scoreboard.liveOff')}
+                    </button>
                 </div>
             </div>
 
             <div className='mt-6 grid min-w-0 grid-cols-1 gap-6'>
-                <ScoreboardTimeline mode={viewMode} />
-                <ScoreboardLeaderboard mode={viewMode} />
+                <ScoreboardTimeline mode={viewMode} refreshTrigger={refreshTrigger} />
+                <ScoreboardLeaderboard mode={viewMode} refreshTrigger={refreshTrigger} />
             </div>
         </section>
     )

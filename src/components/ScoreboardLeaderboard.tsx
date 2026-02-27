@@ -14,13 +14,14 @@ import { useApi } from '../lib/useApi'
 
 interface ScoreboardLeaderboardProps {
     mode?: 'users' | 'teams'
+    refreshTrigger?: number
 }
 
 type UserEntryView = ScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type TeamEntryView = TeamScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type EntryView = UserEntryView | TeamEntryView
 
-const ScoreboardLeaderboard = ({ mode = 'users' }: ScoreboardLeaderboardProps) => {
+const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardLeaderboardProps) => {
     const t = useT()
     const api = useApi()
     const [challenges, setChallenges] = useState<LeaderboardChallenge[]>([])
@@ -29,6 +30,7 @@ const ScoreboardLeaderboard = ({ mode = 'users' }: ScoreboardLeaderboardProps) =
     const [loading, setLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState('')
     const requestIdRef = useRef(0)
+    const lastModeRef = useRef<'users' | 'teams'>(mode)
     const flagSize = 22
     const fixedCols = '48px 80px minmax(160px, 1fr)'
 
@@ -80,7 +82,10 @@ const ScoreboardLeaderboard = ({ mode = 'users' }: ScoreboardLeaderboardProps) =
         let active = true
         requestIdRef.current += 1
         const currentRequest = requestIdRef.current
-        setLoading(true)
+        const modeChanged = lastModeRef.current !== mode
+        lastModeRef.current = mode
+        const hasData = mode === 'teams' ? teamScores.length > 0 : scores.length > 0
+        setLoading(modeChanged || !hasData)
         setErrorMessage('')
 
         const loadScoreboard = async () => {
@@ -109,7 +114,7 @@ const ScoreboardLeaderboard = ({ mode = 'users' }: ScoreboardLeaderboardProps) =
         return () => {
             active = false
         }
-    }, [api, mode, t])
+    }, [api, mode, refreshTrigger, t])
 
     const entries = mode === 'teams' ? teamScores : scores
 
