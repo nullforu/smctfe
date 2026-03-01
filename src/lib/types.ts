@@ -5,8 +5,16 @@ export interface AuthUser {
     role: string
     team_id: number
     team_name: string
+    division_id: number
+    division_name: string
     blocked_reason: string | null
     blocked_at: string | null
+}
+
+export interface Division {
+    id: number
+    name: string
+    created_at: string
 }
 
 export interface RegisterPayload {
@@ -203,6 +211,7 @@ export interface AdminStackDeleteResponse {
 
 export interface AdminReportResponse {
     challenges: ChallengeDetail[]
+    divisions: Division[]
     teams: TeamSummary[]
     users: UserListItem[]
     stacks: Stack[]
@@ -297,6 +306,8 @@ export interface UserListItem {
     role: string
     team_id: number
     team_name: string
+    division_id: number
+    division_name: string
     blocked_reason: string | null
     blocked_at: string | null
 }
@@ -307,6 +318,8 @@ export interface UserDetail {
     role: string
     team_id: number
     team_name: string
+    division_id: number
+    division_name: string
     blocked_reason: string | null
     blocked_at: string | null
 }
@@ -341,16 +354,21 @@ export interface RegistrationKeyCreatePayload {
 export interface Team {
     id: number
     name: string
+    division_id: number
+    division_name: string
     created_at: string
 }
 
 export interface TeamCreatePayload {
     name: string
+    division_id: number
 }
 
 export interface TeamSummary {
     id: number
     name: string
+    division_id: number
+    division_name: string
     created_at: string
     member_count: number
     total_score: number

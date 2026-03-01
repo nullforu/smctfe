@@ -4,10 +4,13 @@ import { useApi } from '../../lib/useApi'
 import { formatApiError, formatDateTime } from '../../lib/utils'
 import { getLocaleTag, getRoleKey, useLocale, useT } from '../../lib/i18n'
 import FormMessage from '../../components/FormMessage'
+import DivisionTabs from '../../components/DivisionTabs'
+import { useDivision } from '../../lib/division'
 
 const AdminUsers = () => {
     const t = useT()
     const api = useApi()
+    const { divisions, selectedDivisionId } = useDivision()
     const locale = useLocale()
     const localeTag = useMemo(() => getLocaleTag(locale), [locale])
     const [users, setUsers] = useState<UserListItem[]>([])
@@ -22,23 +25,16 @@ const AdminUsers = () => {
     const [movingUserId, setMovingUserId] = useState<number | null>(null)
     const [blockingUserId, setBlockingUserId] = useState<number | null>(null)
     const [unblockingUserId, setUnblockingUserId] = useState<number | null>(null)
+    const [divisionFilter, setDivisionFilter] = useState<number | null>(selectedDivisionId ?? null)
 
     const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery])
     const filteredUsers = useMemo(() => {
         const sorted = [...users].sort((a, b) => a.id - b.id)
         if (!normalizedQuery) return sorted
-        return sorted.filter(
-            (user) =>
-                user.username.toLowerCase().includes(normalizedQuery) ||
-                user.id.toString().includes(normalizedQuery) ||
-                user.team_name.toLowerCase().includes(normalizedQuery),
-        )
+        return sorted.filter((user) => user.username.toLowerCase().includes(normalizedQuery) || user.id.toString().includes(normalizedQuery) || user.team_name.toLowerCase().includes(normalizedQuery))
     }, [normalizedQuery, users])
 
-    const formatOptionalDate = useCallback(
-        (value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')),
-        [localeTag, t],
-    )
+    const formatOptionalDate = useCallback((value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')), [localeTag, t])
 
     const syncSelections = useCallback((userRows: UserListItem[], teamRows: TeamSummary[]) => {
         setTeamSelections((prev) => {
@@ -58,7 +54,7 @@ const AdminUsers = () => {
         setRowErrors({})
 
         try {
-            const [userRows, teamRows] = await Promise.all([api.users(), api.teams()])
+            const [userRows, teamRows] = await Promise.all([api.users(divisionFilter ?? undefined), api.teams(divisionFilter ?? undefined)])
             setUsers(userRows)
             setTeams(teamRows)
             syncSelections(userRows, teamRows)
@@ -67,7 +63,7 @@ const AdminUsers = () => {
         } finally {
             setLoading(false)
         }
-    }, [api, syncSelections, t])
+    }, [api, divisionFilter, syncSelections, t])
 
     const updateUserRow = useCallback((updated: AuthUser) => {
         setUsers((prev) => prev.map((user) => (user.id === updated.id ? { ...user, ...updated } : user)))
@@ -98,9 +94,7 @@ const AdminUsers = () => {
             try {
                 const updated = await api.moveUserTeam(user.id, nextTeamId)
                 updateUserRow(updated)
-                setSuccessMessage(
-                    t('admin.users.movedSuccess', { username: updated.username, team: updated.team_name }),
-                )
+                setSuccessMessage(t('admin.users.movedSuccess', { username: updated.username, team: updated.team_name }))
             } catch (error) {
                 setRowErrors((prev) => ({ ...prev, [user.id]: formatApiError(error, t).message }))
             } finally {
@@ -164,20 +158,24 @@ const AdminUsers = () => {
     )
 
     useEffect(() => {
+        if (selectedDivisionId) {
+            setDivisionFilter(selectedDivisionId)
+        }
+    }, [selectedDivisionId])
+
+    useEffect(() => {
         loadData()
     }, [loadData])
 
     return (
         <section className='space-y-4'>
             <div className='flex items-center justify-between'>
-                <button
-                    className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
-                    onClick={loadData}
-                    disabled={loading}
-                >
+                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={loadData} disabled={loading}>
                     {loading ? t('common.loading') : t('common.refresh')}
                 </button>
             </div>
+
+            <DivisionTabs divisions={divisions} selectedId={divisionFilter} onSelect={setDivisionFilter} includeAll className='mt-2' />
 
             <div>
                 <input
@@ -200,24 +198,13 @@ const AdminUsers = () => {
                         <table className='w-full'>
                             <thead className='border-b border-border bg-surface-muted'>
                                 <tr>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('common.id')}
-                                    </th>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('common.user')}
-                                    </th>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('common.team')}
-                                    </th>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('common.role')}
-                                    </th>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('admin.users.blockedLabel')}
-                                    </th>
-                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                        {t('common.action')}
-                                    </th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.id')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.user')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.team')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.division')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.role')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('admin.users.blockedLabel')}</th>
+                                    <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.action')}</th>
                                 </tr>
                             </thead>
                             <tbody className='divide-y divide-border'>
@@ -236,9 +223,7 @@ const AdminUsers = () => {
                                                 <div className='text-xs text-text-subtle'>{user.team_name}</div>
                                             </td>
                                             <td className='px-6 py-4 text-sm text-text'>
-                                                <div className='text-xs text-text-subtle'>
-                                                    {t('admin.users.currentTeam')}
-                                                </div>
+                                                <div className='text-xs text-text-subtle'>{t('admin.users.currentTeam')}</div>
                                                 <div className='mt-1 text-sm'>{user.team_name}</div>
                                                 <div className='mt-3 flex flex-wrap items-center gap-2'>
                                                     <select
@@ -268,20 +253,15 @@ const AdminUsers = () => {
                                                         disabled={pendingMove || teams.length === 0}
                                                         type='button'
                                                     >
-                                                        {pendingMove
-                                                            ? t('admin.users.moving')
-                                                            : t('admin.users.moveTeam')}
+                                                        {pendingMove ? t('admin.users.moving') : t('admin.users.moveTeam')}
                                                     </button>
                                                 </div>
                                             </td>
+                                            <td className='px-6 py-4 text-sm text-text-muted'>{user.division_name}</td>
                                             <td className='px-6 py-4 text-sm'>
                                                 <span
                                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
-                                                        user.role === 'admin'
-                                                            ? 'bg-secondary/20 text-secondary'
-                                                            : user.role === 'blocked'
-                                                              ? 'bg-danger/20 text-danger'
-                                                              : 'bg-accent/20 text-accent-strong'
+                                                        user.role === 'admin' ? 'bg-secondary/20 text-secondary' : user.role === 'blocked' ? 'bg-danger/20 text-danger' : 'bg-accent/20 text-accent-strong'
                                                     }`}
                                                 >
                                                     {t(getRoleKey(user.role))}
@@ -290,29 +270,21 @@ const AdminUsers = () => {
                                             <td className='px-6 py-4 text-sm text-text'>
                                                 {isBlocked ? (
                                                     <div className='space-y-1'>
-                                                        <p className='text-sm font-medium text-danger'>
-                                                            {t('admin.users.blockedStatus')}
+                                                        <p className='text-sm font-medium text-danger'>{t('admin.users.blockedStatus')}</p>
+                                                        <p className='text-xs text-text-subtle'>
+                                                            {t('admin.users.blockedReasonLabel')}: {user.blocked_reason ?? t('common.na')}
                                                         </p>
                                                         <p className='text-xs text-text-subtle'>
-                                                            {t('admin.users.blockedReasonLabel')}:{' '}
-                                                            {user.blocked_reason ?? t('common.na')}
-                                                        </p>
-                                                        <p className='text-xs text-text-subtle'>
-                                                            {t('admin.users.blockedAtLabel')}:{' '}
-                                                            {formatOptionalDate(user.blocked_at)}
+                                                            {t('admin.users.blockedAtLabel')}: {formatOptionalDate(user.blocked_at)}
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    <p className='text-xs text-text-subtle'>
-                                                        {t('admin.users.activeStatus')}
-                                                    </p>
+                                                    <p className='text-xs text-text-subtle'>{t('admin.users.activeStatus')}</p>
                                                 )}
                                             </td>
                                             <td className='px-6 py-4 text-sm text-text'>
                                                 {user.role === 'admin' ? (
-                                                    <p className='text-xs text-text-subtle'>
-                                                        {t('admin.users.adminLocked')}
-                                                    </p>
+                                                    <p className='text-xs text-text-subtle'>{t('admin.users.adminLocked')}</p>
                                                 ) : isBlocked ? (
                                                     <button
                                                         className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
@@ -320,9 +292,7 @@ const AdminUsers = () => {
                                                         disabled={pendingUnblock}
                                                         type='button'
                                                     >
-                                                        {pendingUnblock
-                                                            ? t('admin.users.unblocking')
-                                                            : t('admin.users.unblockUser')}
+                                                        {pendingUnblock ? t('admin.users.unblocking') : t('admin.users.unblockUser')}
                                                     </button>
                                                 ) : (
                                                     <div className='space-y-2'>
@@ -344,22 +314,18 @@ const AdminUsers = () => {
                                                             disabled={pendingBlock}
                                                             type='button'
                                                         >
-                                                            {pendingBlock
-                                                                ? t('admin.users.blocking')
-                                                                : t('admin.users.blockUser')}
+                                                            {pendingBlock ? t('admin.users.blocking') : t('admin.users.blockUser')}
                                                         </button>
                                                     </div>
                                                 )}
-                                                {rowError ? (
-                                                    <p className='mt-2 text-xs text-danger'>{rowError}</p>
-                                                ) : null}
+                                                {rowError ? <p className='mt-2 text-xs text-danger'>{rowError}</p> : null}
                                             </td>
                                         </tr>
                                     )
                                 })}
                                 {filteredUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className='px-6 py-8 text-center text-sm text-text-muted'>
+                                        <td colSpan={7} className='px-6 py-8 text-center text-sm text-text-muted'>
                                             {t('admin.users.noUsers')}
                                         </td>
                                     </tr>

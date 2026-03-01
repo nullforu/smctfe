@@ -54,14 +54,7 @@ interface MonacoEditorProps {
     height?: string
 }
 
-const MonacoEditor = ({
-    value,
-    onChange,
-    template,
-    readonly = false,
-    language,
-    height = '200px',
-}: MonacoEditorProps) => {
+const MonacoEditor = ({ value, onChange, template, readonly = false, language, height = '200px' }: MonacoEditorProps) => {
     const { theme } = useTheme()
     const monaco = useMonaco()
 

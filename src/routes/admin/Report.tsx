@@ -63,11 +63,7 @@ const AdminReport = () => {
                     <p className='text-xs text-text-subtle'>{t('admin.report.hint')}</p>
                 </div>
                 <div className='flex flex-wrap items-center gap-2'>
-                    <select
-                        className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text focus:border-accent focus:outline-none'
-                        value={format}
-                        onChange={(event) => setFormat(event.target.value as ReportFormat)}
-                    >
+                    <select className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text focus:border-accent focus:outline-none' value={format} onChange={(event) => setFormat(event.target.value as ReportFormat)}>
                         <option value='json'>{t('admin.report.formatJson')}</option>
                         <option value='yaml'>{t('admin.report.formatYaml')}</option>
                     </select>
@@ -85,9 +81,7 @@ const AdminReport = () => {
             {formatError ? <FormMessage variant='error' message={formatError} /> : null}
 
             <div className='overflow-hidden rounded-2xl border border-border bg-surface'>
-                <div className='border-b border-border bg-surface-muted px-4 py-2 text-xs uppercase tracking-wide text-text-muted'>
-                    {t('admin.report.outputLabel', { format: formatLabel })}
-                </div>
+                <div className='border-b border-border bg-surface-muted px-4 py-2 text-xs uppercase tracking-wide text-text-muted'>{t('admin.report.outputLabel', { format: formatLabel })}</div>
                 <div className='p-4'>
                     <MonacoEditor value={formatted} readonly language={format} height='520px' />
                 </div>

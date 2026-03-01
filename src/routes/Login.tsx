@@ -47,11 +47,7 @@ const Login = ({ routeParams = {} }: RouteProps) => {
                     {auth.user ? (
                         <div className='mt-6 rounded-xl border border-accent/40 bg-accent/10 p-4 text-sm text-accent-strong'>
                             {t('auth.alreadyLoggedIn', { username: auth.user.username })}{' '}
-                            <a
-                                className='ml-2 underline cursor-pointer'
-                                href='/challenges'
-                                onClick={(e) => navigate('/challenges', e)}
-                            >
+                            <a className='ml-2 underline cursor-pointer' href='/challenges' onClick={(e) => navigate('/challenges', e)}>
                                 {t('auth.goToChallenges')}
                             </a>
                         </div>
@@ -105,11 +101,7 @@ const Login = ({ routeParams = {} }: RouteProps) => {
 
                         {errorMessage ? <FormMessage variant='error' message={errorMessage} /> : null}
 
-                        <button
-                            className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                            type='submit'
-                            disabled={loading}
-                        >
+                        <button className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={loading}>
                             {loading ? t('auth.loggingIn') : t('auth.login')}
                         </button>
                     </form>
@@ -120,11 +112,7 @@ const Login = ({ routeParams = {} }: RouteProps) => {
                     <ul className='mt-4 space-y-3 text-sm text-text'>
                         <li>
                             {t('auth.noAccount')}{' '}
-                            <a
-                                className='text-accent underline cursor-pointer'
-                                href='/register'
-                                onClick={(e) => navigate('/register', e)}
-                            >
+                            <a className='text-accent underline cursor-pointer' href='/register' onClick={(e) => navigate('/register', e)}>
                                 {t('auth.signUpLink')}
                             </a>
                             .

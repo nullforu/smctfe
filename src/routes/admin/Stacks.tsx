@@ -18,32 +18,11 @@ const AdminStacks = () => {
     const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
     const [detailErrorById, setDetailErrorById] = useState<Record<string, string>>({})
     const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null)
-    const formatTargetPorts = useCallback(
-        (ports: Stack['ports']) =>
-            ports.length > 0
-                ? ports.map((port) => `${port.container_port}/${port.protocol}`).join(', ')
-                : t('common.pending'),
-        [t],
-    )
-    const formatNodePorts = useCallback(
-        (ports: Stack['ports']) =>
-            ports.length > 0
-                ? ports.map((port) => `${port.protocol} ${port.node_port}`).join(', ')
-                : t('common.pending'),
-        [t],
-    )
-    const formatEndpoints = useCallback(
-        (detail: Stack) =>
-            detail.node_public_ip && detail.ports.length > 0
-                ? detail.ports.map((port) => `${port.protocol} ${detail.node_public_ip}:${port.node_port}`).join(', ')
-                : t('common.pending'),
-        [t],
-    )
+    const formatTargetPorts = useCallback((ports: Stack['ports']) => (ports.length > 0 ? ports.map((port) => `${port.container_port}/${port.protocol}`).join(', ') : t('common.pending')), [t])
+    const formatNodePorts = useCallback((ports: Stack['ports']) => (ports.length > 0 ? ports.map((port) => `${port.protocol} ${port.node_port}`).join(', ') : t('common.pending')), [t])
+    const formatEndpoints = useCallback((detail: Stack) => (detail.node_public_ip && detail.ports.length > 0 ? detail.ports.map((port) => `${port.protocol} ${detail.node_public_ip}:${port.node_port}`).join(', ') : t('common.pending')), [t])
 
-    const formatOptionalDate = useCallback(
-        (value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')),
-        [localeTag, t],
-    )
+    const formatOptionalDate = useCallback((value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')), [localeTag, t])
 
     const loadStacks = useCallback(async () => {
         setLoading(true)
@@ -123,11 +102,7 @@ const AdminStacks = () => {
     return (
         <section className='space-y-4'>
             <div className='flex flex-wrap items-center justify-between gap-3'>
-                <button
-                    className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer'
-                    onClick={loadStacks}
-                    disabled={loading}
-                >
+                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={loadStacks} disabled={loading}>
                     {loading ? t('common.loading') : t('common.refresh')}
                 </button>
             </div>
@@ -166,9 +141,7 @@ const AdminStacks = () => {
                                     return (
                                         <Fragment key={stack.stack_id}>
                                             <tr className='align-top'>
-                                                <td className='whitespace-nowrap px-6 py-4 font-mono text-xs text-text'>
-                                                    {stack.stack_id}
-                                                </td>
+                                                <td className='whitespace-nowrap px-6 py-4 font-mono text-xs text-text'>{stack.stack_id}</td>
                                                 <td className='px-6 py-4'>
                                                     <div className='font-medium'>{stack.challenge_title}</div>
                                                     <div className='text-xs text-text-subtle'>
@@ -183,15 +156,9 @@ const AdminStacks = () => {
                                                     <div className='text-sm text-text'>{stack.team_name}</div>
                                                     <div className='text-xs text-text-subtle'>#{stack.team_id}</div>
                                                 </td>
-                                                <td className='px-6 py-4 text-xs text-text-subtle'>
-                                                    {formatOptionalDate(stack.ttl_expires_at)}
-                                                </td>
-                                                <td className='px-6 py-4 text-xs text-text-subtle'>
-                                                    {formatDateTime(stack.created_at, localeTag)}
-                                                </td>
-                                                <td className='px-6 py-4 text-xs text-text-subtle'>
-                                                    {formatDateTime(stack.updated_at, localeTag)}
-                                                </td>
+                                                <td className='px-6 py-4 text-xs text-text-subtle'>{formatOptionalDate(stack.ttl_expires_at)}</td>
+                                                <td className='px-6 py-4 text-xs text-text-subtle'>{formatDateTime(stack.created_at, localeTag)}</td>
+                                                <td className='px-6 py-4 text-xs text-text-subtle'>{formatDateTime(stack.updated_at, localeTag)}</td>
                                                 <td className='px-6 py-4'>
                                                     <div className='flex flex-wrap items-center gap-2'>
                                                         <button
@@ -200,11 +167,7 @@ const AdminStacks = () => {
                                                             onClick={() => toggleDetails(stack.stack_id)}
                                                             disabled={detailLoading}
                                                         >
-                                                            {detailLoading
-                                                                ? t('admin.stacks.detailsLoading')
-                                                                : detailsOpen
-                                                                  ? t('common.close')
-                                                                  : t('common.view')}
+                                                            {detailLoading ? t('admin.stacks.detailsLoading') : detailsOpen ? t('common.close') : t('common.view')}
                                                         </button>
                                                         <button
                                                             className='rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 cursor-pointer'
@@ -212,9 +175,7 @@ const AdminStacks = () => {
                                                             onClick={() => deleteStack(stack.stack_id)}
                                                             disabled={deleteLoading}
                                                         >
-                                                            {deleteLoading
-                                                                ? t('admin.stacks.deleting')
-                                                                : t('common.delete')}
+                                                            {deleteLoading ? t('admin.stacks.deleting') : t('common.delete')}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -230,74 +191,40 @@ const AdminStacks = () => {
                                                 <tr className='bg-surface/40'>
                                                     <td className='px-6 py-4' colSpan={8}>
                                                         {detailLoading ? (
-                                                            <p className='text-xs text-text-subtle'>
-                                                                {t('admin.stacks.detailsLoading')}
-                                                            </p>
+                                                            <p className='text-xs text-text-subtle'>{t('admin.stacks.detailsLoading')}</p>
                                                         ) : detail ? (
                                                             <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.statusLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {detail.status}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.statusLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{detail.status}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.runtimeLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatEndpoints(detail)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.runtimeLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatEndpoints(detail)}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.targetPortLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatTargetPorts(detail.ports)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.targetPortLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatTargetPorts(detail.ports)}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.ttlLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatOptionalDate(detail.ttl_expires_at)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.ttlLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatOptionalDate(detail.ttl_expires_at)}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('common.createdAt')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatDateTime(detail.created_at, localeTag)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.createdAt')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatDateTime(detail.created_at, localeTag)}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('common.updatedAt')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatDateTime(detail.updated_at, localeTag)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.updatedAt')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatDateTime(detail.updated_at, localeTag)}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.nodeLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {detail.node_public_ip ?? t('common.pending')}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.nodeLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{detail.node_public_ip ?? t('common.pending')}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>
-                                                                        {t('admin.stacks.portLabel')}
-                                                                    </p>
-                                                                    <p className='mt-1 text-sm text-text'>
-                                                                        {formatNodePorts(detail.ports)}
-                                                                    </p>
+                                                                    <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.stacks.portLabel')}</p>
+                                                                    <p className='mt-1 text-sm text-text'>{formatNodePorts(detail.ports)}</p>
                                                                 </div>
                                                             </div>
                                                         ) : null}

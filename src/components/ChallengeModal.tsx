@@ -51,9 +51,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     const solveCount = 'solve_count' in challenge ? challenge.solve_count : null
     const hasFile = !!detail?.has_file
     const stackEnabled = !!detail?.stack_enabled
-    const previousChallengeId = isLocked
-        ? (challenge.previous_challenge_id ?? null)
-        : (detail?.previous_challenge_id ?? null)
+    const previousChallengeId = isLocked ? (challenge.previous_challenge_id ?? null) : (detail?.previous_challenge_id ?? null)
     const previousChallengeTitle = isLocked ? (challenge.previous_challenge_title ?? null) : null
     const previousChallengeCategory = isLocked ? (challenge.previous_challenge_category ?? null) : null
 
@@ -241,11 +239,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
             }}
         >
             <div className='relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-surface p-8'>
-                <button
-                    className='absolute right-2 top-2 text-text-subtle hover:text-text cursor-pointer'
-                    onClick={onClose}
-                    aria-label={t('challenge.closeModal')}
-                >
+                <button className='absolute right-2 top-2 text-text-subtle hover:text-text cursor-pointer' onClick={onClose} aria-label={t('challenge.closeModal')}>
                     <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M6 18L18 6M6 6l12 12' />
                     </svg>
@@ -255,33 +249,17 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                     <div>
                         <h2 className='text-2xl text-text'>{challenge.title}</h2>
                         <div className='mt-2 flex flex-wrap items-center gap-2 text-sm'>
-                            {hasCategory ? (
-                                <span className='rounded-full bg-surface-subtle px-3 py-1 text-xs font-medium text-text'>
-                                    {t(getCategoryKey(categoryValue))}
-                                </span>
-                            ) : null}
-                            <span className='text-text-muted'>
-                                {t('common.pointsShort', { points: challenge.points })}
-                            </span>
-                            {solveCount !== null ? (
-                                <span className='text-text-muted'>
-                                    {t('challenge.solvedCount', { count: solveCount })}
-                                </span>
-                            ) : null}
+                            {hasCategory ? <span className='rounded-full bg-surface-subtle px-3 py-1 text-xs font-medium text-text'>{t(getCategoryKey(categoryValue))}</span> : null}
+                            <span className='text-text-muted'>{t('common.pointsShort', { points: challenge.points })}</span>
+                            {solveCount !== null ? <span className='text-text-muted'>{t('challenge.solvedCount', { count: solveCount })}</span> : null}
                         </div>
                     </div>
                     {isLocked ? (
-                        <span className='rounded-full bg-warning/20 px-4 py-1.5 text-sm text-warning-strong'>
-                            {t('challenge.lockedLabel')}
-                        </span>
+                        <span className='rounded-full bg-warning/20 px-4 py-1.5 text-sm text-warning-strong'>{t('challenge.lockedLabel')}</span>
                     ) : isSolved ? (
-                        <span className='rounded-full bg-success/20 px-4 py-1.5 text-sm text-success'>
-                            {t('challenge.solvedLabel')}
-                        </span>
+                        <span className='rounded-full bg-success/20 px-4 py-1.5 text-sm text-success'>{t('challenge.solvedLabel')}</span>
                     ) : !isActive ? (
-                        <span className='rounded-full bg-surface/10 px-4 py-1.5 text-sm text-text-muted'>
-                            {t('challenge.inactiveLabel')}
-                        </span>
+                        <span className='rounded-full bg-surface/10 px-4 py-1.5 text-sm text-text-muted'>{t('challenge.inactiveLabel')}</span>
                     ) : null}
                 </div>
 
@@ -323,9 +301,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                     </button>
                                 ) : null}
                             </div>
-                            {!auth.user ? (
-                                <p className='mt-2 text-xs text-warning'>{t('challenge.fileLoginRequired')}</p>
-                            ) : null}
+                            {!auth.user ? <p className='mt-2 text-xs text-warning'>{t('challenge.fileLoginRequired')}</p> : null}
                             {downloadMessage ? <p className='mt-2 text-xs text-danger'>{downloadMessage}</p> : null}
                         </div>
                     </div>
@@ -337,13 +313,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                             <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div>
                                     <p className='font-medium'>{t('challenge.stackInstance')}</p>
-                                    <p className='text-xs text-text-subtle'>
-                                        {stackPolling
-                                            ? stackNextInterval === 60000
-                                                ? t('challenge.stackRefreshing60')
-                                                : t('challenge.stackRefreshing10')
-                                            : t('challenge.stackRefreshPaused')}
-                                    </p>
+                                    <p className='text-xs text-text-subtle'>{stackPolling ? (stackNextInterval === 60000 ? t('challenge.stackRefreshing60') : t('challenge.stackRefreshing10')) : t('challenge.stackRefreshPaused')}</p>
                                 </div>
                                 {auth.user ? (
                                     <div className='flex flex-wrap items-center gap-2'>
@@ -363,9 +333,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                                     onClick={deleteStack}
                                                     disabled={stackLoading}
                                                 >
-                                                    {stackLoading
-                                                        ? t('challenge.stackWorking')
-                                                        : t('challenge.deleteStack')}
+                                                    {stackLoading ? t('challenge.stackWorking') : t('challenge.deleteStack')}
                                                 </button>
                                             </>
                                         ) : !isCtfEnded ? (
@@ -397,14 +365,9 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                                       const endpoint = `${port.protocol} ${port.container_port} / ${stackInfo.node_public_ip}:${port.node_port}`
                                                       const nc = `nc${port.protocol === 'UDP' ? ' -u' : ''} ${stackInfo.node_public_ip} ${port.node_port}`
                                                       return (
-                                                          <div
-                                                              key={`${port.container_port}-${port.protocol}-${index}`}
-                                                              className='space-y-1'
-                                                          >
+                                                          <div key={`${port.container_port}-${port.protocol}-${index}`} className='space-y-1'>
                                                               <div>
-                                                                  <span className='font-medium text-text'>
-                                                                      {t('challenge.stackEndpoint')}
-                                                                  </span>
+                                                                  <span className='font-medium text-text'>{t('challenge.stackEndpoint')}</span>
                                                                   <span className='ml-2'>
                                                                       {t('challenge.stackPortIndex', {
                                                                           index: index + 1,
@@ -413,9 +376,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                                                   </span>
                                                               </div>
                                                               <div>
-                                                                  <span className='font-medium text-text'>
-                                                                      {t('challenge.stackNCEndpoint')}
-                                                                  </span>
+                                                                  <span className='font-medium text-text'>{t('challenge.stackNCEndpoint')}</span>
                                                                   <span className='ml-2 font-mono'>{nc}</span>
                                                               </div>
                                                           </div>
@@ -426,30 +387,16 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                         return (
                                             <>
                                                 <div className='flex flex-wrap items-center gap-2'>
-                                                    <span className='font-medium text-text'>
-                                                        {t('challenge.stackStatus')}
-                                                    </span>
-                                                    <span className='rounded-full bg-surface-subtle px-2 py-0.5 text-[11px]'>
-                                                        {stackInfo.status}
-                                                    </span>
+                                                    <span className='font-medium text-text'>{t('challenge.stackStatus')}</span>
+                                                    <span className='rounded-full bg-surface-subtle px-2 py-0.5 text-[11px]'>{stackInfo.status}</span>
                                                 </div>
                                                 <div>
-                                                    <span className='font-medium text-text'>
-                                                        {t('challenge.stackPorts')}
-                                                    </span>
-                                                    {typeof endpoints === 'string' ? (
-                                                        <span className='ml-2'>{endpoints}</span>
-                                                    ) : (
-                                                        <div className='mt-2 grid gap-2'>{endpoints}</div>
-                                                    )}
+                                                    <span className='font-medium text-text'>{t('challenge.stackPorts')}</span>
+                                                    {typeof endpoints === 'string' ? <span className='ml-2'>{endpoints}</span> : <div className='mt-2 grid gap-2'>{endpoints}</div>}
                                                 </div>
                                                 <div>
-                                                    <span className='font-medium text-text'>
-                                                        {t('challenge.stackTtl')}
-                                                    </span>
-                                                    <span className='ml-2'>
-                                                        {formatTimestamp(stackInfo.ttl_expires_at)}
-                                                    </span>
+                                                    <span className='font-medium text-text'>{t('challenge.stackTtl')}</span>
+                                                    <span className='ml-2'>{formatTimestamp(stackInfo.ttl_expires_at)}</span>
                                                 </div>
                                             </>
                                         )
@@ -463,29 +410,19 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                         </div>
                     ) : null}
                     {isLocked ? null : isCtfEnded ? (
-                        <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
-                            {t('challenge.ctfEndedNotice')}
-                        </div>
+                        <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>{t('challenge.ctfEndedNotice')}</div>
                     ) : !auth.user ? (
                         <div className='rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong'>
                             {t('challenge.loginToSubmitPrefix')}{' '}
-                            <a
-                                className='underline cursor-pointer'
-                                href='/login'
-                                onClick={(e) => navigate('/login', e)}
-                            >
+                            <a className='underline cursor-pointer' href='/login' onClick={(e) => navigate('/login', e)}>
                                 {t('auth.loginLink')}
                             </a>{' '}
                             {t('challenge.loginToSubmitSuffix')}
                         </div>
                     ) : isSolved ? (
-                        <div className='rounded-xl border border-success/40 bg-success/10 p-4 text-sm text-success'>
-                            {t('challenge.correct')}
-                        </div>
+                        <div className='rounded-xl border border-success/40 bg-success/10 p-4 text-sm text-success'>{t('challenge.correct')}</div>
                     ) : !isActive ? (
-                        <div className='rounded-xl border border-border/40 bg-surface/10 p-4 text-sm text-text-muted'>
-                            {t('challenge.inactiveMessage')}
-                        </div>
+                        <div className='rounded-xl border border-border/40 bg-surface/10 p-4 text-sm text-text-muted'>{t('challenge.inactiveMessage')}</div>
                     ) : (
                         <form
                             className='space-y-4'
@@ -511,21 +448,11 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                     type='submit'
                                     disabled={submission.status === 'loading'}
                                 >
-                                    {submission.status === 'loading'
-                                        ? t('challenge.submitting')
-                                        : t('challenge.submit')}
+                                    {submission.status === 'loading' ? t('challenge.submitting') : t('challenge.submit')}
                                 </button>
                             </div>
                             {submission.message ? (
-                                <div
-                                    className={`rounded-xl border px-4 py-3 text-sm ${
-                                        isSuccessful
-                                            ? 'border-success/40 bg-success/10 text-success'
-                                            : 'border-danger/40 bg-danger/10 text-danger'
-                                    }`}
-                                >
-                                    {submission.message}
-                                </div>
+                                <div className={`rounded-xl border px-4 py-3 text-sm ${isSuccessful ? 'border-success/40 bg-success/10 text-success' : 'border-danger/40 bg-danger/10 text-danger'}`}>{submission.message}</div>
                             ) : null}
                         </form>
                     )}

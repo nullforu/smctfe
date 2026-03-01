@@ -94,11 +94,7 @@ const RegistrationKeys = () => {
 
     return (
         <section className='space-y-4'>
-            <button
-                className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
-                onClick={loadKeys}
-                disabled={keysLoading}
-            >
+            <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={loadKeys} disabled={keysLoading}>
                 {keysLoading ? t('common.loading') : t('common.refresh')}
             </button>
             <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
@@ -111,10 +107,7 @@ const RegistrationKeys = () => {
                 >
                     <div className='grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto]'>
                         <div>
-                            <label
-                                className='text-xs uppercase tracking-wide text-text-muted'
-                                htmlFor='admin-key-count'
-                            >
+                            <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-key-count'>
                                 {t('common.count')}
                             </label>
                             <input
@@ -132,10 +125,7 @@ const RegistrationKeys = () => {
                             ) : null}
                         </div>
                         <div>
-                            <label
-                                className='text-xs uppercase tracking-wide text-text-muted'
-                                htmlFor='admin-key-max-uses'
-                            >
+                            <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-key-max-uses'>
                                 {t('admin.keys.maxUses')}
                             </label>
                             <input
@@ -177,25 +167,17 @@ const RegistrationKeys = () => {
                                     {t('common.team')}: {createKeysFieldErrors.team_id}
                                 </p>
                             ) : null}
-                            {teamsErrorMessage ? (
-                                <FormMessage variant='error' message={teamsErrorMessage} className='mt-2' />
-                            ) : null}
+                            {teamsErrorMessage ? <FormMessage variant='error' message={teamsErrorMessage} className='mt-2' /> : null}
                         </div>
                         <div className='flex items-end'>
-                            <button
-                                className='w-full rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                                type='submit'
-                                disabled={createKeysLoading}
-                            >
+                            <button className='w-full rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={createKeysLoading}>
                                 {createKeysLoading ? t('admin.keys.creating') : t('admin.keys.createKeys')}
                             </button>
                         </div>
                     </div>
 
                     {createKeysErrorMessage ? <FormMessage variant='error' message={createKeysErrorMessage} /> : null}
-                    {createKeysSuccessMessage ? (
-                        <FormMessage variant='success' message={createKeysSuccessMessage} />
-                    ) : null}
+                    {createKeysSuccessMessage ? <FormMessage variant='success' message={createKeysSuccessMessage} /> : null}
                 </form>
 
                 <div className='mt-8'>
@@ -203,9 +185,7 @@ const RegistrationKeys = () => {
                         <h3 className='text-lg text-text'>{t('admin.keys.title')}</h3>
                     </div>
 
-                    {keysErrorMessage ? (
-                        <FormMessage variant='error' message={keysErrorMessage} className='mt-4' />
-                    ) : null}
+                    {keysErrorMessage ? <FormMessage variant='error' message={keysErrorMessage} className='mt-4' /> : null}
 
                     {keysLoading ? (
                         <p className='mt-4 text-sm text-text-subtle'>{t('admin.keys.loadingKeys')}</p>
@@ -237,38 +217,22 @@ const RegistrationKeys = () => {
                                                         })}
                                                     </div>
                                                     <div className='text-xs text-text-subtle'>
-                                                        {t('admin.keys.lastUsedAt')}:{' '}
-                                                        {key.last_used_at
-                                                            ? formatDateTime(key.last_used_at, localeTag)
-                                                            : t('common.na')}
+                                                        {t('admin.keys.lastUsedAt')}: {key.last_used_at ? formatDateTime(key.last_used_at, localeTag) : t('common.na')}
                                                     </div>
                                                 </td>
                                                 <td className='py-3 pr-4'>{key.created_by_username}</td>
-                                                <td className='py-3 pr-4'>
-                                                    {formatDateTime(key.created_at, localeTag)}
-                                                </td>
+                                                <td className='py-3 pr-4'>{formatDateTime(key.created_at, localeTag)}</td>
                                             </tr>
                                             {key.uses && key.uses.length > 0 ? (
                                                 <tr className='border-t border-border/40 bg-surface/40'>
                                                     <td className='py-3 pr-4' colSpan={5}>
-                                                        <div className='text-xs uppercase tracking-wide text-text-muted'>
-                                                            {t('admin.keys.usesLabel')}
-                                                        </div>
+                                                        <div className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.keys.usesLabel')}</div>
                                                         <ul className='mt-2 space-y-2 text-xs text-text'>
                                                             {key.uses.map((use) => (
-                                                                <li
-                                                                    key={`${use.used_by}-${use.used_at}`}
-                                                                    className='flex flex-wrap gap-3'
-                                                                >
-                                                                    <span className='font-medium text-text'>
-                                                                        {use.used_by_username}
-                                                                    </span>
-                                                                    <span className='font-mono text-text-subtle'>
-                                                                        {use.used_by_ip ?? t('common.na')}
-                                                                    </span>
-                                                                    <span className='text-text-subtle'>
-                                                                        {formatDateTime(use.used_at, localeTag)}
-                                                                    </span>
+                                                                <li key={`${use.used_by}-${use.used_at}`} className='flex flex-wrap gap-3'>
+                                                                    <span className='font-medium text-text'>{use.used_by_username}</span>
+                                                                    <span className='font-mono text-text-subtle'>{use.used_by_ip ?? t('common.na')}</span>
+                                                                    <span className='text-text-subtle'>{formatDateTime(use.used_at, localeTag)}</span>
                                                                 </li>
                                                             ))}
                                                         </ul>

@@ -15,11 +15,7 @@ const ChallengeCard = ({ challenge, isSolved, onClick }: ChallengeCardProps) => 
 
     return (
         <div
-            className={`rounded-2xl border p-6 transition cursor-pointer hover:shadow-lg ${
-                isActive
-                    ? 'border-border bg-surface hover:border-accent'
-                    : 'border-border/40 bg-surface-muted opacity-60'
-            }`}
+            className={`rounded-2xl border p-6 transition cursor-pointer hover:shadow-lg ${isActive ? 'border-border bg-surface hover:border-accent' : 'border-border/40 bg-surface-muted opacity-60'}`}
             onClick={onClick}
             role='button'
             tabIndex={0}
@@ -34,26 +30,16 @@ const ChallengeCard = ({ challenge, isSolved, onClick }: ChallengeCardProps) => 
                 <div className='flex-1'>
                     <h3 className='text-lg font-medium text-text'>{challenge.title}</h3>
                     <div className='mt-2 flex flex-wrap items-center gap-2 text-sm'>
-                        {hasCategory ? (
-                            <span className='rounded-full bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-text'>
-                                {t(getCategoryKey(challenge.category))}
-                            </span>
-                        ) : null}
+                        {hasCategory ? <span className='rounded-full bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-text'>{t(getCategoryKey(challenge.category))}</span> : null}
                         <span className='text-text-muted'>{t('common.pointsShort', { points: challenge.points })}</span>
                     </div>
                 </div>
                 {isLocked ? (
-                    <span className='rounded-full bg-warning/20 px-3 py-1 text-xs text-warning-strong'>
-                        {t('challenge.lockedLabel')}
-                    </span>
+                    <span className='rounded-full bg-warning/20 px-3 py-1 text-xs text-warning-strong'>{t('challenge.lockedLabel')}</span>
                 ) : isSolved ? (
-                    <span className='rounded-full bg-success/20 px-3 py-1 text-xs text-success'>
-                        {t('challenge.solvedLabel')}
-                    </span>
+                    <span className='rounded-full bg-success/20 px-3 py-1 text-xs text-success'>{t('challenge.solvedLabel')}</span>
                 ) : !isActive ? (
-                    <span className='rounded-full bg-surface/10 px-3 py-1 text-xs text-text-muted'>
-                        {t('challenge.inactiveLabel')}
-                    </span>
+                    <span className='rounded-full bg-surface/10 px-3 py-1 text-xs text-text-muted'>{t('challenge.inactiveLabel')}</span>
                 ) : null}
             </div>
         </div>
@@ -110,12 +96,7 @@ const ChallengesView = ({
     const renderChallengeGrid = (items: Challenge[]) => (
         <div className='mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
             {items.map((challenge) => (
-                <ChallengeCard
-                    key={challenge.id}
-                    challenge={challenge}
-                    isSolved={solvedIds.has(challenge.id)}
-                    onClick={() => onSelectChallenge(challenge)}
-                />
+                <ChallengeCard key={challenge.id} challenge={challenge} isSolved={solvedIds.has(challenge.id)} onClick={() => onSelectChallenge(challenge)} />
             ))}
         </div>
     )
@@ -130,12 +111,7 @@ const ChallengesView = ({
                         <h3 className='text-lg font-semibold text-text'>{category.label}</h3>
                         <div className='mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             {category.items.map((challenge) => (
-                                <ChallengeCard
-                                    key={challenge.id}
-                                    challenge={challenge}
-                                    isSolved={solvedIds.has(challenge.id)}
-                                    onClick={() => onSelectChallenge(challenge)}
-                                />
+                                <ChallengeCard key={challenge.id} challenge={challenge} isSolved={solvedIds.has(challenge.id)} onClick={() => onSelectChallenge(challenge)} />
                             ))}
                         </div>
                     </div>
@@ -148,19 +124,11 @@ const ChallengesView = ({
 
     const renderBody = () => {
         if (loading) {
-            return (
-                <div className='mt-6 rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>
-                    {loadingText}
-                </div>
-            )
+            return <div className='mt-6 rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>{loadingText}</div>
         }
 
         if (errorMessage) {
-            return (
-                <div className='mt-6 rounded-2xl border border-danger/40 bg-danger/10 p-6 text-sm text-danger'>
-                    {errorMessage}
-                </div>
-            )
+            return <div className='mt-6 rounded-2xl border border-danger/40 bg-danger/10 p-6 text-sm text-danger'>{errorMessage}</div>
         }
 
         if (notStarted) {
@@ -181,11 +149,7 @@ const ChallengesView = ({
 
         return (
             <>
-                {ended ? (
-                    <div className='mt-6 rounded-2xl border border-warning/40 bg-warning/10 p-6 text-sm text-warning-strong'>
-                        {endedText}
-                    </div>
-                ) : null}
+                {ended ? <div className='mt-6 rounded-2xl border border-warning/40 bg-warning/10 p-6 text-sm text-warning-strong'>{endedText}</div> : null}
                 {renderChallenges()}
             </>
         )
@@ -197,20 +161,11 @@ const ChallengesView = ({
                 <div>
                     <h2 className='text-3xl text-text'>{title}</h2>
                 </div>
-                {showSummary && summaryText ? (
-                    <div className='rounded-full border border-border bg-surface px-4 py-2 text-xs text-text'>
-                        {summaryText}
-                    </div>
-                ) : null}
+                {showSummary && summaryText ? <div className='rounded-lg border border-border bg-surface px-4 py-2 text-xs text-text'>{summaryText}</div> : null}
             </div>
             <div className='mt-4 flex items-center justify-end'>
                 <label className='flex items-center gap-2 text-xs text-text-muted'>
-                    <input
-                        className='h-4 w-4 accent-accent'
-                        type='checkbox'
-                        checked={groupByCategory}
-                        onChange={(event) => onGroupByCategoryChange(event.target.checked)}
-                    />
+                    <input className='h-4 w-4 accent-accent' type='checkbox' checked={groupByCategory} onChange={(event) => onGroupByCategoryChange(event.target.checked)} />
                     <span>{toggleLabel}</span>
                 </label>
             </div>

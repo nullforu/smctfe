@@ -32,11 +32,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
             setSolved([])
 
             try {
-                const [teamDetail, memberRows, solvedRows] = await Promise.all([
-                    api.teamDetail(teamId),
-                    api.teamMembers(teamId),
-                    api.teamSolved(teamId),
-                ])
+                const [teamDetail, memberRows, solvedRows] = await Promise.all([api.teamDetail(teamId), api.teamMembers(teamId), api.teamSolved(teamId)])
                 setTeam(teamDetail)
                 setMembers(memberRows)
                 setSolved(solvedRows)
@@ -60,21 +56,8 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
     return (
         <section className='fade-in'>
             <div className='mb-6'>
-                <button
-                    className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer'
-                    onClick={() => navigate('/teams')}
-                >
-                    <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        width='16'
-                        height='16'
-                        viewBox='0 0 24 24'
-                        fill='none'
-                        stroke='currentColor'
-                        strokeWidth='2'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                    >
+                <button className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer' onClick={() => navigate('/teams')}>
+                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
                         <path d='m15 18-6-6 6-6' />
                     </svg>
                     {t('team.backToTeams')}
@@ -95,14 +78,13 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                         <div>
                             <h2 className='text-3xl text-text'>{team.name}</h2>
                             <p className='mt-1 text-sm text-text-muted'>{t('team.teamId', { id: team.id })}</p>
+                            <p className='mt-1 text-sm text-text-muted'>
+                                {t('common.division')}: {team.division_name}
+                            </p>
                         </div>
                         <div className='flex flex-wrap gap-2 text-xs'>
-                            <span className='rounded-full border border-border bg-surface-muted px-3 py-1 text-text'>
-                                {t('team.membersLabel', { count: team.member_count })}
-                            </span>
-                            <span className='rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent-strong'>
-                                {t('team.totalScoreLabel', { points: team.total_score })}
-                            </span>
+                            <span className='rounded-full border border-border bg-surface-muted px-3 py-1 text-text'>{t('team.membersLabel', { count: team.member_count })}</span>
+                            <span className='rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent-strong'>{t('team.totalScoreLabel', { points: team.total_score })}</span>
                         </div>
                     </div>
 
@@ -110,9 +92,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                         <div className='rounded-2xl border border-border bg-surface p-6'>
                             <div className='flex items-center justify-between'>
                                 <h3 className='text-lg text-text'>{t('team.members')}</h3>
-                                <span className='text-xs text-text-subtle'>
-                                    {t('common.totalCount', { count: members.length })}
-                                </span>
+                                <span className='text-xs text-text-subtle'>{t('common.totalCount', { count: members.length })}</span>
                             </div>
 
                             {members.length === 0 ? (
@@ -129,11 +109,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                                         </thead>
                                         <tbody>
                                             {members.map((member) => (
-                                                <tr
-                                                    key={member.id}
-                                                    className='border-t border-border/70 cursor-pointer hover:bg-surface-muted'
-                                                    onClick={() => navigate(`/users/${member.id}`)}
-                                                >
+                                                <tr key={member.id} className='border-t border-border/70 cursor-pointer hover:bg-surface-muted' onClick={() => navigate(`/users/${member.id}`)}>
                                                     <td className='py-3 px-4'>{member.id}</td>
                                                     <td className='py-3 pr-4'>{member.username}</td>
                                                     <td className='py-3'>{t(getRoleKey(member.role))}</td>
@@ -148,9 +124,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                         <div className='rounded-2xl border border-border bg-surface p-6'>
                             <div className='flex items-center justify-between'>
                                 <h3 className='text-lg text-text'>{t('team.solvedChallenges')}</h3>
-                                <span className='text-xs text-text-subtle'>
-                                    {t('common.totalCount', { count: solved.length })}
-                                </span>
+                                <span className='text-xs text-text-subtle'>{t('common.totalCount', { count: solved.length })}</span>
                             </div>
 
                             {solved.length === 0 ? (
@@ -158,10 +132,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                             ) : (
                                 <div className='mt-4 space-y-3'>
                                     {solved.map((entry) => (
-                                        <div
-                                            key={entry.challenge_id}
-                                            className='rounded-xl border border-border bg-surface-muted p-4'
-                                        >
+                                        <div key={entry.challenge_id} className='rounded-xl border border-border bg-surface-muted p-4'>
                                             <div className='flex items-center justify-between gap-3'>
                                                 <div>
                                                     <p className='text-sm text-text'>{entry.title}</p>
@@ -172,12 +143,8 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                                                     </p>
                                                 </div>
                                                 <div className='text-right'>
-                                                    <p className='text-sm text-accent'>
-                                                        {t('common.pointsShort', { points: entry.points })}
-                                                    </p>
-                                                    <p className='mt-1 text-xs text-text-subtle'>
-                                                        {t('team.solves', { count: entry.solve_count })}
-                                                    </p>
+                                                    <p className='text-sm text-accent'>{t('common.pointsShort', { points: entry.points })}</p>
+                                                    <p className='mt-1 text-xs text-text-subtle'>{t('team.solves', { count: entry.solve_count })}</p>
                                                 </div>
                                             </div>
                                         </div>

@@ -12,16 +12,7 @@ interface ActiveStacksCardProps {
     formatOptionalDateTime: (value?: string | null) => string
 }
 
-const ActiveStacksCard = ({
-    activeStacks,
-    stacksError,
-    stacksLoading,
-    stackDeletingId,
-    ctfState,
-    onRefresh,
-    onDelete,
-    formatOptionalDateTime,
-}: ActiveStacksCardProps) => {
+const ActiveStacksCard = ({ activeStacks, stacksError, stacksLoading, stackDeletingId, ctfState, onRefresh, onDelete, formatOptionalDateTime }: ActiveStacksCardProps) => {
     const t = useT()
     const formatEndpoints = (stack: Stack) => {
         if (!stack.node_public_ip || stack.ports.length === 0) return t('common.pending')
@@ -32,23 +23,15 @@ const ActiveStacksCard = ({
         <div className='mt-6 rounded-2xl border border-border bg-surface p-6'>
             <div className='flex flex-wrap items-center justify-between gap-4'>
                 <h3 className='text-lg text-text'>{t('profile.activeStacks')}</h3>
-                <button
-                    className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer'
-                    onClick={onRefresh}
-                    disabled={stacksLoading}
-                >
+                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={onRefresh} disabled={stacksLoading}>
                     {stacksLoading ? t('common.loading') : t('common.refresh')}
                 </button>
             </div>
 
             {stacksError ? (
-                <p className='mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2 text-xs text-danger'>
-                    {stacksError}
-                </p>
+                <p className='mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2 text-xs text-danger'>{stacksError}</p>
             ) : ctfState === 'not_started' ? (
-                <div className='mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning-strong'>
-                    {t('profile.stacksNotStarted')}
-                </div>
+                <div className='mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning-strong'>{t('profile.stacksNotStarted')}</div>
             ) : activeStacks.length === 0 ? (
                 <div className='mt-4 rounded-xl border border-border bg-surface-muted p-5 text-center'>
                     <p className='text-sm text-text-muted'>{t('profile.noActiveStacks')}</p>
@@ -59,12 +42,8 @@ const ActiveStacksCard = ({
                         <div key={stack.challenge_id} className='rounded-xl border border-border bg-surface-muted p-5'>
                             <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div>
-                                    <p className='text-sm font-medium text-text'>
-                                        {t('profile.challengeLabel', { id: stack.challenge_id })}
-                                    </p>
-                                    <p className='mt-1 text-xs text-text-subtle'>
-                                        {t('profile.statusLabel', { status: stack.status })}
-                                    </p>
+                                    <p className='text-sm font-medium text-text'>{t('profile.challengeLabel', { id: stack.challenge_id })}</p>
+                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.statusLabel', { status: stack.status })}</p>
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3 text-xs text-text-muted'>
                                     <span>{formatEndpoints(stack)}</span>
@@ -74,15 +53,11 @@ const ActiveStacksCard = ({
                                         onClick={() => onDelete(stack.challenge_id)}
                                         disabled={stackDeletingId === stack.challenge_id || stacksLoading}
                                     >
-                                        {stackDeletingId === stack.challenge_id
-                                            ? t('profile.deleting')
-                                            : t('profile.delete')}
+                                        {stackDeletingId === stack.challenge_id ? t('profile.deleting') : t('profile.delete')}
                                     </button>
                                 </div>
                             </div>
-                            <div className='mt-2 text-xs text-text-subtle'>
-                                {t('profile.ttlLabel', { time: formatOptionalDateTime(stack.ttl_expires_at) })}
-                            </div>
+                            <div className='mt-2 text-xs text-text-subtle'>{t('profile.ttlLabel', { time: formatOptionalDateTime(stack.ttl_expires_at) })}</div>
                         </div>
                     ))}
                 </div>

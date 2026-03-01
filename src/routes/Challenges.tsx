@@ -3,10 +3,12 @@ import { formatApiError, formatDateTime } from '../lib/utils'
 import type { Challenge, CtfState } from '../lib/types'
 import ChallengeModal from '../components/ChallengeModal'
 import ChallengesView from '../components/ChallengesView'
+import LoginRequired from '../components/LoginRequired'
 import { getLocaleTag, getCategoryKey, useLocale, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
 import { useConfig } from '../lib/config'
 import { CHALLENGE_CATEGORIES } from '../lib/constants'
+import { useAuth } from '../lib/auth'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -34,6 +36,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
     const api = useApi()
+    const { state: auth } = useAuth()
     const { config } = useConfig()
     const locale = useLocale()
     const localeTag = useMemo(() => getLocaleTag(locale), [locale])
@@ -45,14 +48,8 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const [ctfState, setCtfState] = useState<CtfState>('active')
     const [groupByCategory, setGroupByCategory] = useState<boolean>(() => loadGroupByCategory())
 
-    const activeChallenges = useMemo(
-        () => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active !== false : true)),
-        [challenges],
-    )
-    const inactiveChallenges = useMemo(
-        () => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active === false : false)),
-        [challenges],
-    )
+    const activeChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active !== false : true)), [challenges])
+    const inactiveChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active === false : false)), [challenges])
     const solvedCount = useMemo(() => solvedIds.size, [solvedIds])
 
     const challengesByCategory = useMemo(() => {
@@ -85,7 +82,11 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
         setErrorMessage('')
 
         try {
-            const data = await api.challenges()
+            if (!auth.user?.division_id) {
+                setChallenges([])
+                return
+            }
+            const data = await api.challenges(auth.user.division_id)
             setChallenges(data.challenges)
             setCtfState(data.ctf_state)
         } catch (error) {
@@ -97,13 +98,12 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
 
     const loadSolved = async () => {
         try {
-            const me = await api.me()
-            if (!me?.id) {
+            if (!auth.user) {
                 setSolvedIds(new Set())
                 return
             }
 
-            const teamSolved = await api.teamSolved(me.team_id)
+            const teamSolved = await api.teamSolved(auth.user.team_id)
             setSolvedIds(new Set(teamSolved.map((item) => item.challenge_id)))
         } catch {
             setSolvedIds(new Set())
@@ -111,8 +111,9 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     }
 
     useEffect(() => {
+        if (!auth.user?.division_id) return
         void Promise.all([loadChallenges(), loadSolved()])
-    }, [])
+    }, [auth.user?.division_id])
 
     useEffect(() => {
         persistGroupByCategory(groupByCategory)
@@ -122,8 +123,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const showNotStarted = ctfState === 'not_started'
     const showEnded = ctfState === 'ended'
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
-    const inactiveSummary =
-        inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
+    const inactiveSummary = inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
     const summaryText = [solvedSummary, inactiveSummary].filter(Boolean).join(' ')
 
     const groupedCategories = useMemo(
@@ -135,6 +135,10 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
             })),
         [orderedCategories, challengesByCategory, t],
     )
+
+    if (!auth.user) {
+        return <LoginRequired title={t('challenges.title')} />
+    }
 
     return (
         <>
@@ -162,15 +166,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
                 onSelectChallenge={setSelectedChallenge}
             />
 
-            {selectedChallenge ? (
-                <ChallengeModal
-                    challenge={selectedChallenge}
-                    isSolved={solvedIds.has(selectedChallenge.id)}
-                    ctfState={ctfState}
-                    onClose={() => setSelectedChallenge(null)}
-                    onSolved={loadSolved}
-                />
-            ) : null}
+            {selectedChallenge ? <ChallengeModal challenge={selectedChallenge} isSolved={solvedIds.has(selectedChallenge.id)} ctfState={ctfState} onClose={() => setSelectedChallenge(null)} onSolved={loadSolved} /> : null}
         </>
     )
 }

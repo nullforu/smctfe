@@ -134,10 +134,7 @@ const categoryKeyMap: Record<string, string> = {
 
 export const getCategoryKey = (category: string) => categoryKeyMap[category] ?? category
 
-export const translateCategory = (
-    translate: (key: string, vars?: Record<string, string | number>) => string,
-    category: string,
-) => {
+export const translateCategory = (translate: (key: string, vars?: Record<string, string | number>) => string, category: string) => {
     return translate(getCategoryKey(category))
 }
 
@@ -149,9 +146,6 @@ const roleKeyMap: Record<string, string> = {
 
 export const getRoleKey = (role: string) => roleKeyMap[role] ?? role
 
-export const translateRole = (
-    translate: (key: string, vars?: Record<string, string | number>) => string,
-    role: string,
-) => {
+export const translateRole = (translate: (key: string, vars?: Record<string, string | number>) => string, role: string) => {
     return translate(getRoleKey(role))
 }

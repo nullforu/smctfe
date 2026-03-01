@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import DivisionTabs from '../components/DivisionTabs'
+import LoginRequired from '../components/LoginRequired'
 import type { UserListItem } from '../lib/types'
 import { formatApiError } from '../lib/utils'
 import { navigate } from '../lib/router'
 import { getRoleKey, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
+import { useDivision } from '../lib/division'
+import { useAuth } from '../lib/auth'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -13,17 +17,21 @@ const Users = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
     const api = useApi()
+    const { state: auth } = useAuth()
+    const { divisions, selectedDivisionId } = useDivision()
     const [users, setUsers] = useState<UserListItem[]>([])
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
+    const [divisionFilter, setDivisionFilter] = useState<number | null>(selectedDivisionId ?? null)
 
     const loadUsers = async () => {
+        if (!auth.user) return
         setLoading(true)
         setErrorMessage('')
 
         try {
-            setUsers(await api.users())
+            setUsers(await api.users(divisionFilter ?? undefined))
         } catch (error) {
             setErrorMessage(formatApiError(error, t).message)
         } finally {
@@ -34,21 +42,24 @@ const Users = ({ routeParams = {} }: RouteProps) => {
     const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery])
     const sortedUsers = useMemo(() => [...users].sort((a, b) => a.id - b.id), [users])
     const filteredUsers = useMemo(
-        () =>
-            normalizedQuery
-                ? sortedUsers.filter(
-                      (user) =>
-                          user.username.toLowerCase().includes(normalizedQuery) ||
-                          user.id.toString().includes(normalizedQuery) ||
-                          user.team_name.toLowerCase().includes(normalizedQuery),
-                  )
-                : sortedUsers,
+        () => (normalizedQuery ? sortedUsers.filter((user) => user.username.toLowerCase().includes(normalizedQuery) || user.id.toString().includes(normalizedQuery) || user.team_name.toLowerCase().includes(normalizedQuery)) : sortedUsers),
         [normalizedQuery, sortedUsers],
     )
 
     useEffect(() => {
+        if (selectedDivisionId) {
+            setDivisionFilter(selectedDivisionId)
+        }
+    }, [selectedDivisionId])
+
+    useEffect(() => {
+        if (!auth.user) return
         loadUsers()
-    }, [])
+    }, [auth.user, divisionFilter])
+
+    if (!auth.user) {
+        return <LoginRequired title={t('users.title')} />
+    }
 
     return (
         <section className='fade-in'>
@@ -58,7 +69,8 @@ const Users = ({ routeParams = {} }: RouteProps) => {
                 </div>
             </div>
 
-            <div className='mt-6'>
+            <div className='mt-6 space-y-4'>
+                <DivisionTabs divisions={divisions} selectedId={divisionFilter} onSelect={setDivisionFilter} includeAll />
                 <input
                     type='text'
                     placeholder={t('users.searchPlaceholder')}
@@ -79,45 +91,25 @@ const Users = ({ routeParams = {} }: RouteProps) => {
                             <table className='w-full'>
                                 <thead className='border-b border-border bg-surface-muted'>
                                     <tr>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.id')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.username')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.team')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.role')}
-                                        </th>
-                                        <th className='px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.action')}
-                                        </th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.id')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.username')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.team')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.division')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.role')}</th>
+                                        <th className='px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className='divide-y divide-border'>
                                     {filteredUsers.map((user) => (
-                                        <tr
-                                            key={user.id}
-                                            className='transition hover:bg-surface-muted cursor-pointer'
-                                            onClick={() => navigate(`/users/${user.id}`)}
-                                        >
+                                        <tr key={user.id} className='transition hover:bg-surface-muted cursor-pointer' onClick={() => navigate(`/users/${user.id}`)}>
                                             <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{user.id}</td>
-                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>
-                                                {user.username}
-                                            </td>
-                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>
-                                                {user.team_name}
-                                            </td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{user.username}</td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{user.team_name}</td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text-muted'>{user.division_name}</td>
                                             <td className='whitespace-nowrap px-6 py-4 text-sm'>
                                                 <span
                                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
-                                                        user.role === 'admin'
-                                                            ? 'bg-secondary/20 text-secondary'
-                                                            : user.role === 'blocked'
-                                                              ? 'bg-danger/20 text-danger'
-                                                              : 'bg-accent/20 text-accent-strong'
+                                                        user.role === 'admin' ? 'bg-secondary/20 text-secondary' : user.role === 'blocked' ? 'bg-danger/20 text-danger' : 'bg-accent/20 text-accent-strong'
                                                     }`}
                                                 >
                                                     {t(getRoleKey(user.role))}
@@ -139,7 +131,7 @@ const Users = ({ routeParams = {} }: RouteProps) => {
                                     ))}
                                     {filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className='px-6 py-8 text-center text-sm text-text-muted'>
+                                            <td colSpan={6} className='px-6 py-8 text-center text-sm text-text-muted'>
                                                 {searchQuery ? t('users.noResults') : t('users.noUsers')}
                                             </td>
                                         </tr>
@@ -151,9 +143,7 @@ const Users = ({ routeParams = {} }: RouteProps) => {
 
                     {filteredUsers.length > 0 ? (
                         <p className='mt-4 text-sm text-text-muted'>
-                            {filteredUsers.length === 1
-                                ? t('users.countSingular', { count: filteredUsers.length })
-                                : t('users.countPlural', { count: filteredUsers.length })}
+                            {filteredUsers.length === 1 ? t('users.countSingular', { count: filteredUsers.length }) : t('users.countPlural', { count: filteredUsers.length })}
                             {searchQuery ? ` ${t('common.outOf', { total: users.length })}` : ''}
                         </p>
                     ) : null}

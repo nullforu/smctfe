@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import DivisionTabs from '../components/DivisionTabs'
 import ScoreboardTimeline from '../components/ScoreboardTimeline'
 import ScoreboardLeaderboard from '../components/ScoreboardLeaderboard'
+import LoginRequired from '../components/LoginRequired'
 import { useT } from '../lib/i18n'
+import { useDivision } from '../lib/division'
+import { useAuth } from '../lib/auth'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -10,13 +14,18 @@ interface RouteProps {
 const Scoreboard = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
-    const [viewMode, setViewMode] = useState<'users' | 'teams'>('users')
+    const { state: auth } = useAuth()
+    const { divisions, selectedDivisionId, setSelectedDivisionId } = useDivision()
+    const [viewMode, setViewMode] = useState<'users' | 'teams'>('teams')
     const [refreshTrigger, setRefreshTrigger] = useState(0)
     const [liveUpdatesEnabled, setLiveUpdatesEnabled] = useState(true)
     const reconnectTimeoutRef = useRef<number | null>(null)
     const eventSourceRef = useRef<EventSource | null>(null)
 
     useEffect(() => {
+        if (!auth.user) {
+            return () => {}
+        }
         if (!liveUpdatesEnabled) {
             if (reconnectTimeoutRef.current !== null) {
                 window.clearTimeout(reconnectTimeoutRef.current)
@@ -49,8 +58,20 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
             }, 1000)
         }
 
-        const handleScoreboard = () => {
-            setRefreshTrigger((value) => value + 1)
+        const handleScoreboard = (event: MessageEvent) => {
+            if (!selectedDivisionId) {
+                setRefreshTrigger((value) => value + 1)
+                return
+            }
+            try {
+                const payload = JSON.parse(event.data || '{}')
+                const divisionIds: number[] = Array.isArray(payload.division_ids) ? payload.division_ids : []
+                if (payload.scope === 'all' || divisionIds.length === 0 || divisionIds.includes(selectedDivisionId)) {
+                    setRefreshTrigger((value) => value + 1)
+                }
+            } catch {
+                setRefreshTrigger((value) => value + 1)
+            }
         }
 
         const connect = () => {
@@ -75,53 +96,43 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
             }
             cleanupEventSource()
         }
-    }, [liveUpdatesEnabled])
+    }, [auth.user, liveUpdatesEnabled, selectedDivisionId])
+
+    useEffect(() => {
+        if (selectedDivisionId) {
+            setRefreshTrigger((value) => value + 1)
+        }
+    }, [selectedDivisionId])
+
+    if (!auth.user) {
+        return <LoginRequired title={t('scoreboard.title')} />
+    }
 
     return (
         <section className='fade-in'>
-            <div className='flex flex-wrap items-end justify-between gap-4'>
-                <div>
-                    <h2 className='text-3xl text-text'>{t('scoreboard.title')}</h2>
-                </div>
-                <div className='flex flex-wrap gap-3 text-xs text-text'>
-                    <div className='flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2'>
-                        <button
-                            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                                viewMode === 'users'
-                                    ? 'bg-accent/20 text-accent-strong'
-                                    : 'text-text-muted hover:text-accent'
-                            }`}
-                            onClick={() => setViewMode('users')}
-                        >
-                            {t('scoreboard.users')}
-                        </button>
-                        <button
-                            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                                viewMode === 'teams'
-                                    ? 'bg-accent/20 text-accent-strong'
-                                    : 'text-text-muted hover:text-accent'
-                            }`}
-                            onClick={() => setViewMode('teams')}
-                        >
-                            {t('scoreboard.teams')}
-                        </button>
-                    </div>
-                    <button
-                        className={`rounded-full border border-border px-3 py-2 text-xs font-semibold transition ${
-                            liveUpdatesEnabled ? 'bg-accent/20 text-accent-strong' : 'text-text-muted hover:text-text'
-                        }`}
-                        onClick={() => setLiveUpdatesEnabled((value) => !value)}
-                        type='button'
-                    >
-                        {t('scoreboard.liveUpdates')} ·{' '}
-                        {liveUpdatesEnabled ? t('scoreboard.liveOn') : t('scoreboard.liveOff')}
-                    </button>
-                </div>
+            <div>
+                <h2 className='text-3xl text-text'>{t('scoreboard.title')}</h2>
             </div>
 
-            <div className='mt-6 grid min-w-0 grid-cols-1 gap-6'>
-                <ScoreboardTimeline mode={viewMode} refreshTrigger={refreshTrigger} />
-                <ScoreboardLeaderboard mode={viewMode} refreshTrigger={refreshTrigger} />
+            <div className='mt-6 space-y-3'>
+                <DivisionTabs divisions={divisions} selectedId={selectedDivisionId} onSelect={(id) => id && setSelectedDivisionId(id)} />
+
+                <div className='flex items-center justify-end gap-3'>
+                    <select value={viewMode} onChange={(e) => setViewMode(e.target.value as 'users' | 'teams')} className='p-1 text-xs text-text outline-none focus:border-accent'>
+                        <option value='teams'>{t('scoreboard.teams')}</option>
+                        <option value='users'>{t('scoreboard.users')}</option>
+                    </select>
+
+                    <select value={liveUpdatesEnabled ? 'on' : 'off'} onChange={(e) => setLiveUpdatesEnabled(e.target.value === 'on')} className='p-1 text-xs text-text outline-none focus:border-accent'>
+                        <option value='on'>{t('scoreboard.liveOn')}</option>
+                        <option value='off'>{t('scoreboard.liveOff')}</option>
+                    </select>
+                </div>
+
+                <div className='grid min-w-0 grid-cols-1 gap-6'>
+                    <ScoreboardTimeline mode={viewMode} refreshTrigger={refreshTrigger} divisionId={selectedDivisionId ?? undefined} />
+                    <ScoreboardLeaderboard mode={viewMode} refreshTrigger={refreshTrigger} divisionId={selectedDivisionId ?? undefined} />
+                </div>
             </div>
         </section>
     )

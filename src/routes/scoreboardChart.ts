@@ -163,14 +163,9 @@ export const buildChartModel = (data: TimelineResponse, widthValue: number, loca
             })
         }
 
-        const points: ChartPoint[] = [
-            { x: xScale(windowStart), y: yScale(0), value: 0 },
-            ...submissionPoints.map((point) => ({ x: point.x, y: point.y, value: point.value })),
-        ]
+        const points: ChartPoint[] = [{ x: xScale(windowStart), y: yScale(0), value: 0 }, ...submissionPoints.map((point) => ({ x: point.x, y: point.y, value: point.value }))]
 
-        const path = points
-            .map((point, idx) => `${idx === 0 ? 'M' : 'L'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
-            .join(' ')
+        const path = points.map((point, idx) => `${idx === 0 ? 'M' : 'L'}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ')
 
         return {
             user_id: user.user_id,

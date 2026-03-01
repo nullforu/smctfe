@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatApiError, formatDateTime } from '../lib/utils'
-import {
-    buildChartModel,
-    chartLayout,
-    chartUserLimit,
-    type ChartSubmissionPoint,
-    type ChartModel,
-} from '../routes/scoreboardChart'
+import { buildChartModel, chartLayout, chartUserLimit, type ChartSubmissionPoint, type ChartModel } from '../routes/scoreboardChart'
 import type { TimelineResponse } from '../lib/types'
 import { navigate } from '../lib/router'
 import { getLocaleTag, useLocale, useT } from '../lib/i18n'
@@ -15,6 +9,7 @@ import { useApi } from '../lib/useApi'
 interface ScoreboardTimelineProps {
     mode?: 'users' | 'teams'
     refreshTrigger?: number
+    divisionId?: number
 }
 
 interface TooltipState {
@@ -30,7 +25,7 @@ interface TooltipState {
     username: string
 }
 
-const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTimelineProps) => {
+const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: ScoreboardTimelineProps) => {
     const t = useT()
     const api = useApi()
     const locale = useLocale()
@@ -114,8 +109,12 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
 
         const loadTimeline = async () => {
             try {
+                if (!divisionId) {
+                    setTimeline(null)
+                    return
+                }
                 if (mode === 'teams') {
-                    const rawTeamTimeline = await api.timelineTeams()
+                    const rawTeamTimeline = await api.timelineTeams(divisionId)
                     if (!active || currentRequest !== requestIdRef.current) return
                     const mapped = rawTeamTimeline
                         ? {
@@ -130,7 +129,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                         : null
                     setTimeline(mapped)
                 } else {
-                    const payload = await api.timeline()
+                    const payload = await api.timeline(divisionId)
                     if (!active || currentRequest !== requestIdRef.current) return
                     setTimeline(payload)
                 }
@@ -145,12 +144,19 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
             }
         }
 
+        if (!divisionId) {
+            setLoading(false)
+            return () => {
+                active = false
+            }
+        }
+
         loadTimeline()
 
         return () => {
             active = false
         }
-    }, [api, mode, refreshTrigger, t])
+    }, [api, divisionId, mode, refreshTrigger, t])
 
     useEffect(() => {
         if (timeline) {
@@ -163,23 +169,18 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
     const seriesCount = useMemo(() => chartModel?.series?.length || 0, [chartModel])
 
     return (
-        <div className='min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-6'>
-            <h3 className='text-lg text-text'>{t('timeline.title')}</h3>
+        <div className='min-w-0 rounded-2xl border border-border  bg-surface-muted p-4 sm:p-6'>
             {loading ? (
-                <p className='mt-4 text-sm text-text-muted'>{t('timeline.calculating')}</p>
+                <p className='text-sm text-text-muted'>{t('timeline.calculating')}</p>
             ) : errorMessage ? (
-                <p className='mt-4 text-sm text-danger'>{errorMessage}</p>
+                <p className='text-sm text-danger'>{errorMessage}</p>
             ) : timeline ? (
                 <>
-                    <div className='mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted'>
-                        <span>
-                            {mode === 'teams'
-                                ? t('timeline.topTeams', { count: Math.min(chartUserLimit, seriesCount) })
-                                : t('timeline.topUsers', { count: Math.min(chartUserLimit, seriesCount) })}
-                        </span>
+                    <div className='flex flex-wrap items-center gap-2 text-xs text-text-muted'>
+                        <span>{mode === 'teams' ? t('timeline.topTeams', { count: Math.min(chartUserLimit, seriesCount) }) : t('timeline.topUsers', { count: Math.min(chartUserLimit, seriesCount) })}</span>
                     </div>
                     {chartModel ? (
-                        <div className='mt-4 rounded-xl border border-border bg-surface-muted p-4'>
+                        <div className='mt-4'>
                             <div
                                 className='relative min-w-0 w-full overflow-hidden'
                                 ref={chartContainerRef}
@@ -192,38 +193,13 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                             >
                                 <div className='overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x'>
                                     <div className='w-full' style={{ width: `${chartModel.width}px` }}>
-                                        <svg
-                                            className='block h-72 w-full'
-                                            viewBox={`0 0 ${chartModel.width} ${chartModel.height}`}
-                                            role='img'
-                                            aria-label={t('timeline.ariaLabel')}
-                                        >
-                                            <rect
-                                                x='0'
-                                                y='0'
-                                                width={chartModel.width}
-                                                height={chartModel.height}
-                                                fill='transparent'
-                                            />
+                                        <svg className='block h-72 w-full' viewBox={`0 0 ${chartModel.width} ${chartModel.height}`} role='img' aria-label={t('timeline.ariaLabel')}>
+                                            <rect x='0' y='0' width={chartModel.width} height={chartModel.height} fill='transparent' />
                                             <g>
                                                 {chartModel.ticks.map((tick) => (
                                                     <g key={`tick-${tick.value}`}>
-                                                        <line
-                                                            x1={chartModel.padding.left}
-                                                            x2={chartModel.width - chartModel.padding.right}
-                                                            y1={tick.y}
-                                                            y2={tick.y}
-                                                            className='stroke-border'
-                                                            strokeWidth='1'
-                                                        />
-                                                        <text
-                                                            x={chartModel.padding.left - 10}
-                                                            y={tick.y + 4}
-                                                            textAnchor='end'
-                                                            fill='currentColor'
-                                                            style={{ fontSize: 10 }}
-                                                            className='text-text-subtle'
-                                                        >
+                                                        <line x1={chartModel.padding.left} x2={chartModel.width - chartModel.padding.right} y1={tick.y} y2={tick.y} className='stroke-border' strokeWidth='1' />
+                                                        <text x={chartModel.padding.left - 10} y={tick.y + 4} textAnchor='end' fill='currentColor' style={{ fontSize: 10 }} className='text-text-subtle'>
                                                             {tick.value}
                                                         </text>
                                                     </g>
@@ -232,22 +208,8 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                             <g>
                                                 {chartModel.timeTicks.map((tick) => (
                                                     <g key={`time-${tick.label}-${tick.x}`}>
-                                                        <line
-                                                            x1={tick.x}
-                                                            x2={tick.x}
-                                                            y1={chartModel.height - chartModel.padding.bottom}
-                                                            y2={chartModel.height - chartModel.padding.bottom + 6}
-                                                            className='stroke-border'
-                                                            strokeWidth='1'
-                                                        />
-                                                        <text
-                                                            x={tick.x}
-                                                            y={chartModel.height - chartModel.padding.bottom + 18}
-                                                            textAnchor='middle'
-                                                            fill='currentColor'
-                                                            style={{ fontSize: 10 }}
-                                                            className='text-text-subtle'
-                                                        >
+                                                        <line x1={tick.x} x2={tick.x} y1={chartModel.height - chartModel.padding.bottom} y2={chartModel.height - chartModel.padding.bottom + 6} className='stroke-border' strokeWidth='1' />
+                                                        <text x={tick.x} y={chartModel.height - chartModel.padding.bottom + 18} textAnchor='middle' fill='currentColor' style={{ fontSize: 10 }} className='text-text-subtle'>
                                                             {tick.label}
                                                         </text>
                                                     </g>
@@ -262,11 +224,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                                     strokeWidth={hoveredUserId === series.user_id ? 3 : 2}
                                                     strokeLinecap='round'
                                                     strokeLinejoin='round'
-                                                    className={
-                                                        hoveredUserId && hoveredUserId !== series.user_id
-                                                            ? 'opacity-30'
-                                                            : ''
-                                                    }
+                                                    className={hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-30' : ''}
                                                     role='presentation'
                                                     aria-hidden='true'
                                                     onMouseEnter={() => setHoveredUserId(series.user_id)}
@@ -283,20 +241,14 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                                         fill={series.color}
                                                         stroke='currentColor'
                                                         strokeWidth='1.4'
-                                                        className={`text-contrast-foreground ${
-                                                            hoveredUserId && hoveredUserId !== series.user_id
-                                                                ? 'opacity-30'
-                                                                : ''
-                                                        }`}
+                                                        className={`text-contrast-foreground ${hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-30' : ''}`}
                                                         role='presentation'
                                                         aria-hidden='true'
                                                         onMouseEnter={(event) => {
                                                             setHoveredUserId(series.user_id)
                                                             showTooltip(event, point, series.username)
                                                         }}
-                                                        onMouseMove={(event) =>
-                                                            showTooltip(event, point, series.username)
-                                                        }
+                                                        onMouseMove={(event) => showTooltip(event, point, series.username)}
                                                         onMouseLeave={() => {
                                                             setHoveredUserId(null)
                                                             clearTooltip()
@@ -308,19 +260,13 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                     </div>
                                 </div>
                                 <div
-                                    className={`pointer-events-none absolute z-10 w-60 max-w-[70vw] rounded-lg border border-border bg-surface/95 p-3 text-xs text-text shadow-xl ${
-                                        tooltip ? '' : 'hidden'
-                                    }`}
+                                    className={`pointer-events-none absolute z-10 w-60 max-w-[70vw] rounded-lg border border-border bg-surface/95 p-3 text-xs text-text shadow-xl ${tooltip ? '' : 'hidden'}`}
                                     ref={tooltipBoxRef}
                                     style={{ left: `${tooltip?.left ?? 0}px`, top: `${tooltip?.top ?? 0}px` }}
                                 >
                                     {tooltip ? (
                                         <>
-                                            <p className='text-text'>
-                                                {mode === 'teams'
-                                                    ? t('timeline.tooltipTeam', { name: tooltip.username })
-                                                    : t('timeline.tooltipUser', { name: tooltip.username })}
-                                            </p>
+                                            <p className='text-text'>{mode === 'teams' ? t('timeline.tooltipTeam', { name: tooltip.username }) : t('timeline.tooltipUser', { name: tooltip.username })}</p>
                                             <p className='mt-1 text-sm text-text'>
                                                 {tooltip.submission.challenge_count > 1
                                                     ? t('timeline.tooltipSolvedMany', {
@@ -328,12 +274,8 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                                       })
                                                     : t('timeline.tooltipSolvedOne')}
                                             </p>
-                                            <p className='mt-1 text-text-muted'>
-                                                {formatDateTime(tooltip.submission.timestamp, localeTag)}
-                                            </p>
-                                            <p className='mt-1 text-accent'>
-                                                {t('timeline.tooltipPoints', { points: tooltip.submission.points })}
-                                            </p>
+                                            <p className='mt-1 text-text-muted'>{formatDateTime(tooltip.submission.timestamp, localeTag)}</p>
+                                            <p className='mt-1 text-accent'>{t('timeline.tooltipPoints', { points: tooltip.submission.points })}</p>
                                         </>
                                     ) : null}
                                 </div>
@@ -343,34 +285,24 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardTi
                                     mode === 'teams' ? (
                                         <button
                                             key={`legend-${series.user_id}`}
-                                            className={`flex items-center gap-2 ${hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-40' : ''} ${
-                                                hoveredUserId === series.user_id ? 'text-text' : ''
-                                            } cursor-pointer`}
+                                            className={`flex items-center gap-2 ${hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-40' : ''} ${hoveredUserId === series.user_id ? 'text-text' : ''} cursor-pointer`}
                                             aria-label={t('timeline.highlight', { name: series.username })}
                                             onMouseEnter={() => setHoveredUserId(series.user_id)}
                                             onMouseLeave={() => setHoveredUserId(null)}
                                         >
-                                            <span
-                                                className='h-2 w-2 rounded-full'
-                                                style={{ backgroundColor: series.color }}
-                                            ></span>
+                                            <span className='h-2 w-2 rounded-full' style={{ backgroundColor: series.color }}></span>
                                             {series.username}
                                         </button>
                                     ) : (
                                         <button
                                             key={`legend-${series.user_id}`}
-                                            className={`flex items-center gap-2 transition ${
-                                                hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-40' : ''
-                                            } ${hoveredUserId === series.user_id ? 'text-text' : ''} cursor-pointer`}
+                                            className={`flex items-center gap-2 transition ${hoveredUserId && hoveredUserId !== series.user_id ? 'opacity-40' : ''} ${hoveredUserId === series.user_id ? 'text-text' : ''} cursor-pointer`}
                                             aria-label={t('timeline.highlight', { name: series.username })}
                                             onMouseEnter={() => setHoveredUserId(series.user_id)}
                                             onMouseLeave={() => setHoveredUserId(null)}
                                             onClick={() => navigate(`/users/${series.user_id}`)}
                                         >
-                                            <span
-                                                className='h-2 w-2 rounded-full'
-                                                style={{ backgroundColor: series.color }}
-                                            ></span>
+                                            <span className='h-2 w-2 rounded-full' style={{ backgroundColor: series.color }}></span>
                                             {series.username}
                                         </button>
                                     ),

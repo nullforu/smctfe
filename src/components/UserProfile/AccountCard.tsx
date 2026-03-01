@@ -12,16 +12,7 @@ interface AccountCardProps {
     onUsernameInputChange: (value: string) => void
 }
 
-const AccountCard = ({
-    user,
-    authEmail,
-    savingUsername,
-    onSave,
-    editingUsername,
-    usernameInput,
-    onEditingUsernameChange,
-    onUsernameInputChange,
-}: AccountCardProps) => {
+const AccountCard = ({ user, authEmail, savingUsername, onSave, editingUsername, usernameInput, onEditingUsernameChange, onUsernameInputChange }: AccountCardProps) => {
     const t = useT()
 
     const cancelEdit = () => {
@@ -39,33 +30,18 @@ const AccountCard = ({
 
                     {editingUsername ? (
                         <div className='flex items-center gap-2'>
-                            <input
-                                className='rounded-md border border-border bg-surface px-2 py-1 text-sm'
-                                value={usernameInput}
-                                onChange={(event) => onUsernameInputChange(event.target.value)}
-                                disabled={savingUsername}
-                            />
-                            <button
-                                className='text-sm text-accent hover:underline disabled:opacity-50 cursor-pointer'
-                                disabled={savingUsername}
-                                onClick={onSave}
-                            >
+                            <input className='rounded-md border border-border bg-surface px-2 py-1 text-sm' value={usernameInput} onChange={(event) => onUsernameInputChange(event.target.value)} disabled={savingUsername} />
+                            <button className='text-sm text-accent hover:underline disabled:opacity-50 cursor-pointer' disabled={savingUsername} onClick={onSave}>
                                 {t('profile.save')}
                             </button>
-                            <button
-                                className='text-sm text-text-subtle hover:underline cursor-pointer'
-                                onClick={cancelEdit}
-                            >
+                            <button className='text-sm text-text-subtle hover:underline cursor-pointer' onClick={cancelEdit}>
                                 {t('profile.cancel')}
                             </button>
                         </div>
                     ) : (
                         <div className='flex items-center gap-3'>
                             <span>{user.username}</span>
-                            <button
-                                className='text-xs text-accent hover:underline cursor-pointer'
-                                onClick={() => onEditingUsernameChange(true)}
-                            >
+                            <button className='text-xs text-accent hover:underline cursor-pointer' onClick={() => onEditingUsernameChange(true)}>
                                 {t('profile.edit')}
                             </button>
                         </div>

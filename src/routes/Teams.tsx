@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import DivisionTabs from '../components/DivisionTabs'
+import LoginRequired from '../components/LoginRequired'
 import type { TeamSummary } from '../lib/types'
 import { formatApiError } from '../lib/utils'
 import { navigate } from '../lib/router'
 import { useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
+import { useDivision } from '../lib/division'
+import { useAuth } from '../lib/auth'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -13,17 +17,21 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
     const api = useApi()
+    const { state: auth } = useAuth()
+    const { divisions, selectedDivisionId } = useDivision()
     const [teams, setTeams] = useState<TeamSummary[]>([])
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
+    const [divisionFilter, setDivisionFilter] = useState<number | null>(selectedDivisionId ?? null)
 
     const loadTeams = async () => {
+        if (!auth.user) return
         setLoading(true)
         setErrorMessage('')
 
         try {
-            setTeams(await api.teams())
+            setTeams(await api.teams(divisionFilter ?? undefined))
         } catch (error) {
             setErrorMessage(formatApiError(error, t).message)
         } finally {
@@ -33,21 +41,22 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
 
     const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery])
     const sortedTeams = useMemo(() => [...teams].sort((a, b) => a.id - b.id), [teams])
-    const filteredTeams = useMemo(
-        () =>
-            normalizedQuery
-                ? sortedTeams.filter(
-                      (team) =>
-                          team.name.toLowerCase().includes(normalizedQuery) ||
-                          team.id.toString().includes(normalizedQuery),
-                  )
-                : sortedTeams,
-        [normalizedQuery, sortedTeams],
-    )
+    const filteredTeams = useMemo(() => (normalizedQuery ? sortedTeams.filter((team) => team.name.toLowerCase().includes(normalizedQuery) || team.id.toString().includes(normalizedQuery)) : sortedTeams), [normalizedQuery, sortedTeams])
 
     useEffect(() => {
+        if (selectedDivisionId) {
+            setDivisionFilter(selectedDivisionId)
+        }
+    }, [selectedDivisionId])
+
+    useEffect(() => {
+        if (!auth.user) return
         loadTeams()
-    }, [])
+    }, [auth.user, divisionFilter])
+
+    if (!auth.user) {
+        return <LoginRequired title={t('teams.title')} />
+    }
 
     return (
         <section className='fade-in'>
@@ -57,7 +66,8 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
                 </div>
             </div>
 
-            <div className='mt-6'>
+            <div className='mt-6 space-y-4'>
+                <DivisionTabs divisions={divisions} selectedId={divisionFilter} onSelect={setDivisionFilter} includeAll />
                 <input
                     type='text'
                     placeholder={t('teams.searchPlaceholder')}
@@ -78,40 +88,22 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
                             <table className='w-full'>
                                 <thead className='border-b border-border bg-surface-muted'>
                                     <tr>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.id')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.team')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.members')}
-                                        </th>
-                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.totalScore')}
-                                        </th>
-                                        <th className='px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted'>
-                                            {t('common.action')}
-                                        </th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.id')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.team')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.division')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.members')}</th>
+                                        <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.totalScore')}</th>
+                                        <th className='px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted'>{t('common.action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className='divide-y divide-border'>
                                     {filteredTeams.map((team) => (
-                                        <tr
-                                            key={team.id}
-                                            className='transition hover:bg-surface-muted cursor-pointer'
-                                            onClick={() => navigate(`/teams/${team.id}`)}
-                                        >
+                                        <tr key={team.id} className='transition hover:bg-surface-muted cursor-pointer' onClick={() => navigate(`/teams/${team.id}`)}>
                                             <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{team.id}</td>
-                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>
-                                                {team.name}
-                                            </td>
-                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>
-                                                {team.member_count}
-                                            </td>
-                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-accent'>
-                                                {t('common.pointsShort', { points: team.total_score })}
-                                            </td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{team.name}</td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text-muted'>{team.division_name}</td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-text'>{team.member_count}</td>
+                                            <td className='whitespace-nowrap px-6 py-4 text-sm text-accent'>{t('common.pointsShort', { points: team.total_score })}</td>
                                             <td className='whitespace-nowrap px-6 py-4 text-right text-sm'>
                                                 <button
                                                     className='text-accent hover:text-accent-strong cursor-pointer'
@@ -128,7 +120,7 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
                                     ))}
                                     {filteredTeams.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className='px-6 py-8 text-center text-sm text-text-muted'>
+                                            <td colSpan={6} className='px-6 py-8 text-center text-sm text-text-muted'>
                                                 {searchQuery ? t('teams.noResults') : t('teams.noTeams')}
                                             </td>
                                         </tr>
@@ -140,9 +132,7 @@ const Teams = ({ routeParams = {} }: RouteProps) => {
 
                     {filteredTeams.length > 0 ? (
                         <p className='mt-4 text-sm text-text-muted'>
-                            {filteredTeams.length === 1
-                                ? t('teams.countSingular', { count: filteredTeams.length })
-                                : t('teams.countPlural', { count: filteredTeams.length })}
+                            {filteredTeams.length === 1 ? t('teams.countSingular', { count: filteredTeams.length }) : t('teams.countPlural', { count: filteredTeams.length })}
                             {searchQuery ? ` ${t('common.outOf', { total: teams.length })}` : ''}
                         </p>
                     ) : null}

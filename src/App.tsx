@@ -143,11 +143,7 @@ const App = () => {
 
     const content = useMemo(() => {
         if (booting) {
-            return (
-                <div className='rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>
-                    {t('app.checkingSession')}
-                </div>
-            )
+            return <div className='rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>{t('app.checkingSession')}</div>
         }
         return <RouteComponent routeParams={routeParams} />
     }, [RouteComponent, booting, routeParams, t])

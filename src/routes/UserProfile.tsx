@@ -10,6 +10,7 @@ import StatisticsCard from '../components/UserProfile/StatisticsCard'
 import { getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 import { useApi } from '../lib/useApi'
+import LoginRequired from '../components/LoginRequired'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -37,22 +38,13 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
     const lastStacksLoadedForUserIdRef = useRef<number | null>(null)
 
     const routeUserId = useMemo(() => parseRouteId(routeParams.id), [routeParams.id])
-    const isOwnProfile = useMemo(
-        () => (auth.user ? !routeUserId || routeUserId === auth.user.id : false),
-        [auth.user, routeUserId],
-    )
+    const isOwnProfile = useMemo(() => (auth.user ? !routeUserId || routeUserId === auth.user.id : false), [auth.user, routeUserId])
     const showBackButton = !!routeParams.id
-    const activeStacks = useMemo(
-        () => stacks.filter((stack) => !['stopped', 'failed', 'node_deleted'].includes(stack.status)),
-        [stacks],
-    )
+    const activeStacks = useMemo(() => stacks.filter((stack) => !['stopped', 'failed', 'node_deleted'].includes(stack.status)), [stacks])
     const targetUserId = routeUserId ?? auth.user?.id ?? null
     const totalSolvedPoints = useMemo(() => solved.reduce((sum, item) => sum + item.points, 0), [solved])
 
-    const formatOptionalDateTime = useCallback(
-        (value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')),
-        [localeTag, t],
-    )
+    const formatOptionalDateTime = useCallback((value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')), [localeTag, t])
 
     const formatSolvedDateTime = useCallback((value: string) => formatDateTime(value, localeTag), [localeTag])
 
@@ -160,21 +152,8 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
         <section className='fade-in'>
             {showBackButton ? (
                 <div className='mb-6'>
-                    <button
-                        className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer'
-                        onClick={() => navigate('/users')}
-                    >
-                        <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            width='16'
-                            height='16'
-                            viewBox='0 0 24 24'
-                            fill='none'
-                            stroke='currentColor'
-                            strokeWidth='2'
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                        >
+                    <button className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer' onClick={() => navigate('/users')}>
+                        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
                             <path d='m15 18-6-6 6-6' />
                         </svg>
                         {t('profile.backToUsers')}
@@ -183,16 +162,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
             ) : null}
 
             {!auth.user ? (
-                <div>
-                    <h2 className='text-3xl text-text'>{t('profile.title')}</h2>
-                    <div className='mt-6 rounded-2xl border border-warning/40 bg-warning/10 p-6 text-sm text-warning-strong'>
-                        {t('profile.loginToViewPrefix')}{' '}
-                        <a className='underline cursor-pointer' href='/login' onClick={(e) => navigate('/login', e)}>
-                            {t('auth.loginLink')}
-                        </a>{' '}
-                        {t('profile.loginToViewSuffix')}
-                    </div>
-                </div>
+                <LoginRequired title={t('profile.title')} />
             ) : loading ? (
                 <div className='rounded-2xl border border-border bg-surface p-8'>
                     <p className='text-center text-sm text-text-muted'>{t('common.loading')}</p>
@@ -233,9 +203,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
 
                     <SolvedChallengesCard solved={solved} formatDateTime={formatSolvedDateTime} />
 
-                    {solved.length > 0 ? (
-                        <StatisticsCard totalPoints={totalSolvedPoints} solvedCount={solved.length} />
-                    ) : null}
+                    {solved.length > 0 ? <StatisticsCard totalPoints={totalSolvedPoints} solvedCount={solved.length} /> : null}
                 </div>
             ) : null}
         </section>

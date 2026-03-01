@@ -30,9 +30,7 @@ const Home = ({ routeParams = {} }: RouteProps) => {
         <section className='fade-in'>
             <div className='relative overflow-hidden p-4 sm:p-8 md:p-10'>
                 <div className='relative z-10'>
-                    <h1 className='mt-2 text-2xl font-semibold text-text sm:mt-4 md:text-3xl lg:text-4xl'>
-                        {appConfig.title}
-                    </h1>
+                    <h1 className='mt-2 text-2xl font-semibold text-text sm:mt-4 md:text-3xl lg:text-4xl'>{appConfig.title}</h1>
                     <div className='mt-3 max-w-2xl text-base text-text sm:mt-4 sm:text-base md:text-lg'>
                         <Markdown content={appConfig.description} />
                     </div>
@@ -59,12 +57,8 @@ const Home = ({ routeParams = {} }: RouteProps) => {
                             <div className='grid gap-2 sm:grid-cols-2'>
                                 {ctfTimes.map((item) => (
                                     <div key={item.label} className='flex flex-col gap-1'>
-                                        <span className='text-xs uppercase tracking-wide text-text-muted'>
-                                            {item.label}
-                                        </span>
-                                        <span className='text-sm text-text'>
-                                            {formatTimestamp(item.value as string)}
-                                        </span>
+                                        <span className='text-xs uppercase tracking-wide text-text-muted'>{item.label}</span>
+                                        <span className='text-sm text-text'>{formatTimestamp(item.value as string)}</span>
                                     </div>
                                 ))}
                             </div>

@@ -3,19 +3,13 @@ import { ApiError } from './api'
 
 export type FieldErrors = Record<string, string>
 
-export const formatApiError = (
-    error: unknown,
-    translate: (key: string, vars?: Record<string, string | number>) => string,
-) => {
+export const formatApiError = (error: unknown, translate: (key: string, vars?: Record<string, string | number>) => string) => {
     if (error instanceof ApiError) {
         const fieldErrors = buildFieldErrors(error.details)
 
         if (error.status === 429) {
             const resetSeconds = error.rateLimit?.reset_seconds
-            const message =
-                typeof resetSeconds === 'number'
-                    ? translate('errors.tooManyRequests', { seconds: resetSeconds })
-                    : translate('errors.tooManyRequestsLater')
+            const message = typeof resetSeconds === 'number' ? translate('errors.tooManyRequests', { seconds: resetSeconds }) : translate('errors.tooManyRequestsLater')
 
             return { message, fieldErrors }
         }

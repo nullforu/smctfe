@@ -5,6 +5,7 @@ import type {
     AdminConfigUpdatePayload,
     CtfState,
     CtfStateResponse,
+    Division,
     Challenge,
     ChallengeDetail,
     ChallengesResponse,
@@ -139,12 +140,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             const data = await parseJson(response)
             clearAuth()
 
-            throw new ApiError(
-                data?.error ?? translate('errors.invalidCredentials'),
-                response.status,
-                data?.details,
-                extractRateLimit(response, data),
-            )
+            throw new ApiError(data?.error ?? translate('errors.invalidCredentials'), response.status, data?.details, extractRateLimit(response, data))
         }
 
         const data = await response.json()
@@ -226,12 +222,7 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 }
 
                 const retryData = await parseJson(retryResponse)
-                throw new ApiError(
-                    retryData?.error ?? translate('errors.requestFailed'),
-                    retryResponse.status,
-                    retryData?.details,
-                    extractRateLimit(retryResponse, retryData),
-                )
+                throw new ApiError(retryData?.error ?? translate('errors.requestFailed'), retryResponse.status, retryData?.details, extractRateLimit(retryResponse, retryData))
             } catch (error) {
                 if (error instanceof ApiError) throw error
                 clearAuth()
@@ -241,20 +232,13 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
 
         const data = await parseJson(response)
 
-        throw new ApiError(
-            data?.error ?? translate('errors.requestFailed'),
-            response.status,
-            data?.details,
-            extractRateLimit(response, data),
-        )
+        throw new ApiError(data?.error ?? translate('errors.requestFailed'), response.status, data?.details, extractRateLimit(response, data))
     }
 
     return {
         config: (opts?: { noCache?: boolean }) => request<AppConfig>(`/api/config`, { noCache: opts?.noCache }),
-        updateAdminConfig: (payload: AdminConfigUpdatePayload) =>
-            request<AppConfig>(`/api/admin/config`, { method: 'PUT', body: payload, auth: true }),
-        register: (payload: RegisterPayload) =>
-            request<RegisterResponse>(`/api/auth/register`, { method: 'POST', body: payload }),
+        updateAdminConfig: (payload: AdminConfigUpdatePayload) => request<AppConfig>(`/api/admin/config`, { method: 'PUT', body: payload, auth: true }),
+        register: (payload: RegisterPayload) => request<RegisterResponse>(`/api/auth/register`, { method: 'POST', body: payload }),
         login: async (payload: LoginPayload) => {
             const data = await request<AuthResponse>(`/api/auth/login`, { method: 'POST', body: payload })
             setAuthTokens(data.access_token, data.refresh_token)
@@ -272,10 +256,13 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
         },
         me: () => request<AuthUser>(`/api/me`, { auth: true }),
         updateMe: (username: string) => request<AuthUser>(`/api/me`, { method: 'PUT', body: { username }, auth: true }),
-        challenges: async () => {
-            const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges`, {
-                auth: true,
-            })
+        divisions: async () => {
+            const data = await request<Division[]>(`/api/divisions`)
+            if (isAdmin(getAuth().user)) return data
+            return data.filter((division) => division.name.toLowerCase() !== 'admin')
+        },
+        challenges: async (divisionId: number) => {
+            const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges?division_id=${divisionId}`, { auth: true })
             return {
                 ctf_state: resolveCtfState(data),
                 challenges: Array.isArray(data?.challenges) ? data.challenges : [],
@@ -287,23 +274,19 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 body: { flag },
                 auth: true,
             }),
-        leaderboard: () => request<LeaderboardResponse>(`/api/leaderboard`),
-        leaderboardTeams: async () => {
-            const data = await request<TeamLeaderboardResponse>(`/api/leaderboard/teams`)
+        leaderboard: (divisionId: number) => request<LeaderboardResponse>(`/api/leaderboard?division_id=${divisionId}`),
+        leaderboardTeams: async (divisionId: number) => {
+            const data = await request<TeamLeaderboardResponse>(`/api/leaderboard/teams?division_id=${divisionId}`)
             return {
                 challenges: data.challenges,
                 entries: data.entries.filter((entry) => entry.team_name.toLowerCase() !== 'admin'),
             } as TeamLeaderboardResponse
         },
-        timeline: () => request<TimelineResponse>(`/api/timeline`, { auth: true }),
-        timelineTeams: () => {
-            return request<TeamTimelineResponse>(`/api/timeline/teams`)
-        },
-        createChallenge: (payload: ChallengeCreatePayload) =>
-            request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: payload, auth: true }),
+        timeline: (divisionId: number) => request<TimelineResponse>(`/api/timeline?division_id=${divisionId}`, { auth: true }),
+        timelineTeams: (divisionId: number) => request<TeamTimelineResponse>(`/api/timeline/teams?division_id=${divisionId}`),
+        createChallenge: (payload: ChallengeCreatePayload) => request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: payload, auth: true }),
         adminChallenge: (id: number) => request<AdminChallengeDetail>(`/api/admin/challenges/${id}`, { auth: true }),
-        updateChallenge: (id: number, payload: ChallengeUpdatePayload) =>
-            request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: payload, auth: true }),
+        updateChallenge: (id: number, payload: ChallengeUpdatePayload) => request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: payload, auth: true }),
         deleteChallenge: (id: number) => request<void>(`/api/admin/challenges/${id}`, { method: 'DELETE', auth: true }),
         requestChallengeFileUpload: (id: number, filename: string) =>
             request<ChallengeFileUploadResponse>(`/api/admin/challenges/${id}/file/upload`, {
@@ -311,17 +294,14 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
                 body: { filename },
                 auth: true,
             }),
-        deleteChallengeFile: (id: number) =>
-            request<ChallengeDetail>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
+        deleteChallengeFile: (id: number) => request<ChallengeDetail>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
         requestChallengeFileDownload: (id: number) =>
             request<PresignedURL | CtfStateResponse>(`/api/challenges/${id}/file/download`, {
                 method: 'POST',
                 auth: true,
             }),
-        createStack: (challengeID: number) =>
-            request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { method: 'POST', auth: true }),
-        getStack: (challengeID: number) =>
-            request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { auth: true }),
+        createStack: (challengeID: number) => request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { method: 'POST', auth: true }),
+        getStack: (challengeID: number) => request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { auth: true }),
         deleteStack: (challengeID: number) =>
             request<{ status?: string; ctf_state?: CtfState }>(`/api/challenges/${challengeID}/stack`, {
                 method: 'DELETE',
@@ -341,22 +321,17 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             } as AdminStacksResponse
         },
         adminStack: (stackId: string) => request<Stack>(`/api/admin/stacks/${stackId}`, { auth: true }),
-        deleteAdminStack: (stackId: string) =>
-            request<AdminStackDeleteResponse>(`/api/admin/stacks/${stackId}`, { method: 'DELETE', auth: true }),
+        deleteAdminStack: (stackId: string) => request<AdminStackDeleteResponse>(`/api/admin/stacks/${stackId}`, { method: 'DELETE', auth: true }),
         adminReport: () => request<AdminReportResponse>(`/api/admin/report`, { auth: true, noCache: true }),
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
-        createRegistrationKeys: (payload: RegistrationKeyCreatePayload) =>
-            request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),
-        createTeam: (payload: TeamCreatePayload) =>
-            request<Team>(`/api/admin/teams`, { method: 'POST', body: payload, auth: true }),
-        moveUserTeam: (id: number, team_id: number) =>
-            request<AuthUser>(`/api/admin/users/${id}/team`, { method: 'POST', body: { team_id }, auth: true }),
-        blockUser: (id: number, reason: string) =>
-            request<AuthUser>(`/api/admin/users/${id}/block`, { method: 'POST', body: { reason }, auth: true }),
-        unblockUser: (id: number) =>
-            request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
-        teams: async () => {
-            const data = await request<TeamSummary[]>(`/api/teams`)
+        createRegistrationKeys: (payload: RegistrationKeyCreatePayload) => request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),
+        createTeam: (payload: TeamCreatePayload) => request<Team>(`/api/admin/teams`, { method: 'POST', body: payload, auth: true }),
+        moveUserTeam: (id: number, team_id: number) => request<AuthUser>(`/api/admin/users/${id}/team`, { method: 'POST', body: { team_id }, auth: true }),
+        blockUser: (id: number, reason: string) => request<AuthUser>(`/api/admin/users/${id}/block`, { method: 'POST', body: { reason }, auth: true }),
+        unblockUser: (id: number) => request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
+        teams: async (divisionId?: number) => {
+            const query = divisionId ? `?division_id=${divisionId}` : ''
+            const data = await request<TeamSummary[]>(`/api/teams${query}`)
             if (isAdmin(getAuth().user)) return data
 
             return data.filter((team) => team.name.toLowerCase() !== 'admin')
@@ -369,8 +344,9 @@ export const createApi = ({ getAuth, setAuthTokens, setAuthUser, clearAuth, tran
             return data.filter((member) => member.role.toLowerCase() !== 'admin')
         },
         teamSolved: (id: number) => request<TeamSolvedChallenge[]>(`/api/teams/${id}/solved`),
-        users: async () => {
-            const data = await request<UserListItem[]>(`/api/users`)
+        users: async (divisionId?: number) => {
+            const query = divisionId ? `?division_id=${divisionId}` : ''
+            const data = await request<UserListItem[]>(`/api/users${query}`)
             if (isAdmin(getAuth().user)) return data
 
             return data.filter((user) => user.role.toLowerCase() !== 'admin')

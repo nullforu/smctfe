@@ -78,10 +78,7 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                             ) : null}
                         </div>
                         <div>
-                            <label
-                                className='text-xs uppercase tracking-wide text-text-muted'
-                                htmlFor='register-username'
-                            >
+                            <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='register-username'>
                                 {t('auth.usernameLabel')}
                             </label>
                             <input
@@ -100,10 +97,7 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                             ) : null}
                         </div>
                         <div>
-                            <label
-                                className='text-xs uppercase tracking-wide text-text-muted'
-                                htmlFor='register-password'
-                            >
+                            <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='register-password'>
                                 {t('auth.passwordLabel')}
                             </label>
                             <input
@@ -133,9 +127,7 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                                 autoCapitalize='characters'
                                 maxLength={16}
                                 value={registrationKey}
-                                onChange={(event) =>
-                                    setRegistrationKey(event.target.value.toUpperCase().replace(/\s/g, ''))
-                                }
+                                onChange={(event) => setRegistrationKey(event.target.value.toUpperCase().replace(/\s/g, ''))}
                                 placeholder={t('auth.registrationKeyPlaceholder')}
                                 autoComplete='one-time-code'
                                 spellCheck={false}
@@ -151,22 +143,14 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                         {success ? (
                             <FormMessage variant='success'>
                                 {t('auth.accountCreatedPrefix')}{' '}
-                                <a
-                                    className='underline cursor-pointer'
-                                    href='/login'
-                                    onClick={(e) => navigate('/login', e)}
-                                >
+                                <a className='underline cursor-pointer' href='/login' onClick={(e) => navigate('/login', e)}>
                                     {t('auth.loginLink')}
                                 </a>{' '}
                                 {t('auth.accountCreatedSuffix')}
                             </FormMessage>
                         ) : null}
 
-                        <button
-                            className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
-                            type='submit'
-                            disabled={loading}
-                        >
+                        <button className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={loading}>
                             {loading ? t('auth.creating') : t('auth.createAccount')}
                         </button>
                     </form>

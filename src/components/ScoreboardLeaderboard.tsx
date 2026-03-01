@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatApiError } from '../lib/utils'
-import type {
-    LeaderboardChallenge,
-    LeaderboardResponse,
-    LeaderboardSolve,
-    ScoreEntry,
-    TeamLeaderboardResponse,
-    TeamScoreEntry,
-} from '../lib/types'
+import type { LeaderboardChallenge, LeaderboardResponse, LeaderboardSolve, ScoreEntry, TeamLeaderboardResponse, TeamScoreEntry } from '../lib/types'
 import { navigate } from '../lib/router'
 import { useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
@@ -15,13 +8,14 @@ import { useApi } from '../lib/useApi'
 interface ScoreboardLeaderboardProps {
     mode?: 'users' | 'teams'
     refreshTrigger?: number
+    divisionId?: number
 }
 
 type UserEntryView = ScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type TeamEntryView = TeamScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type EntryView = UserEntryView | TeamEntryView
 
-const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: ScoreboardLeaderboardProps) => {
+const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId }: ScoreboardLeaderboardProps) => {
     const t = useT()
     const api = useApi()
     const [challenges, setChallenges] = useState<LeaderboardChallenge[]>([])
@@ -90,12 +84,18 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: Scoreboar
 
         const loadScoreboard = async () => {
             try {
+                if (!divisionId) {
+                    setChallenges([])
+                    setScores([])
+                    setTeamScores([])
+                    return
+                }
                 if (mode === 'teams') {
-                    const payload = await api.leaderboardTeams()
+                    const payload = await api.leaderboardTeams(divisionId)
                     if (!active || currentRequest !== requestIdRef.current) return
                     applyTeamLeaderboard(payload)
                 } else {
-                    const payload = await api.leaderboard()
+                    const payload = await api.leaderboard(divisionId)
                     if (!active || currentRequest !== requestIdRef.current) return
                     applyUserLeaderboard(payload)
                 }
@@ -110,23 +110,26 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: Scoreboar
             }
         }
 
+        if (!divisionId) {
+            setLoading(false)
+            return () => {
+                active = false
+            }
+        }
+
         loadScoreboard()
         return () => {
             active = false
         }
-    }, [api, mode, refreshTrigger, t])
+    }, [api, divisionId, mode, refreshTrigger, t])
 
     const entries = mode === 'teams' ? teamScores : scores
 
     return (
         <div className='min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-6'>
             <div className='flex items-center justify-between'>
-                <h3 className='text-lg text-text'>
-                    {mode === 'teams' ? t('leaderboard.teamTitle') : t('leaderboard.title')}
-                </h3>
-                <span className='text-xs text-text-subtle'>
-                    {t('leaderboard.challengesCount', { count: challenges.length })}
-                </span>
+                <h3 className='text-lg text-text'>{mode === 'teams' ? t('leaderboard.teamTitle') : t('leaderboard.title')}</h3>
+                <span className='text-xs text-text-subtle'>{t('leaderboard.challengesCount', { count: challenges.length })}</span>
             </div>
             {loading ? (
                 <p className='mt-4 text-sm text-text-muted'>{t('common.loading')}</p>
@@ -135,27 +138,20 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: Scoreboar
             ) : (
                 <div className='mt-4 overflow-x-auto'>
                     <div className='min-w-max'>
-                        <div
-                            className='grid items-end gap-3 border-b border-border pb-3 text-[11px] uppercase tracking-wide text-text-subtle'
-                            style={{ gridTemplateColumns: gridTemplate(challenges.length) }}
-                        >
+                        <div className='grid items-end gap-3 border-b border-border pb-3 text-[11px] uppercase tracking-wide text-text-subtle' style={{ gridTemplateColumns: gridTemplate(challenges.length) }}>
                             <span className='px-1'>#</span>
                             <span className='px-1'>{t('common.points')}</span>
-                            <span className='px-1'>
-                                {mode === 'teams' ? t('leaderboard.teamLabel') : t('leaderboard.userLabel')}
-                            </span>
+                            <span className='px-1'>{mode === 'teams' ? t('leaderboard.teamLabel') : t('leaderboard.userLabel')}</span>
                             {challenges.map((challenge) => (
                                 <span
                                     key={`challenge-${challenge.id}`}
-                                    className='relative inline-block h-[72px] w-[22px] text-[10px]'
+                                    className='relative inline-block h-18 w-5.5 text-[10px]'
                                     title={t('leaderboard.challengeTitle', {
                                         title: challenge.title,
                                         points: challenge.points,
                                     })}
                                 >
-                                    <span className='absolute bottom-0 left-0 block max-w-[15ch] overflow-hidden text-ellipsis whitespace-nowrap -rotate-[35deg] origin-bottom-left leading-none'>
-                                        {challenge.title}
-                                    </span>
+                                    <span className='absolute bottom-0 left-0 block max-w-[15ch] overflow-hidden text-ellipsis whitespace-nowrap -rotate-35 origin-bottom-left leading-none'>{challenge.title}</span>
                                 </span>
                             ))}
                         </div>
@@ -169,36 +165,18 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: Scoreboar
                                     onClick={() => navigate(entryHref(entry))}
                                 >
                                     <span className='text-xs text-text-subtle'>#{index + 1}</span>
-                                    <span className='text-xs font-semibold text-text'>
-                                        {t('common.pointsShort', { points: entry.score })}
-                                    </span>
+                                    <span className='text-xs font-semibold text-text'>{t('common.pointsShort', { points: entry.score })}</span>
                                     <span className='truncate text-sm text-text'>{entryLabel(entry)}</span>
                                     {challenges.map((challenge) => {
                                         const solve = entry.solveMap.get(challenge.id)
                                         return (
                                             <span
                                                 key={`solve-${entryLabel(entry)}-${challenge.id}`}
-                                                className={`inline-flex h-[16px] w-[20px] items-center justify-center ${
-                                                    solve?.is_first_blood
-                                                        ? 'text-danger'
-                                                        : solve
-                                                          ? 'text-info'
-                                                          : 'text-text-subtle'
-                                                }`}
-                                                title={`${challenge.title} • ${
-                                                    solve
-                                                        ? solve.is_first_blood
-                                                            ? t('leaderboard.firstBlood')
-                                                            : t('leaderboard.solved')
-                                                        : t('leaderboard.unsolved')
-                                                }`}
+                                                className={`inline-flex h-4 w-5 items-center justify-center ${solve?.is_first_blood ? 'text-danger' : solve ? 'text-info' : 'text-text-subtle'}`}
+                                                title={`${challenge.title} • ${solve ? (solve.is_first_blood ? t('leaderboard.firstBlood') : t('leaderboard.solved')) : t('leaderboard.unsolved')}`}
                                             >
                                                 <svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
-                                                    <path
-                                                        d='M5 6.7c.9-.8 2.1-1.2 3.5-1.2 2.7 0 4.6 2.2 8.5.6v8.8c-3.9 1.7-5.8-.9-8.5-.9-1.2 0-2.5.3-3.5.9V6.7Z'
-                                                        fill='currentColor'
-                                                        opacity={solve ? '0.7' : '0'}
-                                                    />
+                                                    <path d='M5 6.7c.9-.8 2.1-1.2 3.5-1.2 2.7 0 4.6 2.2 8.5.6v8.8c-3.9 1.7-5.8-.9-8.5-.9-1.2 0-2.5.3-3.5.9V6.7Z' fill='currentColor' opacity={solve ? '0.7' : '0'} />
                                                     <path
                                                         d='M4.5 21V16M4.5 16V6.5C5.5 5.5 7 5 8.5 5C11.5 5 13.5 7.5 17.5 5.5V15.5C13.5 17.5 11.5 14.5 8.5 14.5C7.5 14.5 5.5 15 4.5 16Z'
                                                         fill='none'
@@ -215,11 +193,7 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0 }: Scoreboar
                         </div>
                     </div>
 
-                    {entries.length === 0 ? (
-                        <p className='text-sm text-text-muted'>
-                            {mode === 'teams' ? t('leaderboard.noTeamScores') : t('leaderboard.noScores')}
-                        </p>
-                    ) : null}
+                    {entries.length === 0 ? <p className='text-sm text-text-muted'>{mode === 'teams' ? t('leaderboard.noTeamScores') : t('leaderboard.noScores')}</p> : null}
                 </div>
             )}
         </div>

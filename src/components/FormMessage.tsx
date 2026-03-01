@@ -17,11 +17,7 @@ const styles: Record<Variant, string> = {
 }
 
 const FormMessage = ({ variant = 'error', message, className = '', children }: FormMessageProps) => {
-    return (
-        <p className={`rounded-xl border px-4 py-2 text-xs ${styles[variant]} ${className}`}>
-            {message ? message : children}
-        </p>
-    )
+    return <p className={`rounded-xl border px-4 py-2 text-xs ${styles[variant]} ${className}`}>{message ? message : children}</p>
 }
 
 export default FormMessage

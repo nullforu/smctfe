@@ -13,11 +13,7 @@ const SolvedChallengesCard = ({ solved, formatDateTime }: SolvedChallengesCardPr
         <div className='mt-8 rounded-2xl border border-border bg-surface p-6'>
             <div className='flex items-center justify-between'>
                 <h3 className='text-lg text-text'>{t('profile.solvedChallenges')}</h3>
-                <span className='text-sm text-text-muted'>
-                    {solved.length === 1
-                        ? t('profile.problemSingular', { count: solved.length })
-                        : t('profile.problemPlural', { count: solved.length })}
-                </span>
+                <span className='text-sm text-text-muted'>{solved.length === 1 ? t('profile.problemSingular', { count: solved.length }) : t('profile.problemPlural', { count: solved.length })}</span>
             </div>
 
             <div className='mt-6 space-y-3'>
@@ -25,13 +21,9 @@ const SolvedChallengesCard = ({ solved, formatDateTime }: SolvedChallengesCardPr
                     <div key={item.challenge_id} className='rounded-xl border border-border bg-surface-muted p-5'>
                         <h4 className='text-base font-medium text-text'>
                             {item.title}
-                            <span className='ml-2 text-xs text-accent'>
-                                {t('common.pointsShort', { points: item.points })}
-                            </span>
+                            <span className='ml-2 text-xs text-accent'>{t('common.pointsShort', { points: item.points })}</span>
                         </h4>
-                        <p className='mt-2 text-sm text-text-muted'>
-                            {t('profile.solvedAt', { time: formatDateTime(item.solved_at) })}
-                        </p>
+                        <p className='mt-2 text-sm text-text-muted'>{t('profile.solvedAt', { time: formatDateTime(item.solved_at) })}</p>
                     </div>
                 ))}
 

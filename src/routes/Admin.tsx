@@ -14,26 +14,9 @@ interface RouteProps {
     routeParams?: Record<string, string>
 }
 
-type AdminTabId =
-    | 'challenge_create'
-    | 'challenge_management'
-    | 'users'
-    | 'teams'
-    | 'stacks'
-    | 'registration_keys'
-    | 'site_config'
-    | 'report'
+type AdminTabId = 'challenge_create' | 'challenge_management' | 'users' | 'teams' | 'stacks' | 'registration_keys' | 'site_config' | 'report'
 const TAB_PARAM = 'tab'
-const ADMIN_TAB_IDS: AdminTabId[] = [
-    'challenge_create',
-    'challenge_management',
-    'users',
-    'teams',
-    'stacks',
-    'registration_keys',
-    'site_config',
-    'report',
-]
+const ADMIN_TAB_IDS: AdminTabId[] = ['challenge_create', 'challenge_management', 'users', 'teams', 'stacks', 'registration_keys', 'site_config', 'report']
 
 const getTabFromUrl = (): AdminTabId | null => {
     const params = new URLSearchParams(window.location.search)
@@ -88,13 +71,9 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
             </div>
 
             {!auth.user ? (
-                <div className='rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong lg:p-6'>
-                    {t('admin.loginRequired')}
-                </div>
+                <div className='rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong lg:p-6'>{t('admin.loginRequired')}</div>
             ) : auth.user.role !== 'admin' ? (
-                <div className='rounded-2xl border border-danger/40 bg-danger/10 p-4 text-sm text-danger lg:p-6'>
-                    {t('admin.accessDenied')}
-                </div>
+                <div className='rounded-2xl border border-danger/40 bg-danger/10 p-4 text-sm text-danger lg:p-6'>{t('admin.accessDenied')}</div>
             ) : (
                 <>
                     <div className='mb-4 flex items-center gap-3'>
@@ -118,9 +97,7 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
                                     <button
                                         key={tab.id}
                                         className={`flex w-full items-center rounded-lg px-4 py-2.5 text-left text-sm transition cursor-pointer ${
-                                            activeTab === tab.id
-                                                ? 'bg-surface-subtle font-medium text-text'
-                                                : 'text-text hover:bg-surface-muted'
+                                            activeTab === tab.id ? 'bg-surface-subtle font-medium text-text' : 'text-text hover:bg-surface-muted'
                                         }`}
                                         onClick={() => setActiveTab(tab.id as AdminTabId)}
                                         type='button'

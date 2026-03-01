@@ -18,9 +18,7 @@ const toKstInputValue = (value?: string | null) => {
     const date = new Date(value)
     if (Number.isNaN(date.getTime())) return ''
     const kst = new Date(date.getTime() + KST_OFFSET_MINUTES * 60 * 1000)
-    return `${kst.getUTCFullYear()}-${pad2(kst.getUTCMonth() + 1)}-${pad2(kst.getUTCDate())}T${pad2(
-        kst.getUTCHours(),
-    )}:${pad2(kst.getUTCMinutes())}`
+    return `${kst.getUTCFullYear()}-${pad2(kst.getUTCMonth() + 1)}-${pad2(kst.getUTCDate())}T${pad2(kst.getUTCHours())}:${pad2(kst.getUTCMinutes())}`
 }
 
 const toKstRfc3339 = (value: string) => {
@@ -189,11 +187,7 @@ const SiteConfig = () => {
 
     return (
         <section className='space-y-4'>
-            <button
-                className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer'
-                onClick={loadSiteConfig}
-                disabled={configLoading}
-            >
+            <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={loadSiteConfig} disabled={configLoading}>
                 {configLoading ? t('common.loading') : t('common.refresh')}
             </button>
             <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
@@ -242,12 +236,7 @@ const SiteConfig = () => {
                         ) : (
                             <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{headerTitle ? headerTitle : t('admin.site.unset')}</span>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('header_title')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('header_title')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
@@ -259,18 +248,11 @@ const SiteConfig = () => {
                         ) : null}
                     </div>
                     <div>
-                        <p className='text-xs uppercase tracking-wide text-text-muted'>
-                            {t('admin.site.headerDescription')}
-                        </p>
+                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.site.headerDescription')}</p>
                         {editingField === 'header_description' ? (
                             <div className='mt-2 space-y-2'>
                                 <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
-                                    <MonacoEditor
-                                        language='markdown'
-                                        value={headerDescription}
-                                        onChange={(value) => setHeaderDescription(value)}
-                                        readonly={configLoading}
-                                    />
+                                    <MonacoEditor language='markdown' value={headerDescription} onChange={(value) => setHeaderDescription(value)} readonly={configLoading} />
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
@@ -293,15 +275,8 @@ const SiteConfig = () => {
                             </div>
                         ) : (
                             <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
-                                <p className='whitespace-pre-wrap'>
-                                    {headerDescription ? headerDescription : t('admin.site.unset')}
-                                </p>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('header_description')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <p className='whitespace-pre-wrap'>{headerDescription ? headerDescription : t('admin.site.unset')}</p>
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('header_description')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
@@ -349,12 +324,7 @@ const SiteConfig = () => {
                         ) : (
                             <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{configTitle ? configTitle : t('admin.site.unset')}</span>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('title')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('title')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
@@ -410,12 +380,7 @@ const SiteConfig = () => {
                         ) : (
                             <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{ctfStartAt ? ctfStartAt : t('admin.site.unset')}</span>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('ctf_start_at')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('ctf_start_at')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
@@ -471,12 +436,7 @@ const SiteConfig = () => {
                         ) : (
                             <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{ctfEndAt ? ctfEndAt : t('admin.site.unset')}</span>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('ctf_end_at')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('ctf_end_at')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
@@ -493,13 +453,7 @@ const SiteConfig = () => {
                         {editingField === 'description' ? (
                             <div className='mt-2 space-y-2'>
                                 <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
-                                    <MonacoEditor
-                                        template='markdown'
-                                        language='markdown'
-                                        value={configDescription}
-                                        onChange={(value) => setConfigDescription(value)}
-                                        readonly={configLoading}
-                                    />
+                                    <MonacoEditor template='markdown' language='markdown' value={configDescription} onChange={(value) => setConfigDescription(value)} readonly={configLoading} />
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
@@ -522,15 +476,8 @@ const SiteConfig = () => {
                             </div>
                         ) : (
                             <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
-                                <p className='whitespace-pre-wrap'>
-                                    {configDescription ? configDescription : t('admin.site.unset')}
-                                </p>
-                                <button
-                                    className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
-                                    type='button'
-                                    onClick={() => beginEdit('description')}
-                                    disabled={configLoading || editingField !== null}
-                                >
+                                <p className='whitespace-pre-wrap'>{configDescription ? configDescription : t('admin.site.unset')}</p>
+                                <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('description')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
                                 </button>
                             </div>
