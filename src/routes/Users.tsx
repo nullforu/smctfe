@@ -62,7 +62,7 @@ const Users = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             <div className='flex flex-wrap items-end justify-between gap-4'>
                 <div>
                     <h2 className='text-3xl text-text'>{t('users.title')}</h2>

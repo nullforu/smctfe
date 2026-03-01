@@ -109,7 +109,7 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             <div>
                 <h2 className='text-3xl text-text'>{t('scoreboard.title')}</h2>
             </div>

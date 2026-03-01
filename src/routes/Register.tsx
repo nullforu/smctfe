@@ -46,7 +46,7 @@ const Register = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             <div className='grid gap-8 md:grid-cols-[1.1fr_1fr]'>
                 <div className='rounded-3xl border border-border bg-surface p-10'>
                     <h2 className='text-3xl text-text'>{t('auth.register')}</h2>

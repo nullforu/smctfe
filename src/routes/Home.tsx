@@ -27,7 +27,7 @@ const Home = ({ routeParams = {} }: RouteProps) => {
     ].filter((item) => typeof item.value === 'string' && item.value.trim().length > 0)
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             <div className='relative overflow-hidden p-4 sm:p-8 md:p-10'>
                 <div className='relative z-10'>
                     <h1 className='mt-2 text-2xl font-semibold text-text sm:mt-4 md:text-3xl lg:text-4xl'>{appConfig.title}</h1>

@@ -141,7 +141,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <>
+        <section className='animate'>
             <ChallengesView
                 title={t('challenges.title')}
                 summaryText={summaryText}
@@ -167,7 +167,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
             />
 
             {selectedChallenge ? <ChallengeModal challenge={selectedChallenge} isSolved={solvedIds.has(selectedChallenge.id)} ctfState={ctfState} onClose={() => setSelectedChallenge(null)} onSolved={loadSolved} /> : null}
-        </>
+        </section>
     )
 }
 

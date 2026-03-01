@@ -65,7 +65,7 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
     }, [activeTab])
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             <div className='mb-4 lg:mb-6'>
                 <h2 className='text-2xl font-semibold text-text lg:text-3xl'>{t('admin.title')}</h2>
             </div>

@@ -149,7 +149,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
     }, [auth.user, isOwnProfile, loadStacks])
 
     return (
-        <section className='fade-in'>
+        <section className='animate'>
             {showBackButton ? (
                 <div className='mb-6'>
                     <button className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer' onClick={() => navigate('/users')}>
