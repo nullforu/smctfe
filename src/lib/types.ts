@@ -17,6 +17,10 @@ export interface Division {
     created_at: string
 }
 
+export interface DivisionCreatePayload {
+    name: string
+}
+
 export interface RegisterPayload {
     email: string
     username: string

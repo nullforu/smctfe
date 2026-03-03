@@ -5,6 +5,7 @@ import RegistrationKeys from './admin/RegistrationKeys'
 import Teams from './admin/Teams'
 import SiteConfig from './admin/SiteConfig'
 import Users from './admin/Users'
+import Divisions from './admin/Divisions'
 import Stacks from './admin/Stacks'
 import Report from './admin/Report'
 import { useT } from '../lib/i18n'
@@ -14,9 +15,9 @@ interface RouteProps {
     routeParams?: Record<string, string>
 }
 
-type AdminTabId = 'challenge_create' | 'challenge_management' | 'users' | 'teams' | 'stacks' | 'registration_keys' | 'site_config' | 'report'
+type AdminTabId = 'challenge_create' | 'challenge_management' | 'users' | 'teams' | 'divisions' | 'stacks' | 'registration_keys' | 'site_config' | 'report'
 const TAB_PARAM = 'tab'
-const ADMIN_TAB_IDS: AdminTabId[] = ['challenge_create', 'challenge_management', 'users', 'teams', 'stacks', 'registration_keys', 'site_config', 'report']
+const ADMIN_TAB_IDS: AdminTabId[] = ['challenge_create', 'challenge_management', 'users', 'teams', 'divisions', 'stacks', 'registration_keys', 'site_config', 'report']
 
 const getTabFromUrl = (): AdminTabId | null => {
     const params = new URLSearchParams(window.location.search)
@@ -32,6 +33,7 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
         () => [
             { id: 'challenge_create', label: t('admin.tab.createChallenge') },
             { id: 'challenge_management', label: t('admin.tab.challengeManagement') },
+            { id: 'divisions', label: t('admin.tab.divisions') },
             { id: 'users', label: t('admin.tab.users') },
             { id: 'teams', label: t('admin.tab.teams') },
             { id: 'stacks', label: t('admin.tab.stacks') },
@@ -115,6 +117,8 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
                                 <ChallengeManagement />
                             ) : activeTab === 'registration_keys' ? (
                                 <RegistrationKeys />
+                            ) : activeTab === 'divisions' ? (
+                                <Divisions />
                             ) : activeTab === 'stacks' ? (
                                 <Stacks />
                             ) : activeTab === 'users' ? (
