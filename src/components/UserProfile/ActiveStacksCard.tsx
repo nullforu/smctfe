@@ -19,6 +19,13 @@ const ActiveStacksCard = ({ activeStacks, stacksError, stacksLoading, stackDelet
         return stack.ports.map((port) => `${port.protocol} ${stack.node_public_ip}:${port.node_port}`).join(', ')
     }
 
+    const formatChallengeTitle = (stack: Stack) => {
+        if (stack.challenge_title) {
+            return t('profile.challengeTitle', { title: stack.challenge_title, id: stack.challenge_id })
+        }
+        return t('profile.challengeLabel', { id: stack.challenge_id })
+    }
+
     return (
         <div className='mt-6 rounded-2xl border border-border bg-surface p-6'>
             <div className='flex flex-wrap items-center justify-between gap-4'>
@@ -42,8 +49,9 @@ const ActiveStacksCard = ({ activeStacks, stacksError, stacksLoading, stackDelet
                         <div key={stack.challenge_id} className='rounded-xl border border-border bg-surface-muted p-5'>
                             <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div>
-                                    <p className='text-sm font-medium text-text'>{t('profile.challengeLabel', { id: stack.challenge_id })}</p>
+                                    <p className='text-sm font-medium text-text'>{formatChallengeTitle(stack)}</p>
                                     <p className='mt-1 text-xs text-text-subtle'>{t('profile.statusLabel', { status: stack.status })}</p>
+                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.createdBy', { username: stack.created_by_username || t('common.na') })}</p>
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3 text-xs text-text-muted'>
                                     <span>{formatEndpoints(stack)}</span>

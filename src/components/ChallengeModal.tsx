@@ -391,6 +391,10 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                                     <span className='rounded-full bg-surface-subtle px-2 py-0.5 text-[11px]'>{stackInfo.status}</span>
                                                 </div>
                                                 <div>
+                                                    <span className='font-medium text-text'>{t('challenge.stackCreatedBy')}</span>
+                                                    <span className='ml-2'>{stackInfo.created_by_username || t('common.na')}</span>
+                                                </div>
+                                                <div>
                                                     <span className='font-medium text-text'>{t('challenge.stackPorts')}</span>
                                                     {typeof endpoints === 'string' ? <span className='ml-2'>{endpoints}</span> : <div className='mt-2 grid gap-2'>{endpoints}</div>}
                                                 </div>

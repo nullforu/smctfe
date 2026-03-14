@@ -49,6 +49,7 @@ const ChallengeCard = ({ challenge, isSolved, onClick }: ChallengeCardProps) => 
 interface ChallengesViewProps {
     title: string
     summaryText?: string
+    stackSummaryText?: string
     showSummary: boolean
     groupByCategory: boolean
     toggleLabel: string
@@ -73,6 +74,7 @@ interface ChallengesViewProps {
 const ChallengesView = ({
     title,
     summaryText,
+    stackSummaryText,
     showSummary,
     groupByCategory,
     toggleLabel,
@@ -161,7 +163,17 @@ const ChallengesView = ({
                 <div>
                     <h2 className='text-3xl text-text'>{title}</h2>
                 </div>
-                {showSummary && summaryText ? <div className='rounded-lg border border-border bg-surface px-4 py-2 text-xs text-text'>{summaryText}</div> : null}
+                {showSummary && summaryText ? (
+                    <div className='rounded-lg border border-border bg-surface px-4 py-2 text-xs text-text'>
+                        <p>{summaryText}</p>
+                        {stackSummaryText ? <p className='mt-1 text-text-muted'>{stackSummaryText}</p> : null}
+                    </div>
+                ) : null}
+                {!showSummary && stackSummaryText ? (
+                    <div className='rounded-lg border border-border bg-surface px-4 py-2 text-xs text-text'>
+                        <p>{stackSummaryText}</p>
+                    </div>
+                ) : null}
             </div>
             <div className='mt-4 flex items-center justify-end'>
                 <label className='flex items-center gap-2 text-xs text-text-muted'>

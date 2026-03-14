@@ -7,6 +7,8 @@ export interface AuthUser {
     team_name: string
     division_id: number
     division_name: string
+    stack_count: number
+    stack_limit: number
     blocked_reason: string | null
     blocked_at: string | null
 }
@@ -149,12 +151,15 @@ export interface ChallengeUpdatePayload {
 export interface Stack {
     stack_id: string
     challenge_id: number
+    challenge_title: string
     status: string
     node_public_ip?: string | null
     ports: PortMapping[]
     ttl_expires_at?: string | null
     created_at: string
     updated_at: string
+    created_by_user_id: number
+    created_by_username: string
 }
 
 export interface AdminStackListItem {
