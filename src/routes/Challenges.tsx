@@ -125,8 +125,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
     const inactiveSummary = inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
     const summaryText = [solvedSummary, inactiveSummary].filter(Boolean).join(' ')
-    const stackSummaryText =
-        auth.user && auth.user.stack_limit > 0 ? t('challenges.stackSummary', { count: auth.user.stack_count, limit: auth.user.stack_limit }) : ''
+    const stackSummaryText = auth.user && auth.user.stack_limit > 0 ? t('challenges.stackSummary', { count: auth.user.stack_count, limit: auth.user.stack_limit }) : ''
 
     const groupedCategories = useMemo(
         () =>

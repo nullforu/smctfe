@@ -46,6 +46,20 @@ export const formatDateTime = (value: string, localeTag: string) => {
 
 export const isZipFile = (file: File) => file.name.toLowerCase().endsWith('.zip')
 
+export const utf8ByteLength = (value: string) => new TextEncoder().encode(value).length
+
+export const trimToMaxUtf8Bytes = (value: string, maxBytes: number) => {
+    if (utf8ByteLength(value) <= maxBytes) return value
+
+    let out = ''
+    for (const ch of value) {
+        const next = out + ch
+        if (utf8ByteLength(next) > maxBytes) break
+        out = next
+    }
+    return out
+}
+
 export const parseRouteId = (value?: string) => {
     if (!value) return null
     const parsed = Number.parseInt(value, 10)

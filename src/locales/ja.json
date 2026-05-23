@@ -413,6 +413,8 @@
     "errors.requestFailed": "リクエストに失敗しました",
     "errors.fileUploadFailed": "ファイルのアップロードに失敗しました",
     "errors.required": "必須項目です",
+    "limits.maxBytes72": "最大72バイトまで入力できます。",
+    "limits.byteCounter": "{current}/{max} バイト",
     "categories.web": "Web",
     "categories.web3": "Web3",
     "categories.pwnable": "Pwnable",

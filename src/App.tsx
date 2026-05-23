@@ -97,10 +97,6 @@ const App = () => {
     }
 
     const loadSession = async () => {
-        if (!auth.accessToken) {
-            setBooting(false)
-            return
-        }
         try {
             const user = await api.me()
             setAuthUser(user)
