@@ -19,11 +19,11 @@ console.log('This is a code block.')
 
 > Please note that not all Markdown features may be supported.
 `,
-    yaml: `# Must provide a valid Kubernetes Pod specification in YAML format.
+    yaml: `# Must provide a valid Kubernetes Sandbox specification in YAML format.
 # For more details, please refer to the documentation: https://github.com/nullforu/smctf-docs
 
 apiVersion: v1
-kind: Pod
+kind: Sandbox
 metadata:
   name: challenge
 spec:

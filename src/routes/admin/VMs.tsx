@@ -1,0 +1,366 @@
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import type { AdminVMListItem, VM } from '../../lib/types'
+import { useApi } from '../../lib/useApi'
+import { formatApiError, formatDateTime } from '../../lib/utils'
+import { getLocaleTag, useLocale, useT } from '../../lib/i18n'
+import FormMessage from '../../components/FormMessage'
+
+const VM_SKELETON_ROWS = 5
+
+const AdminVMs = () => {
+    const t = useT()
+    const api = useApi()
+    const locale = useLocale()
+    const localeTag = useMemo(() => getLocaleTag(locale), [locale])
+    const [vms, setVMs] = useState<AdminVMListItem[]>([])
+    const [loading, setLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [successMessage, setSuccessMessage] = useState('')
+    const [detailById, setDetailById] = useState<Record<string, VM>>({})
+    const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
+    const [detailErrorById, setDetailErrorById] = useState<Record<string, string>>({})
+    const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null)
+    const formatTargetPorts = useCallback((ports: VM['ports']) => (ports.length > 0 ? ports.map((port) => `${port.container_port}/${port.protocol}`).join(', ') : t('common.pending')), [t])
+    const formatNodePorts = useCallback((ports: VM['ports']) => (ports.length > 0 ? ports.map((port) => `${port.protocol} ${port.host_port}`).join(', ') : t('common.pending')), [t])
+    const formatExternalIP = useCallback((detail: VM) => detail.external_ip || t('common.pending'), [t])
+
+    const formatOptionalDate = useCallback((value?: string | null) => (value ? formatDateTime(value, localeTag) : t('common.na')), [localeTag, t])
+    const formatCompactDateTime = useCallback(
+        (value: string) =>
+            new Intl.DateTimeFormat(localeTag, {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+            }).format(new Date(value)),
+        [localeTag],
+    )
+
+    const loadVMs = useCallback(async () => {
+        setLoading(true)
+        setErrorMessage('')
+        setSuccessMessage('')
+
+        try {
+            const response = await api.adminVMs()
+            const sorted = [...response.vms].sort((a, b) => b.created_at.localeCompare(a.created_at))
+            setVMs(sorted)
+        } catch (error) {
+            setErrorMessage(formatApiError(error, t).message)
+        } finally {
+            setLoading(false)
+        }
+    }, [api, t])
+
+    const toggleDetails = useCallback(
+        async (vmId: string) => {
+            if (detailLoadingId) return
+            if (detailById[vmId]) {
+                setDetailById((prev) => {
+                    const next = { ...prev }
+                    delete next[vmId]
+                    return next
+                })
+                return
+            }
+
+            setDetailLoadingId(vmId)
+            setDetailErrorById((prev) => ({ ...prev, [vmId]: '' }))
+
+            try {
+                const detail = await api.adminVM(vmId)
+                setDetailById((prev) => ({ ...prev, [vmId]: detail }))
+            } catch (error) {
+                setDetailErrorById((prev) => ({ ...prev, [vmId]: formatApiError(error, t).message }))
+            } finally {
+                setDetailLoadingId(null)
+            }
+        },
+        [api, detailById, detailLoadingId, t],
+    )
+
+    const deleteVM = useCallback(
+        async (vmId: string) => {
+            if (deleteLoadingId) return
+            const confirmed = window.confirm(t('admin.vms.confirmDelete', { vm_id: vmId }))
+            if (!confirmed) return
+
+            setDeleteLoadingId(vmId)
+            setErrorMessage('')
+            setSuccessMessage('')
+
+            try {
+                await api.deleteAdminVM(vmId)
+                setSuccessMessage(t('admin.vms.deleted', { vm_id: vmId }))
+                setVMs((prev) => prev.filter((vm) => vm.vm_id !== vmId))
+                setDetailById((prev) => {
+                    const next = { ...prev }
+                    delete next[vmId]
+                    return next
+                })
+            } catch (error) {
+                setErrorMessage(formatApiError(error, t).message)
+            } finally {
+                setDeleteLoadingId(null)
+            }
+        },
+        [api, deleteLoadingId, t],
+    )
+
+    useEffect(() => {
+        loadVMs()
+    }, [loadVMs])
+
+    return (
+        <section className='space-y-4'>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={loadVMs} disabled={loading}>
+                    {loading ? t('common.loading') : t('common.refresh')}
+                </button>
+            </div>
+
+            {errorMessage ? <FormMessage variant='error' message={errorMessage} /> : null}
+            {successMessage ? <FormMessage variant='success' message={successMessage} /> : null}
+
+            {loading ? (
+                <div className='-mx-4 space-y-2 px-4 md:mx-0 md:space-y-0 md:px-0'>
+                    <div className='space-y-2 md:hidden'>
+                        {Array.from({ length: VM_SKELETON_ROWS }, (_, idx) => (
+                            <div key={`admin-vms-mobile-skeleton-${idx}`} className='rounded-xl border border-border/70 bg-surface p-3'>
+                                <div className='animate-pulse space-y-2'>
+                                    <div className='h-3 w-32 rounded bg-surface-muted' />
+                                    <div className='h-4 w-2/3 rounded bg-surface-muted' />
+                                    <div className='h-3 w-1/2 rounded bg-surface-muted' />
+                                    <div className='h-8 w-full rounded bg-surface-muted' />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className='hidden overflow-visible rounded-none bg-transparent md:block md:overflow-hidden md:rounded-xl md:bg-surface md:shadow-sm'>
+                        <div className='overflow-x-auto'>
+                            <div className='min-w-280'>
+                                <div className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] bg-surface-muted px-6 py-3 text-[12px] text-text-muted'>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.id')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.challengeLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.userLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.ttlLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.createdAt')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.updatedAt')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.action')}</p>
+                                </div>
+                                {Array.from({ length: VM_SKELETON_ROWS }, (_, idx) => (
+                                    <div key={`admin-vms-desktop-skeleton-${idx}`} className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] items-start px-6 py-4'>
+                                        <div className='h-3 w-24 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-4 w-2/3 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-1/2 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-7 w-full rounded bg-surface-muted animate-pulse' />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : vms.length === 0 ? (
+                <p className='text-sm text-text-muted'>{t('admin.vms.noVMs')}</p>
+            ) : (
+                <div className='-mx-4 space-y-2 px-4 md:mx-0 md:space-y-0 md:px-0'>
+                    <div className='space-y-2 md:hidden'>
+                        {vms.map((vm) => {
+                            const detail = detailById[vm.vm_id]
+                            const detailError = detailErrorById[vm.vm_id]
+                            const detailsOpen = !!detail
+                            const detailLoading = detailLoadingId === vm.vm_id
+                            const deleteLoading = deleteLoadingId === vm.vm_id
+
+                            return (
+                                <div key={vm.vm_id} className='rounded-xl border border-border/70 bg-surface p-3'>
+                                    <p className='break-all font-mono text-xs text-text'>#{vm.vm_id}</p>
+                                    <p className='mt-1 truncate text-sm font-medium text-text'>{vm.challenge_title}</p>
+                                    <p className='text-xs text-text-subtle'>
+                                        {vm.challenge_category} · #{vm.challenge_id}
+                                    </p>
+                                    <p className='mt-2 text-sm text-text'>{vm.username}</p>
+                                    <p className='text-xs text-text-subtle truncate'>{vm.email}</p>
+                                    <div className='mt-2 space-y-1 text-xs text-text-subtle'>
+                                        <p>
+                                            {t('admin.vms.ttlLabel')}: {vm.ttl_expires_at ? formatCompactDateTime(vm.ttl_expires_at) : t('common.na')}
+                                        </p>
+                                        <p>
+                                            {t('common.createdAt')}: {formatCompactDateTime(vm.created_at)}
+                                        </p>
+                                        <p>
+                                            {t('common.updatedAt')}: {formatCompactDateTime(vm.updated_at)}
+                                        </p>
+                                    </div>
+                                    <div className='mt-3 flex gap-2'>
+                                        <button
+                                            className='flex-1 rounded-md bg-surface-muted px-3 py-1.5 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
+                                            type='button'
+                                            onClick={() => toggleDetails(vm.vm_id)}
+                                            disabled={detailLoading}
+                                        >
+                                            {detailLoading ? t('admin.vms.detailsLoading') : detailsOpen ? t('common.close') : t('common.view')}
+                                        </button>
+                                        <button
+                                            className='flex-1 rounded-md border border-danger/30 px-3 py-1.5 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
+                                            type='button'
+                                            onClick={() => deleteVM(vm.vm_id)}
+                                            disabled={deleteLoading}
+                                        >
+                                            {deleteLoading ? t('admin.vms.deleting') : t('common.delete')}
+                                        </button>
+                                    </div>
+                                    {detailError ? <p className='mt-2 text-xs text-danger'>{detailError}</p> : null}
+                                    {detailLoading || detail ? (
+                                        <div className='mt-3 rounded-lg bg-surface-muted/60 p-3'>
+                                            {detailLoading ? (
+                                                <p className='text-xs text-text-subtle'>{t('admin.vms.detailsLoading')}</p>
+                                            ) : detail ? (
+                                                <div className='grid gap-3 sm:grid-cols-2'>
+                                                    <div>
+                                                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.statusLabel')}</p>
+                                                        <p className='mt-1 text-sm text-text'>{detail.status}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.runtimeLabel')}</p>
+                                                        <p className='mt-1 break-all text-sm text-text'>{formatExternalIP(detail)}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.targetPortLabel')}</p>
+                                                        <p className='mt-1 text-sm text-text'>{formatTargetPorts(detail.ports)}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.portLabel')}</p>
+                                                        <p className='mt-1 text-sm text-text'>{formatNodePorts(detail.ports)}</p>
+                                                    </div>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    <div className='hidden overflow-visible rounded-none bg-transparent md:block md:overflow-hidden md:rounded-xl md:bg-surface md:shadow-sm'>
+                        <div className='overflow-x-auto'>
+                            <div className='min-w-280'>
+                                <div className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] bg-surface-muted px-6 py-3 text-[12px] text-text-muted'>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.id')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.challengeLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.userLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('admin.vms.ttlLabel')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.createdAt')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.updatedAt')}</p>
+                                    <p className='font-medium whitespace-nowrap'>{t('common.action')}</p>
+                                </div>
+                                {vms.map((vm) => {
+                                    const detail = detailById[vm.vm_id]
+                                    const detailError = detailErrorById[vm.vm_id]
+                                    const detailsOpen = !!detail
+                                    const detailLoading = detailLoadingId === vm.vm_id
+                                    const deleteLoading = deleteLoadingId === vm.vm_id
+
+                                    return (
+                                        <Fragment key={vm.vm_id}>
+                                            <div className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] items-start px-6 py-4 transition hover:bg-surface-muted/40'>
+                                                <p className='whitespace-nowrap font-mono text-xs text-text'>{vm.vm_id}</p>
+                                                <div className='min-w-0 pr-3'>
+                                                    <p className='truncate text-sm font-medium text-text'>{vm.challenge_title}</p>
+                                                    <p className='truncate text-xs text-text-subtle'>
+                                                        {vm.challenge_category} · #{vm.challenge_id}
+                                                    </p>
+                                                </div>
+                                                <div className='min-w-0 pr-3'>
+                                                    <p className='truncate text-sm font-medium text-text'>{vm.username}</p>
+                                                    <p className='truncate text-xs text-text-subtle'>{vm.email}</p>
+                                                </div>
+                                                <p className='truncate text-xs text-text-subtle' title={formatOptionalDate(vm.ttl_expires_at)}>
+                                                    {vm.ttl_expires_at ? formatCompactDateTime(vm.ttl_expires_at) : t('common.na')}
+                                                </p>
+                                                <p className='truncate text-xs text-text-subtle' title={formatDateTime(vm.created_at, localeTag)}>
+                                                    {formatCompactDateTime(vm.created_at)}
+                                                </p>
+                                                <p className='truncate text-xs text-text-subtle' title={formatDateTime(vm.updated_at, localeTag)}>
+                                                    {formatCompactDateTime(vm.updated_at)}
+                                                </p>
+                                                <div className='flex items-center gap-2 whitespace-nowrap'>
+                                                    <button
+                                                        className='rounded-md bg-surface-muted px-3 py-1 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
+                                                        type='button'
+                                                        onClick={() => toggleDetails(vm.vm_id)}
+                                                        disabled={detailLoading}
+                                                    >
+                                                        {detailLoading ? t('admin.vms.detailsLoading') : detailsOpen ? t('common.close') : t('common.view')}
+                                                    </button>
+                                                    <button
+                                                        className='rounded-md border border-danger/30 px-3 py-1 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
+                                                        type='button'
+                                                        onClick={() => deleteVM(vm.vm_id)}
+                                                        disabled={deleteLoading}
+                                                    >
+                                                        {deleteLoading ? t('admin.vms.deleting') : t('common.delete')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {detailError ? <p className='bg-surface/40 px-6 py-4 text-xs text-danger'>{detailError}</p> : null}
+                                            {detailLoading || detail ? (
+                                                <div className='bg-surface/40 px-6 py-4'>
+                                                    {detailLoading ? (
+                                                        <p className='text-xs text-text-subtle'>{t('admin.vms.detailsLoading')}</p>
+                                                    ) : detail ? (
+                                                        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.statusLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{detail.status}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.runtimeLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatExternalIP(detail)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.targetPortLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatTargetPorts(detail.ports)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.ttlLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatOptionalDate(detail.ttl_expires_at)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.createdAt')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatDateTime(detail.created_at, localeTag)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.updatedAt')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatDateTime(detail.updated_at, localeTag)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.nodeLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{detail.external_ip ?? t('common.pending')}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.vms.portLabel')}</p>
+                                                                <p className='mt-1 text-sm text-text'>{formatNodePorts(detail.ports)}</p>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
+                                        </Fragment>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </section>
+    )
+}
+
+export default AdminVMs

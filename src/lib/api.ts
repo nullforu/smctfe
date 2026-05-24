@@ -16,15 +16,15 @@ import type {
     ChallengeFileUploadResponse,
     AdminChallengeDetail,
     AdminReportResponse,
-    AdminStackDeleteResponse,
-    AdminStackListItem,
-    AdminStacksResponse,
+    AdminVMDeleteResponse,
+    AdminVMListItem,
+    AdminVMsResponse,
     FlagSubmissionResult,
     LeaderboardResponse,
     TeamLeaderboardResponse,
     PresignedURL,
-    Stack,
-    StacksResponse,
+    VM,
+    VMsResponse,
     Team,
     TeamCreatePayload,
     TeamSummary,
@@ -109,6 +109,29 @@ const resolveCtfState = (data: any): CtfState => {
         default:
             return 'active'
     }
+}
+
+const normalizeChallenge = <T extends Record<string, any>>(challenge: T): T => ({
+    ...challenge,
+    vm_enabled: challenge?.vm_enabled ?? challenge?.vm_enabled ?? false,
+    vm_spec: challenge?.vm_spec ?? challenge?.vm_spec ?? null,
+})
+
+const normalizeChallenges = (challenges: Challenge[] = []): Challenge[] => challenges.map((challenge) => normalizeChallenge(challenge))
+
+const serializeChallengePayload = (payload: ChallengeCreatePayload | ChallengeUpdatePayload) => {
+    const body: Record<string, unknown> = { ...payload }
+
+    // Keep VM fields as-is for admin challenge create/update requests.
+    // Removing these keys causes vm_spec/vm_enabled updates to be ignored.
+    if ('vm_enabled' in body && body.vm_enabled === undefined) {
+        delete body.vm_enabled
+    }
+    if ('vm_spec' in body && body.vm_spec === undefined) {
+        delete body.vm_spec
+    }
+
+    return body
 }
 
 export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDeps) => {
@@ -264,7 +287,7 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
             const data = await request<{ ctf_state?: CtfState; challenges?: Challenge[] }>(`/api/challenges?division_id=${divisionId}`, { auth: true })
             return {
                 ctf_state: resolveCtfState(data),
-                challenges: Array.isArray(data?.challenges) ? data.challenges : [],
+                challenges: Array.isArray(data?.challenges) ? normalizeChallenges(data.challenges) : [],
             } as ChallengesResponse
         },
         submitFlag: (id: number, flag: string) =>
@@ -283,9 +306,18 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
         },
         timeline: (divisionId: number) => request<TimelineResponse>(`/api/timeline?division_id=${divisionId}`, { auth: true }),
         timelineTeams: (divisionId: number) => request<TeamTimelineResponse>(`/api/timeline/teams?division_id=${divisionId}`),
-        createChallenge: (payload: ChallengeCreatePayload) => request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: payload, auth: true }),
-        adminChallenge: (id: number) => request<AdminChallengeDetail>(`/api/admin/challenges/${id}`, { auth: true }),
-        updateChallenge: (id: number, payload: ChallengeUpdatePayload) => request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: payload, auth: true }),
+        createChallenge: async (payload: ChallengeCreatePayload) => {
+            const data = await request<ChallengeCreateResponse>(`/api/admin/challenges`, { method: 'POST', body: serializeChallengePayload(payload), auth: true })
+            return normalizeChallenge(data) as ChallengeCreateResponse
+        },
+        adminChallenge: async (id: number) => {
+            const data = await request<AdminChallengeDetail>(`/api/admin/challenges/${id}`, { auth: true })
+            return normalizeChallenge(data) as AdminChallengeDetail
+        },
+        updateChallenge: async (id: number, payload: ChallengeUpdatePayload) => {
+            const data = await request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: serializeChallengePayload(payload), auth: true })
+            return normalizeChallenge(data) as ChallengeDetail
+        },
         deleteChallenge: (id: number) => request<void>(`/api/admin/challenges/${id}`, { method: 'DELETE', auth: true }),
         requestChallengeFileUpload: (id: number, filename: string) =>
             request<ChallengeFileUploadResponse>(`/api/admin/challenges/${id}/file/upload`, {
@@ -293,34 +325,35 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
                 body: { filename },
                 auth: true,
             }),
-        deleteChallengeFile: (id: number) => request<ChallengeDetail>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true }),
+        deleteChallengeFile: async (id: number) => {
+            const data = await request<ChallengeDetail>(`/api/admin/challenges/${id}/file`, { method: 'DELETE', auth: true })
+            return normalizeChallenge(data) as ChallengeDetail
+        },
         requestChallengeFileDownload: (id: number) =>
             request<PresignedURL | CtfStateResponse>(`/api/challenges/${id}/file/download`, {
                 method: 'POST',
                 auth: true,
             }),
-        createStack: (challengeID: number) => request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { method: 'POST', auth: true }),
-        getStack: (challengeID: number) => request<Stack | CtfStateResponse>(`/api/challenges/${challengeID}/stack`, { auth: true }),
-        deleteStack: (challengeID: number) =>
-            request<{ status?: string; ctf_state?: CtfState }>(`/api/challenges/${challengeID}/stack`, {
+        adminVMs: async () => {
+            const data = await request<{ vms?: AdminVMListItem[] }>(`/api/admin/vms`, { auth: true })
+            return { vms: Array.isArray(data?.vms) ? data.vms : [] } as AdminVMsResponse
+        },
+        adminVM: (vmId: string) => request<VM>(`/api/admin/vms/${vmId}`, { auth: true }),
+        deleteAdminVM: (vmId: string) => request<AdminVMDeleteResponse>(`/api/admin/vms/${vmId}`, { method: 'DELETE', auth: true }),
+        createVM: (challengeID: number) => request<VM>(`/api/challenges/${challengeID}/vm`, { method: 'POST', auth: true }),
+        getVM: (challengeID: number) => request<VM>(`/api/challenges/${challengeID}/vm`, { auth: true }),
+        deleteVM: (challengeID: number) =>
+            request<{ status?: string }>(`/api/challenges/${challengeID}/vm`, {
                 method: 'DELETE',
                 auth: true,
             }),
-        stacks: async () => {
-            const data = await request<{ ctf_state?: CtfState; stacks?: Stack[] }>(`/api/stacks`, { auth: true })
+        vms: async () => {
+            const data = await request<{ ctf_state?: CtfState; vms?: VM[] }>(`/api/vms`, { auth: true })
             return {
                 ctf_state: resolveCtfState(data),
-                stacks: Array.isArray(data?.stacks) ? data.stacks : [],
-            } as StacksResponse
+                vms: Array.isArray(data?.vms) ? data.vms : [],
+            } as VMsResponse
         },
-        adminStacks: async () => {
-            const data = await request<{ stacks?: AdminStackListItem[] }>(`/api/admin/stacks`, { auth: true })
-            return {
-                stacks: Array.isArray(data?.stacks) ? data.stacks : [],
-            } as AdminStacksResponse
-        },
-        adminStack: (stackId: string) => request<Stack>(`/api/admin/stacks/${stackId}`, { auth: true }),
-        deleteAdminStack: (stackId: string) => request<AdminStackDeleteResponse>(`/api/admin/stacks/${stackId}`, { method: 'DELETE', auth: true }),
         adminReport: () => request<AdminReportResponse>(`/api/admin/report`, { auth: true, noCache: true }),
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
         createRegistrationKeys: (payload: RegistrationKeyCreatePayload) => request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),

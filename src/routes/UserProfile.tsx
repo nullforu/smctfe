@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CtfState, Stack, UserDetail, SolvedChallenge } from '../lib/types'
+import type { CtfState, VM, UserDetail, SolvedChallenge } from '../lib/types'
 import { formatApiError, formatDateTime, parseRouteId } from '../lib/utils'
 import { navigate } from '../lib/router'
 import ProfileHeader from '../components/UserProfile/ProfileHeader'
 import AccountCard from '../components/UserProfile/AccountCard'
-import ActiveStacksCard from '../components/UserProfile/ActiveStacksCard'
+import ActiveVMsCard from '../components/UserProfile/ActiveVMsCard'
 import SolvedChallengesCard from '../components/UserProfile/SolvedChallengesCard'
 import StatisticsCard from '../components/UserProfile/StatisticsCard'
 import { getLocaleTag, useLocale, useT } from '../lib/i18n'
@@ -26,21 +26,21 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
     const [solved, setSolved] = useState<SolvedChallenge[]>([])
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-    const [stacks, setStacks] = useState<Stack[]>([])
-    const [stacksLoading, setStacksLoading] = useState(false)
-    const [stacksError, setStacksError] = useState('')
-    const [stackDeletingId, setStackDeletingId] = useState<number | null>(null)
-    const [stacksCtfState, setStacksCtfState] = useState<CtfState>('active')
+    const [vms, setVMs] = useState<VM[]>([])
+    const [vmsLoading, setVMsLoading] = useState(false)
+    const [vmsError, setVMsError] = useState('')
+    const [vmDeletingId, setVMDeletingId] = useState<number | null>(null)
+    const [vmsCtfState, setVMsCtfState] = useState<CtfState>('active')
     const [editingUsername, setEditingUsername] = useState(false)
     const [usernameInput, setUsernameInput] = useState('')
     const [savingUsername, setSavingUsername] = useState(false)
     const lastLoadedUserIdRef = useRef<number | null>(null)
-    const lastStacksLoadedForUserIdRef = useRef<number | null>(null)
+    const lastVMsLoadedForUserIdRef = useRef<number | null>(null)
 
     const routeUserId = useMemo(() => parseRouteId(routeParams.id), [routeParams.id])
     const isOwnProfile = useMemo(() => (auth.user ? !routeUserId || routeUserId === auth.user.id : false), [auth.user, routeUserId])
     const showBackButton = !!routeParams.id
-    const activeStacks = useMemo(() => stacks.filter((stack) => !['stopped', 'failed', 'node_deleted'].includes(stack.status)), [stacks])
+    const activeVMs = useMemo(() => vms.filter((vm) => !['stopped', 'failed', 'node_deleted'].includes(vm.status)), [vms])
     const targetUserId = routeUserId ?? auth.user?.id ?? null
     const totalSolvedPoints = useMemo(() => solved.reduce((sum, item) => sum + item.points, 0), [solved])
 
@@ -68,40 +68,40 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
         [api, t],
     )
 
-    const loadStacks = useCallback(async () => {
+    const loadVMs = useCallback(async () => {
         if (!isOwnProfile) return
 
-        setStacksLoading(true)
-        setStacksError('')
+        setVMsLoading(true)
+        setVMsError('')
 
         try {
-            const response = await api.stacks()
-            setStacks(response.stacks)
-            setStacksCtfState(response.ctf_state)
+            const response = await api.vms()
+            setVMs(response.vms)
+            setVMsCtfState(response.ctf_state)
         } catch (error) {
-            setStacksError(formatApiError(error, t).message)
+            setVMsError(formatApiError(error, t).message)
         } finally {
-            setStacksLoading(false)
+            setVMsLoading(false)
         }
     }, [api, isOwnProfile, t])
 
-    const deleteStack = useCallback(
+    const deleteVM = useCallback(
         async (challengeId: number) => {
-            if (stackDeletingId !== null) return
+            if (vmDeletingId !== null) return
 
-            setStackDeletingId(challengeId)
-            setStacksError('')
+            setVMDeletingId(challengeId)
+            setVMsError('')
 
             try {
-                await api.deleteStack(challengeId)
-                await loadStacks()
+                await api.deleteVM(challengeId)
+                await loadVMs()
             } catch (error) {
-                setStacksError(formatApiError(error, t).message)
+                setVMsError(formatApiError(error, t).message)
             } finally {
-                setStackDeletingId(null)
+                setVMDeletingId(null)
             }
         },
-        [api, loadStacks, stackDeletingId, t],
+        [api, loadVMs, vmDeletingId, t],
     )
 
     const saveUsername = useCallback(async () => {
@@ -137,16 +137,16 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
 
     useEffect(() => {
         if (!isOwnProfile) {
-            lastStacksLoadedForUserIdRef.current = null
+            lastVMsLoadedForUserIdRef.current = null
             return
         }
 
         if (!auth.user) return
-        if (lastStacksLoadedForUserIdRef.current === auth.user.id) return
+        if (lastVMsLoadedForUserIdRef.current === auth.user.id) return
 
-        lastStacksLoadedForUserIdRef.current = auth.user.id
-        loadStacks()
-    }, [auth.user, isOwnProfile, loadStacks])
+        lastVMsLoadedForUserIdRef.current = auth.user.id
+        loadVMs()
+    }, [auth.user, isOwnProfile, loadVMs])
 
     return (
         <section className='animate'>
@@ -188,14 +188,14 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                                 onUsernameInputChange={setUsernameInput}
                             />
 
-                            <ActiveStacksCard
-                                activeStacks={activeStacks}
-                                stacksError={stacksError}
-                                stacksLoading={stacksLoading}
-                                stackDeletingId={stackDeletingId}
-                                ctfState={stacksCtfState}
-                                onRefresh={loadStacks}
-                                onDelete={deleteStack}
+                            <ActiveVMsCard
+                                activeVMs={activeVMs}
+                                vmsError={vmsError}
+                                vmsLoading={vmsLoading}
+                                vmDeletingId={vmDeletingId}
+                                ctfState={vmsCtfState}
+                                onRefresh={loadVMs}
+                                onDelete={deleteVM}
                                 formatOptionalDateTime={formatOptionalDateTime}
                             />
                         </>

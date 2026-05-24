@@ -125,7 +125,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
     const inactiveSummary = inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
     const summaryText = [solvedSummary, inactiveSummary].filter(Boolean).join(' ')
-    const stackSummaryText = auth.user && auth.user.stack_limit > 0 ? t('challenges.stackSummary', { count: auth.user.stack_count, limit: auth.user.stack_limit }) : ''
+    const vmSummaryText = auth.user && auth.user.vm_limit > 0 ? t('challenges.vmsSummary', { count: auth.user.vm_count, limit: auth.user.vm_limit }) : ''
 
     const groupedCategories = useMemo(
         () =>
@@ -146,8 +146,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
             <ChallengesView
                 title={t('challenges.title')}
                 summaryText={summaryText}
-                stackSummaryText={stackSummaryText}
-                showSummary={showSolvedSummary || Boolean(stackSummaryText)}
+                showSummary={showSolvedSummary || Boolean(vmSummaryText)}
                 groupByCategory={groupByCategory}
                 toggleLabel={t('challenges.groupByCategory')}
                 onGroupByCategoryChange={setGroupByCategory}

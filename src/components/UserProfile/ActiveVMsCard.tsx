@@ -1,0 +1,78 @@
+import type { CtfState, VM } from '../../lib/types'
+import { useT } from '../../lib/i18n'
+
+interface ActiveVMsCardProps {
+    activeVMs: VM[]
+    vmsError: string
+    vmsLoading: boolean
+    vmDeletingId: number | null
+    ctfState: CtfState
+    onRefresh: () => void
+    onDelete: (challengeId: number) => void
+    formatOptionalDateTime: (value?: string | null) => string
+}
+
+const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState, onRefresh, onDelete, formatOptionalDateTime }: ActiveVMsCardProps) => {
+    const t = useT()
+    const formatPorts = (vm: VM) => {
+        if (!vm.ports.length) return t('common.pending')
+        return vm.ports.map((port) => `${port.protocol.toUpperCase()} ${port.host_port} -> ${port.container_port}`).join(', ')
+    }
+
+    const formatChallengeTitle = (vm: VM) => {
+        if (vm.challenge_title) {
+            return t('profile.challengeTitle', { title: vm.challenge_title, id: vm.challenge_id })
+        }
+        return t('profile.challengeLabel', { id: vm.challenge_id })
+    }
+
+    return (
+        <div className='mt-6 rounded-none border-0 bg-transparent p-0 shadow-none md:rounded-lg md:border md:border-border md:bg-surface md:p-6'>
+            <div className='flex flex-wrap items-center justify-between gap-4'>
+                <h3 className='text-lg text-text'>{t('profile.activeVMs')}</h3>
+                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={onRefresh} disabled={vmsLoading}>
+                    {vmsLoading ? t('common.loading') : t('common.refresh')}
+                </button>
+            </div>
+
+            {vmsError ? (
+                <p className='mt-4 rounded-none border-0 bg-danger/10 px-3 py-2 text-xs text-danger md:rounded-xl md:border md:border-danger/40 md:px-4'>{vmsError}</p>
+            ) : ctfState === 'not_started' ? (
+                <div className='mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning-strong'>{t('profile.vmsNotStarted')}</div>
+            ) : activeVMs.length === 0 ? (
+                <div className='mt-4 rounded-none border-0 bg-surface-muted p-4 text-center md:rounded-xl md:border md:border-border md:p-5'>
+                    <p className='text-sm text-text-muted'>{t('profile.noActiveVMs')}</p>
+                </div>
+            ) : (
+                <div className='mt-4 divide-y divide-border/50 md:divide-y-0 md:space-y-3'>
+                    {activeVMs.map((vm) => (
+                        <div key={vm.challenge_id} className='rounded-none border-0 bg-transparent p-3 md:rounded-xl md:border md:border-border md:bg-surface-muted md:p-5'>
+                            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                                <div>
+                                    <p className='text-sm font-medium text-text'>{formatChallengeTitle(vm)}</p>
+                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.statusLabel', { status: vm.status })}</p>
+                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.createdBy', { username: vm.created_by_username })}</p>
+                                    {vm.last_error ? <p className='mt-1 text-xs text-danger'>{vm.last_error}</p> : null}
+                                </div>
+                                <div className='flex w-full flex-col gap-2 text-xs text-text-muted sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3'>
+                                    <span className='break-all'>{formatPorts(vm)}</span>
+                                    <button
+                                        className='w-full rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 sm:w-auto cursor-pointer'
+                                        type='button'
+                                        onClick={() => onDelete(vm.challenge_id)}
+                                        disabled={vmDeletingId === vm.challenge_id || vmsLoading}
+                                    >
+                                        {vmDeletingId === vm.challenge_id ? t('profile.deleting') : t('profile.delete')}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className='mt-2 text-xs text-text-subtle'>{t('profile.ttlLabel', { time: formatOptionalDateTime(vm.ttl_expires_at) })}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+export default ActiveVMsCard

@@ -7,8 +7,8 @@ export interface AuthUser {
     team_name: string
     division_id: number
     division_name: string
-    stack_count: number
-    stack_limit: number
+    vm_count: number
+    vm_limit: number
     blocked_reason: string | null
     blocked_at: string | null
 }
@@ -78,8 +78,7 @@ export interface ChallengeDetail {
     is_active: boolean
     has_file: boolean
     file_name?: string | null
-    stack_enabled: boolean
-    stack_target_ports: TargetPortSpec[]
+    vm_enabled: boolean
     previous_challenge_id?: number | null
     is_locked?: false
 }
@@ -102,7 +101,7 @@ export interface LockedChallenge {
 export type Challenge = ChallengeDetail | LockedChallenge
 
 export interface AdminChallengeDetail extends ChallengeDetail {
-    stack_pod_spec?: string | null
+    vm_spec?: string | null
 }
 
 export type PortProtocol = 'TCP' | 'UDP'
@@ -116,6 +115,28 @@ export interface PortMapping extends TargetPortSpec {
     node_port: number
 }
 
+export interface VMPortMapping {
+    host_port: number
+    container_port: number
+    protocol: string
+}
+
+export interface VM {
+    vm_id: string
+    challenge_id: number
+    challenge_title: string
+    status: string
+    node_name?: string | null
+    external_ip?: string | null
+    ports: VMPortMapping[]
+    ttl_expires_at?: string | null
+    last_error?: string | null
+    created_at: string
+    updated_at: string
+    created_by_user_id: number
+    created_by_username: string
+}
+
 export interface ChallengeCreatePayload {
     title: string
     description: string
@@ -125,9 +146,8 @@ export interface ChallengeCreatePayload {
     flag: string
     is_active: boolean
     previous_challenge_id?: number | null
-    stack_enabled?: boolean
-    stack_target_ports?: TargetPortSpec[]
-    stack_pod_spec?: string
+    vm_enabled?: boolean
+    vm_spec?: string
 }
 
 export interface ChallengeCreateResponse extends ChallengeDetail {}
@@ -141,27 +161,28 @@ export interface ChallengeUpdatePayload {
     flag?: string
     is_active?: boolean
     previous_challenge_id?: number | null
-    stack_enabled?: boolean
-    stack_target_ports?: TargetPortSpec[]
-    stack_pod_spec?: string
+    vm_enabled?: boolean
+    vm_spec?: string
 }
 
-export interface Stack {
-    stack_id: string
+export interface VMEntry {
+    vm_id: string
     challenge_id: number
     challenge_title: string
     status: string
-    node_public_ip?: string | null
-    ports: PortMapping[]
+    node_name?: string | null
+    external_ip?: string | null
+    ports: VMPortMapping[]
     ttl_expires_at?: string | null
+    last_error?: string | null
     created_at: string
     updated_at: string
     created_by_user_id: number
     created_by_username: string
 }
 
-export interface AdminStackListItem {
-    stack_id: string
+export interface AdminVMListItem {
+    vm_id: string
     ttl_expires_at?: string | null
     created_at: string
     updated_at: string
@@ -203,17 +224,17 @@ export interface ChallengesResponse extends CtfStateResponse {
     challenges: Challenge[]
 }
 
-export interface StacksResponse extends CtfStateResponse {
-    stacks: Stack[]
+export interface VMsResponse extends CtfStateResponse {
+    vms: VM[]
 }
 
-export interface AdminStacksResponse {
-    stacks: AdminStackListItem[]
+export interface AdminVMsResponse {
+    vms: AdminVMListItem[]
 }
 
-export interface AdminStackDeleteResponse {
+export interface AdminVMDeleteResponse {
     deleted: boolean
-    stack_id: string
+    vm_id: string
 }
 
 export interface AdminReportResponse {
@@ -221,7 +242,7 @@ export interface AdminReportResponse {
     divisions: Division[]
     teams: TeamSummary[]
     users: UserListItem[]
-    stacks: Stack[]
+    vms: VMEntry[]
     registration_keys: RegistrationKey[]
     submissions: SubmissionRecord[]
     app_config: AppConfig
