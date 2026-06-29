@@ -4,6 +4,7 @@ import { formatApiError, formatDateTime, parseRouteId } from '../lib/utils'
 import { navigate } from '../lib/router'
 import ProfileHeader from '../components/UserProfile/ProfileHeader'
 import AccountCard from '../components/UserProfile/AccountCard'
+import DiscordLinkCard from '../components/UserProfile/DiscordLinkCard'
 import ActiveVMsCard from '../components/UserProfile/ActiveVMsCard'
 import SolvedChallengesCard from '../components/UserProfile/SolvedChallengesCard'
 import StatisticsCard from '../components/UserProfile/StatisticsCard'
@@ -187,6 +188,8 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                                 onEditingUsernameChange={setEditingUsername}
                                 onUsernameInputChange={setUsernameInput}
                             />
+
+                            <DiscordLinkCard />
 
                             <ActiveVMsCard
                                 activeVMs={activeVMs}

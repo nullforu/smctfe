@@ -41,6 +41,7 @@ import type {
     TimelineResponse,
     UserListItem,
     UserDetail,
+    DiscordStatus,
 } from './types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080'
@@ -347,6 +348,10 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
                 method: 'DELETE',
                 auth: true,
             }),
+        discordConnectUrl: () => `${API_BASE}/api/discord/connect`,
+        discordStatus: () => request<DiscordStatus>(`/api/discord/status`, { auth: true, noCache: true }),
+        discordSyncRole: () => request<DiscordStatus>(`/api/discord/sync-role`, { method: 'POST', auth: true }),
+        discordUnlink: () => request<{ status?: string }>(`/api/discord/unlink`, { method: 'DELETE', auth: true }),
         vms: async () => {
             const data = await request<{ ctf_state?: CtfState; vms?: VM[] }>(`/api/vms`, { auth: true })
             return {

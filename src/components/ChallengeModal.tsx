@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { ApiError } from '../lib/api'
 import { formatApiError, formatDateTime } from '../lib/utils'
 import type { Challenge, CtfState, VM } from '../lib/types'
@@ -24,6 +24,10 @@ interface ChallengeModalProps {
 const VM_POLL_FAST_MS = 2000
 const VM_POLL_SLOW_MS = 60000
 const vmPollInterval = (status?: string | null) => (status?.toLowerCase() === 'running' ? VM_POLL_SLOW_MS : VM_POLL_FAST_MS)
+const vmShouldPoll = (status?: string | null) => {
+    const normalized = (status || '').trim().toLowerCase()
+    return normalized !== '' && normalized !== 'failed' && normalized !== 'error'
+}
 
 const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: ChallengeModalProps) => {
     const t = useT()
@@ -36,10 +40,11 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     const [downloadLoading, setDownloadLoading] = useState(false)
     const [downloadMessage, setDownloadMessage] = useState('')
     const [vmInfo, setVMInfo] = useState<VM | null>(null)
-    const [vmLoading, setVMLoading] = useState(false)
+    const [vmActionLoading, setVMActionLoading] = useState(false)
+    const [vmRefreshing, setVMRefreshing] = useState(false)
     const [vmMessage, setVMMessage] = useState('')
-    const [vmNextInterval, setVMNextInterval] = useState(VM_POLL_FAST_MS)
     const [copiedValue, setCopiedValue] = useState('')
+    const vmRequestInFlightRef = useRef(false)
 
     const isSuccessful = useMemo(() => submission.status === 'success', [submission.status])
     const isCtfEnded = ctfState === 'ended'
@@ -124,59 +129,62 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
         return formatDateTime(value, localeTag)
     }
 
-    const loadVM = async () => {
-        if (!auth.user || !vmEnabled) return
-        setVMLoading(true)
+    const loadVM = useEffectEvent(async ({ background = false }: { background?: boolean } = {}) => {
+        if (!auth.user || !vmEnabled || vmRequestInFlightRef.current) return null
+        vmRequestInFlightRef.current = true
+        if (background) setVMRefreshing(true)
+        else setVMActionLoading(true)
         setVMMessage('')
 
         try {
             const result = await api.getVM(challenge.id)
             if ('vm_id' in result) {
                 setVMInfo(result)
-                setVMNextInterval(vmPollInterval(result.status))
-                setVMMessage('')
-            } else {
-                setVMInfo(null)
-                setVMMessage(t('challenge.vmNotStarted'))
+                return result
             }
+
+            setVMInfo(null)
+            setVMMessage(t('challenge.vmNotStarted'))
+            return null
         } catch (error) {
             if (error instanceof ApiError && error.status === 404) {
                 setVMInfo(null)
-                setVMNextInterval(VM_POLL_FAST_MS)
                 setVMMessage('')
-                return
+                return null
             }
             const formatted = formatApiError(error, t)
             setVMMessage(formatted.message)
+            return vmInfo
         } finally {
-            setVMLoading(false)
+            vmRequestInFlightRef.current = false
+            if (background) setVMRefreshing(false)
+            else setVMActionLoading(false)
         }
-    }
+    })
 
     const createVM = async () => {
         if (isSolved) {
             setVMMessage(t('challenge.solvedCannotCreate'))
             return
         }
-        if (vmLoading || !auth.user) return
-        setVMLoading(true)
+        if (vmActionLoading || vmRefreshing || !auth.user) return
+        setVMActionLoading(true)
         setVMMessage('')
 
         try {
             const created = await api.createVM(challenge.id)
             setVMInfo(created)
-            setVMNextInterval(vmPollInterval(created.status))
         } catch (error) {
             const formatted = formatApiError(error, t)
             setVMMessage(formatted.message)
         } finally {
-            setVMLoading(false)
+            setVMActionLoading(false)
         }
     }
 
     const deleteVM = async () => {
-        if (vmLoading || !auth.user) return
-        setVMLoading(true)
+        if (vmActionLoading || vmRefreshing || !auth.user) return
+        setVMActionLoading(true)
         setVMMessage('')
 
         try {
@@ -186,7 +194,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
             const formatted = formatApiError(error, t)
             setVMMessage(formatted.message)
         } finally {
-            setVMLoading(false)
+            setVMActionLoading(false)
         }
     }
 
@@ -205,25 +213,36 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
     useEffect(() => {
         if (!auth.user || !vmEnabled) {
             setVMInfo(null)
+            setVMActionLoading(false)
+            setVMRefreshing(false)
             setVMMessage('')
             return
         }
 
-        loadVM()
+        void loadVM()
     }, [auth.user, vmEnabled, challenge.id])
 
     useEffect(() => {
-        if (!auth.user || !vmEnabled || !vmInfo) return
+        if (!auth.user || !vmEnabled || !vmInfo || !vmShouldPoll(vmInfo.status)) return
 
-        let timeoutId: ReturnType<typeof setTimeout>
-        const poll = async () => {
-            await loadVM()
-            timeoutId = setTimeout(poll, vmNextInterval)
+        let cancelled = false
+        let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+        const scheduleNext = (delay: number) => {
+            timeoutId = window.setTimeout(async () => {
+                const latest = await loadVM({ background: true })
+                if (cancelled || !latest || !vmShouldPoll(latest.status)) return
+                scheduleNext(vmPollInterval(latest.status))
+            }, delay)
         }
 
-        timeoutId = setTimeout(poll, vmNextInterval)
-        return () => clearTimeout(timeoutId)
-    }, [auth.user, vmEnabled, vmInfo, vmNextInterval])
+        scheduleNext(vmPollInterval(vmInfo.status))
+
+        return () => {
+            cancelled = true
+            if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+        }
+    }, [auth.user, vmEnabled, vmInfo?.vm_id, vmInfo?.status])
 
     return (
         <div
@@ -312,7 +331,7 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                         <button
                                             className='rounded-md border border-border/70 bg-surface px-3 py-1.5 text-xs text-text hover:bg-surface-subtle disabled:opacity-60 cursor-pointer'
                                             onClick={() => void loadVM()}
-                                            disabled={vmLoading}
+                                            disabled={vmActionLoading || vmRefreshing}
                                         >
                                             {t('common.refresh')}
                                         </button>
@@ -403,13 +422,13 @@ const ChallengeModal = ({ challenge, isSolved, ctfState, onClose, onSolved }: Ch
                                             <button
                                                 className='rounded-md border border-danger/20 bg-surface px-3 py-2 text-sm text-danger hover:border-danger/40 disabled:cursor-not-allowed disabled:opacity-50'
                                                 onClick={deleteVM}
-                                                disabled={vmLoading || isVMPending}
+                                                disabled={vmActionLoading || vmRefreshing || isVMPending}
                                             >
-                                                {vmLoading ? t('challenge.vmWorking') : t('challenge.deleteVM')}
+                                                {vmActionLoading ? t('challenge.vmWorking') : t('challenge.deleteVM')}
                                             </button>
                                         ) : !isCtfEnded ? (
-                                            <button className='rounded-md bg-accent px-3 py-2 text-sm text-white hover:bg-accent-strong disabled:opacity-60' onClick={createVM} disabled={vmLoading || isSolved}>
-                                                {vmLoading ? t('challenge.vmWorking') : t('challenge.createVM')}
+                                            <button className='rounded-md bg-accent px-3 py-2 text-sm text-white hover:bg-accent-strong disabled:opacity-60' onClick={createVM} disabled={vmActionLoading || vmRefreshing || isSolved}>
+                                                {vmActionLoading ? t('challenge.vmWorking') : t('challenge.createVM')}
                                             </button>
                                         ) : null}
                                     </div>
