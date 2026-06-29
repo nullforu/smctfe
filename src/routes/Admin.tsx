@@ -73,14 +73,14 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
             </div>
 
             {!auth.user ? (
-                <div className='rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong lg:p-6'>{t('admin.loginRequired')}</div>
+                <div className=' border border-warning/40 bg-warning/10 p-4 text-sm text-warning-strong lg:p-6'>{t('admin.loginRequired')}</div>
             ) : auth.user.role !== 'admin' ? (
-                <div className='rounded-2xl border border-danger/40 bg-danger/10 p-4 text-sm text-danger lg:p-6'>{t('admin.accessDenied')}</div>
+                <div className=' border border-danger/40 bg-danger/10 p-4 text-sm text-danger lg:p-6'>{t('admin.accessDenied')}</div>
             ) : (
                 <>
                     <div className='mb-4 flex items-center gap-3'>
                         <select
-                            className='flex-1 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none lg:hidden'
+                            className='flex-1 border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none lg:hidden'
                             value={activeTab}
                             onChange={(event) => setActiveTab(event.target.value as AdminTabId)}
                         >
@@ -94,13 +94,11 @@ const Admin = ({ routeParams = {} }: RouteProps) => {
 
                     <div className='flex flex-col gap-6 lg:flex-row lg:gap-8'>
                         <nav className='hidden lg:block lg:w-64 lg:shrink-0'>
-                            <div className='rounded-2xl border border-border bg-surface p-2'>
+                            <div className=' border border-border bg-surface p-2'>
                                 {adminTabs.map((tab) => (
                                     <button
                                         key={tab.id}
-                                        className={`flex w-full items-center rounded-lg px-4 py-2.5 text-left text-sm transition cursor-pointer ${
-                                            activeTab === tab.id ? 'bg-surface-subtle font-medium text-text' : 'text-text hover:bg-surface-muted'
-                                        }`}
+                                        className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition cursor-pointer ${activeTab === tab.id ? 'bg-surface-subtle font-medium text-text' : 'text-text hover:bg-surface-muted'}`}
                                         onClick={() => setActiveTab(tab.id as AdminTabId)}
                                         type='button'
                                     >

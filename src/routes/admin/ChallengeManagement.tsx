@@ -374,7 +374,7 @@ const ChallengeManagement = () => {
             {loading ? (
                 <p className='text-sm text-text-subtle'>{t('admin.manage.loadingChallenges')}</p>
             ) : (
-                <div className='overflow-hidden rounded-2xl border border-border bg-surface'>
+                <div className='overflow-hidden border border-border bg-surface'>
                     <div className='overflow-x-auto'>
                         <table className='w-full'>
                             <thead className='border-b border-border bg-surface-muted'>
@@ -411,7 +411,7 @@ const ChallengeManagement = () => {
                                                 <td className='px-6 py-4 text-sm text-text'>{minimumPoints}</td>
                                                 <td className='px-6 py-4 text-sm text-text'>{solveCount}</td>
                                                 <td className='px-6 py-4 text-sm'>
-                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${isActive ? 'bg-accent/20 text-accent-strong' : 'bg-surface-subtle text-text'}`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium uppercase ${isActive ? 'bg-accent/20 text-accent-strong' : 'bg-surface-subtle text-text'}`}>
                                                         {isActive ? t('admin.manage.statusActive') : t('admin.manage.statusInactive')}
                                                     </span>
                                                 </td>
@@ -438,7 +438,7 @@ const ChallengeManagement = () => {
                                                                     <div className='mt-2 space-y-2'>
                                                                         <input
                                                                             id={`manage-title-${challenge.id}`}
-                                                                            className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                            className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                             type='text'
                                                                             value={editTitle}
                                                                             onChange={(event) => setEditTitle(event.target.value)}
@@ -446,7 +446,7 @@ const ChallengeManagement = () => {
                                                                         />
                                                                         <div className='flex flex-wrap items-center gap-3'>
                                                                             <button
-                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => saveField(challenge, 'title')}
                                                                                 disabled={manageLoading}
@@ -454,7 +454,7 @@ const ChallengeManagement = () => {
                                                                                 {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                             </button>
                                                                             <button
-                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => cancelEdit('title', challenge)}
                                                                                 disabled={manageLoading}
@@ -464,7 +464,7 @@ const ChallengeManagement = () => {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                         <span>{editTitle}</span>
                                                                         <button
                                                                             className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -488,13 +488,13 @@ const ChallengeManagement = () => {
                                                                 </label>
                                                                 {editingField === 'description' ? (
                                                                     <div className='mt-2 space-y-2'>
-                                                                        <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                                                        <div className='w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                                                                             <MonacoEditor value={editDescription} onChange={setEditDescription} />
                                                                         </div>
 
                                                                         <div className='flex flex-wrap items-center gap-3'>
                                                                             <button
-                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => saveField(challenge, 'description')}
                                                                                 disabled={manageLoading}
@@ -502,7 +502,7 @@ const ChallengeManagement = () => {
                                                                                 {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                             </button>
                                                                             <button
-                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => cancelEdit('description', challenge)}
                                                                                 disabled={manageLoading}
@@ -512,7 +512,7 @@ const ChallengeManagement = () => {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <div className='mt-2 flex items-start justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                         <p className='whitespace-pre-wrap'>{editDescription}</p>
                                                                         <button
                                                                             className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -539,7 +539,7 @@ const ChallengeManagement = () => {
                                                                         <div className='mt-2 space-y-2'>
                                                                             <select
                                                                                 id={`manage-category-${challenge.id}`}
-                                                                                className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                                 value={editCategory}
                                                                                 onChange={(event) => setEditCategory(event.target.value)}
                                                                                 disabled={manageLoading}
@@ -552,7 +552,7 @@ const ChallengeManagement = () => {
                                                                             </select>
                                                                             <div className='flex flex-wrap items-center gap-3'>
                                                                                 <button
-                                                                                    className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                    className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => saveField(challenge, 'category')}
                                                                                     disabled={manageLoading}
@@ -560,7 +560,7 @@ const ChallengeManagement = () => {
                                                                                     {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                                 </button>
                                                                                 <button
-                                                                                    className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                    className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => cancelEdit('category', challenge)}
                                                                                     disabled={manageLoading}
@@ -570,7 +570,7 @@ const ChallengeManagement = () => {
                                                                             </div>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                             <span>{t(getCategoryKey(editCategory))}</span>
                                                                             <button
                                                                                 className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -596,7 +596,7 @@ const ChallengeManagement = () => {
                                                                         <div className='mt-2 space-y-2'>
                                                                             <input
                                                                                 id={`manage-points-${challenge.id}`}
-                                                                                className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                                 type='number'
                                                                                 min={0}
                                                                                 value={editPoints}
@@ -605,7 +605,7 @@ const ChallengeManagement = () => {
                                                                             />
                                                                             <div className='flex flex-wrap items-center gap-3'>
                                                                                 <button
-                                                                                    className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                    className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => saveField(challenge, 'points')}
                                                                                     disabled={manageLoading}
@@ -613,7 +613,7 @@ const ChallengeManagement = () => {
                                                                                     {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                                 </button>
                                                                                 <button
-                                                                                    className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                    className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => cancelEdit('points', challenge)}
                                                                                     disabled={manageLoading}
@@ -623,7 +623,7 @@ const ChallengeManagement = () => {
                                                                             </div>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                             <span>{editPoints}</span>
                                                                             <button
                                                                                 className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -649,7 +649,7 @@ const ChallengeManagement = () => {
                                                                         <div className='mt-2 space-y-2'>
                                                                             <input
                                                                                 id={`manage-minimum-points-${challenge.id}`}
-                                                                                className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                                 type='number'
                                                                                 min={0}
                                                                                 value={editMinimumPoints}
@@ -658,7 +658,7 @@ const ChallengeManagement = () => {
                                                                             />
                                                                             <div className='flex flex-wrap items-center gap-3'>
                                                                                 <button
-                                                                                    className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                    className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => saveField(challenge, 'minimum_points')}
                                                                                     disabled={manageLoading}
@@ -666,7 +666,7 @@ const ChallengeManagement = () => {
                                                                                     {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                                 </button>
                                                                                 <button
-                                                                                    className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                    className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => cancelEdit('minimum_points', challenge)}
                                                                                     disabled={manageLoading}
@@ -676,7 +676,7 @@ const ChallengeManagement = () => {
                                                                             </div>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                             <span>{editMinimumPoints}</span>
                                                                             <button
                                                                                 className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -702,7 +702,7 @@ const ChallengeManagement = () => {
                                                                         <div className='mt-2 space-y-2'>
                                                                             <select
                                                                                 id={`manage-previous-challenge-${challenge.id}`}
-                                                                                className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                                className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                                 value={editPreviousChallengeId === '' ? '' : String(editPreviousChallengeId)}
                                                                                 onChange={(event) => {
                                                                                     const value = event.target.value
@@ -721,7 +721,7 @@ const ChallengeManagement = () => {
                                                                             </select>
                                                                             <div className='flex flex-wrap items-center gap-3'>
                                                                                 <button
-                                                                                    className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                    className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => saveField(challenge, 'previous_challenge_id')}
                                                                                     disabled={manageLoading}
@@ -729,7 +729,7 @@ const ChallengeManagement = () => {
                                                                                     {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                                 </button>
                                                                                 <button
-                                                                                    className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                    className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                     type='button'
                                                                                     onClick={() => cancelEdit('previous_challenge_id', challenge)}
                                                                                     disabled={manageLoading}
@@ -739,7 +739,7 @@ const ChallengeManagement = () => {
                                                                             </div>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                        <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                             <span>
                                                                                 {editPreviousChallengeId === ''
                                                                                     ? t('admin.create.previousChallengeNone')
@@ -774,7 +774,7 @@ const ChallengeManagement = () => {
                                                                     <div className='mt-2 space-y-2'>
                                                                         <input
                                                                             id={`manage-flag-${challenge.id}`}
-                                                                            className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                                                            className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                                                             type='password'
                                                                             maxLength={72}
                                                                             value={editFlag}
@@ -785,7 +785,7 @@ const ChallengeManagement = () => {
                                                                         <p className='text-xs text-text-subtle'>{t('limits.byteCounter', { current: editFlagBytes, max: 72 })}</p>
                                                                         <div className='flex flex-wrap items-center gap-3'>
                                                                             <button
-                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => saveField(challenge, 'flag')}
                                                                                 disabled={manageLoading}
@@ -793,7 +793,7 @@ const ChallengeManagement = () => {
                                                                                 {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                             </button>
                                                                             <button
-                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => cancelEdit('flag', challenge)}
                                                                                 disabled={manageLoading}
@@ -803,7 +803,7 @@ const ChallengeManagement = () => {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                         <span>{t('admin.manage.flagMasked')}</span>
                                                                         <button
                                                                             className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -831,14 +831,14 @@ const ChallengeManagement = () => {
                                                                                 type='checkbox'
                                                                                 checked={editIsActive}
                                                                                 onChange={(event) => setEditIsActive(event.target.checked)}
-                                                                                className='h-4 w-4 rounded border-border'
+                                                                                className='h-4 w-4 border-border'
                                                                                 disabled={manageLoading}
                                                                             />
                                                                             {editIsActive ? t('admin.manage.statusActive') : t('admin.manage.statusInactive')}
                                                                         </label>
                                                                         <div className='flex flex-wrap items-center gap-3'>
                                                                             <button
-                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => saveField(challenge, 'is_active')}
                                                                                 disabled={manageLoading}
@@ -846,7 +846,7 @@ const ChallengeManagement = () => {
                                                                                 {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                             </button>
                                                                             <button
-                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => cancelEdit('is_active', challenge)}
                                                                                 disabled={manageLoading}
@@ -856,7 +856,7 @@ const ChallengeManagement = () => {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                                                                    <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                                                         <span>{editIsActive ? t('admin.manage.statusActive') : t('admin.manage.statusInactive')}</span>
                                                                         <button
                                                                             className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60'
@@ -869,7 +869,7 @@ const ChallengeManagement = () => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className='rounded-2xl border border-border bg-surface/60 p-4'>
+                                                            <div className=' border border-border bg-surface/60 p-4'>
                                                                 <div className='flex items-center justify-between gap-4'>
                                                                     <p className='text-xs uppercase tracking-wide text-text-subtle'>{t('admin.create.provideVM')}</p>
                                                                     {editingField !== 'vm' ? (
@@ -890,7 +890,7 @@ const ChallengeManagement = () => {
                                                                                 type='checkbox'
                                                                                 checked={editVMEnabled}
                                                                                 onChange={(event) => setEditVMEnabled(event.target.checked)}
-                                                                                className='h-4 w-4 rounded border-border'
+                                                                                className='h-4 w-4 border-border'
                                                                                 disabled={manageLoading}
                                                                             />
                                                                             {editVMEnabled ? t('common.active') : t('common.inactive')}
@@ -899,7 +899,7 @@ const ChallengeManagement = () => {
                                                                             <div className='grid gap-4'>
                                                                                 <div>
                                                                                     <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.create.spec')}</p>
-                                                                                    <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                                                                    <div className='mt-2 w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                                                                                         <MonacoEditor language='yaml' value={editVMSpec} onChange={(value) => setEditVMSpec(value)} readonly={manageLoading} />
                                                                                     </div>
                                                                                     {manageFieldErrors.vm_spec ? (
@@ -912,7 +912,7 @@ const ChallengeManagement = () => {
                                                                         ) : null}
                                                                         <div className='flex flex-wrap items-center gap-3'>
                                                                             <button
-                                                                                className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                                                                className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => saveField(challenge, 'vm')}
                                                                                 disabled={manageLoading}
@@ -920,7 +920,7 @@ const ChallengeManagement = () => {
                                                                                 {manageLoading ? t('admin.site.saving') : t('common.save')}
                                                                             </button>
                                                                             <button
-                                                                                className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                                                                className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                                                                 type='button'
                                                                                 onClick={() => cancelEdit('vm', challenge)}
                                                                                 disabled={manageLoading}
@@ -941,12 +941,12 @@ const ChallengeManagement = () => {
                                                                 )}
                                                             </div>
 
-                                                            <div className='rounded-xl border border-border bg-surface/60 p-4 text-sm text-text'>
+                                                            <div className=' border border-border bg-surface/60 p-4 text-sm text-text'>
                                                                 <p className='text-xs uppercase tracking-wide text-text-subtle'>{t('admin.manage.challengeFile')}</p>
                                                                 <p className='mt-2 text-sm text-text'>{hasFile ? (fileName ?? 'challenge.zip') : t('admin.manage.noFileUploaded')}</p>
                                                                 <div className='mt-3 flex flex-wrap items-center gap-3'>
                                                                     <input
-                                                                        className='w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text sm:w-auto'
+                                                                        className='w-full border border-border bg-surface px-3 py-2 text-xs text-text sm:w-auto'
                                                                         type='file'
                                                                         accept='.zip'
                                                                         onChange={(event) => {
@@ -957,7 +957,7 @@ const ChallengeManagement = () => {
                                                                         }}
                                                                     />
                                                                     <button
-                                                                        className='rounded-lg bg-contrast px-4 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-contrast/80 disabled:opacity-60 cursor-pointer'
+                                                                        className=' bg-contrast px-4 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-contrast/80 disabled:opacity-60 cursor-pointer'
                                                                         type='button'
                                                                         onClick={() => uploadEditFile(challenge)}
                                                                         disabled={editFileUploading || manageLoading}
@@ -966,7 +966,7 @@ const ChallengeManagement = () => {
                                                                     </button>
                                                                     {hasFile ? (
                                                                         <button
-                                                                            className='rounded-lg border border-danger/30 px-4 py-2 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 cursor-pointer'
+                                                                            className=' border border-danger/30 px-4 py-2 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 cursor-pointer'
                                                                             type='button'
                                                                             onClick={() => deleteEditFile(challenge)}
                                                                             disabled={editFileUploading || manageLoading}
@@ -981,7 +981,7 @@ const ChallengeManagement = () => {
 
                                                             <div className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
                                                                 <button
-                                                                    className='rounded-xl border border-border px-5 py-3 text-sm text-text transition hover:border-border hover:text-text disabled:opacity-60 cursor-pointer'
+                                                                    className=' border border-border px-5 py-3 text-sm text-text transition hover:border-border hover:text-text disabled:opacity-60 cursor-pointer'
                                                                     type='button'
                                                                     onClick={() => setExpandedChallengeId(null)}
                                                                     disabled={manageLoading}

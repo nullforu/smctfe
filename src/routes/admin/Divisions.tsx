@@ -51,7 +51,7 @@ const Divisions = () => {
                 </button>
             </div>
 
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <form
                     className='space-y-4'
                     onSubmit={(event) => {
@@ -66,7 +66,7 @@ const Divisions = () => {
                             </label>
                             <input
                                 id='admin-division-name'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
                                 value={divisionName}
                                 onChange={(event) => setDivisionName(event.target.value)}
@@ -79,7 +79,7 @@ const Divisions = () => {
                             ) : null}
                         </div>
 
-                        <button className='rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer md:shrink-0' type='submit' disabled={createLoading}>
+                        <button className=' bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer md:shrink-0' type='submit' disabled={createLoading}>
                             {createLoading ? t('admin.divisions.creating') : t('admin.divisions.createDivision')}
                         </button>
                     </div>
@@ -90,7 +90,7 @@ const Divisions = () => {
                 </form>
             </div>
 
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <div className='flex items-center justify-between'>
                     <h3 className='text-lg text-text'>{t('admin.divisions.title')}</h3>
                 </div>

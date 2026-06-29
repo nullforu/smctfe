@@ -97,7 +97,7 @@ const RegistrationKeys = () => {
             <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={loadKeys} disabled={keysLoading}>
                 {keysLoading ? t('common.loading') : t('common.refresh')}
             </button>
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <form
                     className='space-y-4'
                     onSubmit={(event) => {
@@ -112,7 +112,7 @@ const RegistrationKeys = () => {
                             </label>
                             <input
                                 id='admin-key-count'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='number'
                                 min={1}
                                 value={keyCount}
@@ -130,7 +130,7 @@ const RegistrationKeys = () => {
                             </label>
                             <input
                                 id='admin-key-max-uses'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='number'
                                 min={1}
                                 value={maxUses}
@@ -151,7 +151,7 @@ const RegistrationKeys = () => {
                             </label>
                             <select
                                 id='admin-key-team'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 value={selectedTeamId}
                                 onChange={(event) => setSelectedTeamId(event.target.value)}
                                 disabled={teamsLoading}
@@ -170,7 +170,7 @@ const RegistrationKeys = () => {
                             {teamsErrorMessage ? <FormMessage variant='error' message={teamsErrorMessage} className='mt-2' /> : null}
                         </div>
                         <div className='flex items-end'>
-                            <button className='w-full rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={createKeysLoading}>
+                            <button className='w-full bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={createKeysLoading}>
                                 {createKeysLoading ? t('admin.keys.creating') : t('admin.keys.createKeys')}
                             </button>
                         </div>

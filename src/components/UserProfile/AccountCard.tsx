@@ -21,8 +21,8 @@ const AccountCard = ({ user, authEmail, savingUsername, onSave, editingUsername,
     }
 
     return (
-        <div className='mt-6 rounded-2xl border border-border bg-surface p-6'>
-            <h3 className='text-lg text-text'>{t('profile.account')}</h3>
+        <div className='mt-6 border-2 border-border bg-surface p-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+            <h3 className='font-display text-lg uppercase tracking-[0.08em] text-text'>{t('profile.account')}</h3>
 
             <div className='mt-4 space-y-2 text-sm text-text'>
                 <div className='flex items-center justify-between gap-4'>
@@ -30,18 +30,22 @@ const AccountCard = ({ user, authEmail, savingUsername, onSave, editingUsername,
 
                     {editingUsername ? (
                         <div className='flex items-center gap-2'>
-                            <input className='rounded-md border border-border bg-surface px-2 py-1 text-sm' value={usernameInput} onChange={(event) => onUsernameInputChange(event.target.value)} disabled={savingUsername} />
-                            <button className='text-sm text-accent hover:underline disabled:opacity-50 cursor-pointer' disabled={savingUsername} onClick={onSave}>
+                            <input className='border-2 border-border bg-surface px-2 py-1 font-mono text-sm' value={usernameInput} onChange={(event) => onUsernameInputChange(event.target.value)} disabled={savingUsername} />
+                            <button
+                                className='border-2 border-accent bg-accent px-3 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-accent-foreground disabled:opacity-50 cursor-pointer'
+                                disabled={savingUsername}
+                                onClick={onSave}
+                            >
                                 {t('profile.save')}
                             </button>
-                            <button className='text-sm text-text-subtle hover:underline cursor-pointer' onClick={cancelEdit}>
+                            <button className='border-2 border-border bg-surface-muted px-3 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-text-subtle cursor-pointer' onClick={cancelEdit}>
                                 {t('profile.cancel')}
                             </button>
                         </div>
                     ) : (
                         <div className='flex items-center gap-3'>
                             <span>{user.username}</span>
-                            <button className='text-xs text-accent hover:underline cursor-pointer' onClick={() => onEditingUsernameChange(true)}>
+                            <button className='border-b-2 border-accent font-mono text-[11px] uppercase tracking-[0.12em] text-accent cursor-pointer' onClick={() => onEditingUsernameChange(true)}>
                                 {t('profile.edit')}
                             </button>
                         </div>
@@ -55,7 +59,7 @@ const AccountCard = ({ user, authEmail, savingUsername, onSave, editingUsername,
 
                 <div className='flex justify-between'>
                     <span className='text-text-muted'>{t('common.role')}</span>
-                    <span className='uppercase text-accent'>{t(getRoleKey(user.role))}</span>
+                    <span className='font-mono uppercase tracking-[0.12em] text-accent'>{t(getRoleKey(user.role))}</span>
                 </div>
             </div>
         </div>

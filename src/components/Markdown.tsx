@@ -17,12 +17,12 @@ export default function Markdown({ content, className }: { content: string; clas
                     li: ({ children }) => <li className='mb-2'>{children}</li>,
                     strong: ({ children }) => <strong className='font-bold'>{children}</strong>,
                     em: ({ children }) => <em className='italic'>{children}</em>,
-                    code: ({ children }) => <code className='bg-gray-100 dark:bg-gray-800 p-1 rounded'>{children}</code>,
-                    pre: ({ children }) => <pre className='bg-gray-100 dark:bg-gray-800 p-4 rounded mb-4'>{children}</pre>,
+                    code: ({ children }) => <code className='bg-gray-100 dark:bg-gray-800 p-1'>{children}</code>,
+                    pre: ({ children }) => <pre className='bg-gray-100 dark:bg-gray-800 p-4 mb-4'>{children}</pre>,
                     hr: () => <hr className='border-gray-200 dark:border-gray-700 my-7' />,
                     img: ({ src, alt }) => (
                         <a href={String(src)} target='_blank' rel='noopener noreferrer' className='block mb-4'>
-                            <img src={src} alt={alt} className='max-w-full h-auto mb-8 mt-8 transition-transform duration-300 rounded-lg' loading='lazy' />
+                            <img src={src} alt={alt} className='max-w-full h-auto mb-8 mt-8 transition-transform duration-300' loading='lazy' />
                         </a>
                     ),
                     a: ({ href, children }) => (

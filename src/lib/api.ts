@@ -291,6 +291,10 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
                 challenges: Array.isArray(data?.challenges) ? normalizeChallenges(data.challenges) : [],
             } as ChallengesResponse
         },
+        challenge: async (id: number) => {
+            const data = await request<Challenge>(`/api/challenges/${id}`, { auth: true })
+            return normalizeChallenge(data) as Challenge
+        },
         submitFlag: (id: number, flag: string) =>
             request<FlagSubmissionResult>(`/api/challenges/${id}/submit`, {
                 method: 'POST',

@@ -80,7 +80,7 @@ const Teams = () => {
                     {teamsLoading ? t('common.loading') : t('common.refresh')}
                 </button>
             </div>
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <form
                     className='space-y-4'
                     onSubmit={(event) => {
@@ -95,7 +95,7 @@ const Teams = () => {
                             </label>
                             <input
                                 id='admin-team-name'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
                                 value={teamName}
                                 onChange={(event) => setTeamName(event.target.value)}
@@ -114,7 +114,7 @@ const Teams = () => {
                             </label>
                             <select
                                 id='admin-team-division'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 value={createDivisionId ?? ''}
                                 onChange={(event) => setCreateDivisionId(Number(event.target.value))}
                             >
@@ -132,7 +132,7 @@ const Teams = () => {
                             ) : null}
                         </div>
 
-                        <button className='rounded-xl bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer md:shrink-0' type='submit' disabled={createTeamLoading}>
+                        <button className=' bg-accent px-6 py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer md:shrink-0' type='submit' disabled={createTeamLoading}>
                             {createTeamLoading ? t('admin.teams.creating') : t('admin.teams.createTeam')}
                         </button>
                     </div>
@@ -143,7 +143,7 @@ const Teams = () => {
                 </form>
             </div>
 
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <div className='flex items-center justify-between'>
                     <h3 className='text-lg text-text'>{t('common.teams')}</h3>
                 </div>

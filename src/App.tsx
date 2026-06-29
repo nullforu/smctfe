@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import Header from './components/Header'
+import ParticlesBackground from './components/ParticlesBackground'
 import Home from './routes/Home'
 import Login from './routes/Login'
 import Register from './routes/Register'
 import Challenges from './routes/Challenges'
+import ChallengeDetail from './routes/ChallengeDetail'
 import Scoreboard from './routes/Scoreboard'
 import Teams from './routes/Teams'
 import TeamProfile from './routes/TeamProfile'
@@ -16,6 +18,7 @@ import { useApi } from './lib/useApi'
 import { useConfig } from './lib/config'
 import { useLocale, useT } from './lib/i18n'
 import { useTheme } from './lib/theme'
+import Skeleton from './components/Skeleton'
 import './index.css'
 
 interface RouteProps {
@@ -41,6 +44,14 @@ const dynamicRoutes: Array<{
     component: RouteComponent
     extractParams: (path: string) => Record<string, string>
 }> = [
+    {
+        pattern: /^\/challenges\/(\d+)$/,
+        component: ChallengeDetail,
+        extractParams: (path) => {
+            const match = path.match(/^\/challenges\/(\d+)$/)
+            return match ? { id: match[1] } : { id: '' }
+        },
+    },
     {
         pattern: /^\/users\/(\d+)$/,
         component: UserProfile,
@@ -73,10 +84,13 @@ const App = () => {
 
     const [RouteComponent, setRouteComponent] = useState<RouteComponent>(() => Home)
     const [routeParams, setRouteParams] = useState<Record<string, string>>({})
+    const [routeKey, setRouteKey] = useState('/')
     const [booting, setBooting] = useState(true)
 
     const updateRoute = () => {
         const nextPath = normalizePath(window.location.pathname || '/')
+        const nextRouteKey = `${nextPath}${window.location.search}${window.location.hash}`
+        setRouteKey(nextRouteKey)
 
         if (routes[nextPath]) {
             setRouteComponent(() => routes[nextPath])
@@ -139,7 +153,24 @@ const App = () => {
 
     const content = useMemo(() => {
         if (booting) {
-            return <div className='rounded-2xl border border-border bg-surface p-8 text-center text-text-muted'>{t('app.checkingSession')}</div>
+            return (
+                <section className='space-y-6'>
+                    <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-7'>
+                        <Skeleton className='h-3 w-24' />
+                        <Skeleton className='mt-3 h-10 w-64' />
+                    </div>
+                    <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-3'>
+                        {Array.from({ length: 6 }, (_, idx) => (
+                            <div key={`app-boot-skeleton-${idx}`} className='border-2 border-border bg-surface p-5 shadow-[4px_4px_0_rgba(120,98,68,0.1)]'>
+                                <Skeleton className='h-3 w-20' />
+                                <Skeleton className='mt-3 h-5 w-4/5' />
+                                <Skeleton className='mt-4 h-3 w-1/2' />
+                            </div>
+                        ))}
+                    </div>
+                    <p className='sr-only'>{t('app.checkingSession')}</p>
+                </section>
+            )
         }
         return <RouteComponent routeParams={routeParams} />
     }, [RouteComponent, booting, routeParams, t])
@@ -147,11 +178,12 @@ const App = () => {
     const isAdminPage = RouteComponent === Admin
 
     return (
-        <div className='min-h-screen'>
+        <div className='app-shell relative flex min-h-dvh flex-col overflow-hidden bg-background font-body'>
+            <ParticlesBackground revealKey={routeKey} />
             <Header user={auth.user} />
-            <main className={`mx-auto w-full ${isAdminPage ? 'max-w-400' : 'max-w-6xl'} px-6 py-10`}>{content}</main>
-            <footer className='border-t border-border py-6 text-center text-xs text-text-subtle'>
-                <p>{t('footer.copyright')}</p>
+            <main className={`relative z-10 mx-auto flex w-full flex-1 flex-col ${isAdminPage ? 'max-w-[1600px]' : 'max-w-7xl'} px-4 py-5 md:px-6 md:py-6`}>{content}</main>
+            <footer className='relative z-10 border-t-2 border-border bg-surface-muted py-5 text-center text-[11px] uppercase tracking-[0.18em] text-text-subtle'>
+                <p className='mx-auto max-w-7xl px-4 md:px-6'>{t('footer.copyright')}</p>
             </footer>
         </div>
     )

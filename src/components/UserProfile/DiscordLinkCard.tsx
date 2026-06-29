@@ -98,7 +98,13 @@ const DiscordLinkCard = () => {
         }
     }
 
-    const wrapper = 'mt-6 rounded-none border-0 bg-transparent p-0 shadow-none md:rounded-lg md:border md:border-border md:bg-surface md:p-6'
+    const wrapper = 'mt-6 border-2 border-border bg-surface p-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'
+    const primaryDiscordButtonClass =
+        'inline-flex items-center justify-center border-2 border-accent bg-accent px-4 py-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent-foreground shadow-[4px_4px_0_rgba(157,81,44,0.18)] transition hover:-translate-y-0.5 hover:bg-accent-strong disabled:translate-y-0 disabled:opacity-50'
+    const neutralButtonClass =
+        'inline-flex items-center justify-center border-2 border-border bg-surface-muted px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text shadow-[4px_4px_0_rgba(120,98,68,0.1)] transition hover:-translate-y-0.5 hover:bg-surface-subtle disabled:translate-y-0 disabled:opacity-50'
+    const dangerButtonClass =
+        'inline-flex items-center justify-center border-2 border-danger/30 bg-danger/10 px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-danger shadow-[4px_4px_0_rgba(167,63,63,0.12)] transition hover:-translate-y-0.5 hover:bg-danger/15 disabled:translate-y-0 disabled:opacity-50'
 
     const roleStatus = status?.role_status
     const verified = roleStatus === 'VERIFIED'
@@ -108,26 +114,30 @@ const DiscordLinkCard = () => {
 
     return (
         <div className={wrapper}>
-            <h3 className='text-lg text-text'>{t('profile.discord.title')}</h3>
+            <h3 className='font-display text-lg uppercase tracking-[0.08em] text-text'>{t('profile.discord.title')}</h3>
             <p className='mt-2 text-xs text-text-muted'>{t('profile.discord.description')}</p>
 
-            {banner ? <p className={`mt-3 text-sm ${banner.kind === 'success' ? 'text-accent' : 'text-danger'}`}>{banner.message}</p> : null}
+            {banner ? (
+                <p className={`mt-3 border-2 px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] ${banner.kind === 'success' ? 'border-accent/40 bg-accent/10 text-accent' : 'border-danger/40 bg-danger/10 text-danger'}`}>
+                    {banner.message}
+                </p>
+            ) : null}
 
             {loading ? (
                 <div className='mt-4 space-y-2 animate-pulse'>
-                    <div className='h-3 w-40 rounded bg-surface-muted' />
-                    <div className='h-8 w-48 rounded bg-surface-muted' />
+                    <div className='h-3 w-40 bg-surface-muted' />
+                    <div className='h-8 w-48 bg-surface-muted' />
                 </div>
             ) : !status?.connected ? (
                 <div className='mt-4'>
-                    <button type='button' className='rounded-md bg-[#5865F2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50' onClick={onConnect}>
+                    <button type='button' className={primaryDiscordButtonClass} onClick={onConnect}>
                         {t('profile.discord.connect')}
                     </button>
                 </div>
             ) : (
                 <div className='mt-4 space-y-3 text-sm text-text'>
                     <div className='flex items-center gap-3'>
-                        {avatarUrl ? <img src={avatarUrl} alt={displayName ?? 'Discord avatar'} className='h-10 w-10 shrink-0 rounded-full' loading='lazy' /> : <div className='h-10 w-10 shrink-0 rounded-full bg-surface-muted' />}
+                        {avatarUrl ? <img src={avatarUrl} alt={displayName ?? 'Discord avatar'} className='h-10 w-10 shrink-0' loading='lazy' /> : <div className='h-10 w-10 shrink-0 bg-surface-muted' />}
                         <div className='min-w-0'>
                             <div className='truncate text-text'>{displayName}</div>
                             {status.discord_username ? <div className='truncate text-xs text-text-muted'>@{status.discord_username}</div> : null}
@@ -141,18 +151,18 @@ const DiscordLinkCard = () => {
 
                     <div className='flex flex-wrap items-center gap-3'>
                         {notJoined && status.invite_url ? (
-                            <a href={status.invite_url} target='_blank' rel='noreferrer' className='rounded-md bg-[#5865F2] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90'>
+                            <a href={status.invite_url} target='_blank' rel='noreferrer' className={primaryDiscordButtonClass}>
                                 {t('profile.discord.joinServer')}
                             </a>
                         ) : null}
 
                         {!verified ? (
-                            <button type='button' className='rounded-md border border-border px-3 py-1.5 text-sm text-text disabled:opacity-50' onClick={onSync} disabled={busy}>
+                            <button type='button' className={neutralButtonClass} onClick={onSync} disabled={busy}>
                                 {busy ? t('profile.discord.checking') : t('profile.discord.recheck')}
                             </button>
                         ) : null}
 
-                        <button type='button' className='text-sm text-text-subtle hover:underline disabled:opacity-50' onClick={onUnlink} disabled={busy}>
+                        <button type='button' className={dangerButtonClass} onClick={onUnlink} disabled={busy}>
                             {busy ? t('profile.discord.unlinking') : t('profile.discord.unlink')}
                         </button>
                     </div>

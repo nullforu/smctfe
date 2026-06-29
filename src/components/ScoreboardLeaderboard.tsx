@@ -4,6 +4,7 @@ import type { LeaderboardChallenge, LeaderboardResponse, LeaderboardSolve, Score
 import { navigate } from '../lib/router'
 import { useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
+import Skeleton from './Skeleton'
 
 interface ScoreboardLeaderboardProps {
     mode?: 'users' | 'teams'
@@ -126,13 +127,37 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId 
     const entries = mode === 'teams' ? teamScores : scores
 
     return (
-        <div className='min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-6'>
+        <div className='min-w-0 border border-border bg-surface p-4 sm:p-6'>
             <div className='flex items-center justify-between'>
                 <h3 className='text-lg text-text'>{mode === 'teams' ? t('leaderboard.teamTitle') : t('leaderboard.title')}</h3>
                 <span className='text-xs text-text-subtle'>{t('leaderboard.challengesCount', { count: challenges.length })}</span>
             </div>
             {loading ? (
-                <p className='mt-4 text-sm text-text-muted'>{t('common.loading')}</p>
+                <div className='mt-4 overflow-x-auto'>
+                    <div className='min-w-[760px]'>
+                        <div className='grid grid-cols-[48px_80px_minmax(160px,1fr)_repeat(8,22px)] items-end gap-3 border-b border-border pb-3'>
+                            <Skeleton className='h-3 w-5' />
+                            <Skeleton className='h-3 w-12' />
+                            <Skeleton className='h-3 w-20' />
+                            {Array.from({ length: 8 }, (_, idx) => (
+                                <Skeleton key={`leaderboard-head-skeleton-${idx}`} className='h-16 w-5' />
+                            ))}
+                        </div>
+                        <div className='divide-y divide-border/70'>
+                            {Array.from({ length: 10 }, (_, idx) => (
+                                <div key={`leaderboard-row-skeleton-${idx}`} className='grid grid-cols-[48px_80px_minmax(160px,1fr)_repeat(8,22px)] items-center gap-3 px-3 py-3'>
+                                    <Skeleton className='h-3 w-6' />
+                                    <Skeleton className='h-3 w-14' />
+                                    <Skeleton className='h-4 w-28' />
+                                    {Array.from({ length: 8 }, (_, innerIdx) => (
+                                        <Skeleton key={`leaderboard-cell-skeleton-${idx}-${innerIdx}`} className='h-4 w-5' />
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <p className='sr-only'>{t('common.loading')}</p>
+                </div>
             ) : errorMessage ? (
                 <p className='mt-4 text-sm text-danger'>{errorMessage}</p>
             ) : (

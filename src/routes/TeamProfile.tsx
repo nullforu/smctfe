@@ -4,6 +4,7 @@ import { formatApiError, formatDateTime, parseRouteId } from '../lib/utils'
 import { navigate } from '../lib/router'
 import { getRoleKey, getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
+import Skeleton from '../components/Skeleton'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -53,8 +54,37 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
         loadTeam(routeTeamId)
     }, [loadTeam, routeTeamId])
 
+    const profileSkeleton = (
+        <div className='space-y-6'>
+            <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-7'>
+                <Skeleton className='h-3 w-16' />
+                <Skeleton className='mt-3 h-10 w-56' />
+                <Skeleton className='mt-3 h-4 w-36' />
+                <Skeleton className='mt-2 h-4 w-40' />
+            </div>
+            <div className='grid gap-6 lg:grid-cols-[1.4fr_1fr]'>
+                <div className='border-2 border-border bg-surface p-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                    <Skeleton className='h-5 w-28' />
+                    <div className='mt-4 space-y-3'>
+                        {Array.from({ length: 6 }, (_, idx) => (
+                            <Skeleton key={`team-member-skeleton-${idx}`} className='h-12 w-full' />
+                        ))}
+                    </div>
+                </div>
+                <div className='border-2 border-border bg-surface p-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                    <Skeleton className='h-5 w-36' />
+                    <div className='mt-4 space-y-3'>
+                        {Array.from({ length: 5 }, (_, idx) => (
+                            <Skeleton key={`team-solved-skeleton-${idx}`} className='h-16 w-full' />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+
     return (
-        <section className='fade-in'>
+        <section className='fade-in space-y-6'>
             <div className='mb-6'>
                 <button className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer' onClick={() => navigate('/teams')}>
                     <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -65,31 +95,32 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
             </div>
 
             {loading ? (
-                <div className='rounded-2xl border border-border bg-surface p-8'>
-                    <p className='text-center text-sm text-text-muted'>{t('common.loading')}</p>
-                </div>
+                profileSkeleton
             ) : errorMessage ? (
-                <div className='rounded-2xl border border-danger/30 bg-danger/10 p-8'>
+                <div className=' border border-danger/30 bg-danger/10 p-8'>
                     <p className='text-center text-sm text-danger'>{errorMessage}</p>
                 </div>
             ) : team ? (
-                <div>
-                    <div className='flex flex-wrap items-end justify-between gap-4'>
-                        <div>
-                            <h2 className='text-3xl text-text'>{team.name}</h2>
-                            <p className='mt-1 text-sm text-text-muted'>{t('team.teamId', { id: team.id })}</p>
-                            <p className='mt-1 text-sm text-text-muted'>
-                                {t('common.division')}: {team.division_name}
-                            </p>
-                        </div>
-                        <div className='flex flex-wrap gap-2 text-xs'>
-                            <span className='rounded-full border border-border bg-surface-muted px-3 py-1 text-text'>{t('team.membersLabel', { count: team.member_count })}</span>
-                            <span className='rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-accent-strong'>{t('team.totalScoreLabel', { points: team.total_score })}</span>
+                <div className='space-y-6'>
+                    <div className=' border border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-sm sm:px-7'>
+                        <div className='flex flex-wrap items-end justify-between gap-4'>
+                            <div>
+                                <p className='text-xs font-semibold uppercase tracking-[0.18em] text-accent'>{t('common.team')}</p>
+                                <h2 className='mt-2 text-3xl font-semibold tracking-tight text-text'>{team.name}</h2>
+                                <p className='mt-1 text-sm text-text-muted'>{t('team.teamId', { id: team.id })}</p>
+                                <p className='mt-1 text-sm text-text-muted'>
+                                    {t('common.division')}: {team.division_name}
+                                </p>
+                            </div>
+                            <div className='flex flex-wrap gap-2 text-xs'>
+                                <span className=' border border-border bg-surface px-3 py-1 text-text'>{t('team.membersLabel', { count: team.member_count })}</span>
+                                <span className=' border border-accent/30 bg-accent/10 px-3 py-1 text-accent-strong'>{t('team.totalScoreLabel', { points: team.total_score })}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div className='mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]'>
-                        <div className='rounded-2xl border border-border bg-surface p-6'>
+                    <div className='grid gap-6 lg:grid-cols-[1.4fr_1fr]'>
+                        <div className=' border border-border bg-surface p-6 shadow-sm'>
                             <div className='flex items-center justify-between'>
                                 <h3 className='text-lg text-text'>{t('team.members')}</h3>
                                 <span className='text-xs text-text-subtle'>{t('common.totalCount', { count: members.length })}</span>
@@ -121,7 +152,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                             )}
                         </div>
 
-                        <div className='rounded-2xl border border-border bg-surface p-6'>
+                        <div className=' border border-border bg-surface p-6 shadow-sm'>
                             <div className='flex items-center justify-between'>
                                 <h3 className='text-lg text-text'>{t('team.solvedChallenges')}</h3>
                                 <span className='text-xs text-text-subtle'>{t('common.totalCount', { count: solved.length })}</span>
@@ -132,7 +163,7 @@ const TeamProfile = ({ routeParams = {} }: RouteProps) => {
                             ) : (
                                 <div className='mt-4 space-y-3'>
                                     {solved.map((entry) => (
-                                        <div key={entry.challenge_id} className='rounded-xl border border-border bg-surface-muted p-4'>
+                                        <div key={entry.challenge_id} className=' border border-border bg-surface-muted p-4'>
                                             <div className='flex items-center justify-between gap-3'>
                                                 <div>
                                                     <p className='text-sm text-text'>{entry.title}</p>

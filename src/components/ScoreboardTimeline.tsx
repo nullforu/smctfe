@@ -5,6 +5,7 @@ import type { TimelineResponse } from '../lib/types'
 import { navigate } from '../lib/router'
 import { getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
+import Skeleton from './Skeleton'
 
 interface ScoreboardTimelineProps {
     mode?: 'users' | 'teams'
@@ -41,6 +42,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
     const lastModeRef = useRef<'users' | 'teams'>(mode)
     const resizeObserverRef = useRef<ResizeObserver | null>(null)
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
     const showTooltip = useCallback((event: React.MouseEvent, point: ChartSubmissionPoint, username: string) => {
@@ -100,7 +102,9 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
         const currentRequest = requestIdRef.current
         const modeChanged = lastModeRef.current !== mode
         lastModeRef.current = mode
-        setLoading(modeChanged || timeline === null)
+        const hasTimelineData = timeline !== null
+        setLoading(modeChanged || !hasTimelineData)
+        setRefreshing(!modeChanged && hasTimelineData)
         setErrorMessage('')
         if (modeChanged) {
             setChartModel(null)
@@ -111,6 +115,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
             try {
                 if (!divisionId) {
                     setTimeline(null)
+                    setRefreshing(false)
                     return
                 }
                 if (mode === 'teams') {
@@ -140,12 +145,14 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
             } finally {
                 if (active && currentRequest === requestIdRef.current) {
                     setLoading(false)
+                    setRefreshing(false)
                 }
             }
         }
 
         if (!divisionId) {
             setLoading(false)
+            setRefreshing(false)
             return () => {
                 active = false
             }
@@ -167,20 +174,51 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
     }, [timeline, chartWidth, localeTag])
 
     const seriesCount = useMemo(() => chartModel?.series?.length || 0, [chartModel])
+    const showInitialSkeleton = loading && !chartModel
+    const showRefreshingOverlay = refreshing && !!chartModel
 
     return (
-        <div className='min-w-0 rounded-2xl border border-border  bg-surface-muted p-4 sm:p-6'>
-            {loading ? (
-                <p className='text-sm text-text-muted'>{t('timeline.calculating')}</p>
+        <div className='min-w-0 border border-border  bg-surface-muted p-4 sm:p-6'>
+            {showInitialSkeleton ? (
+                <div className='space-y-4'>
+                    <Skeleton className='h-3 w-40' />
+                    <div className='border border-border bg-surface p-4'>
+                        <div className='relative h-72'>
+                            <div className='absolute inset-0 flex flex-col justify-between'>
+                                {Array.from({ length: 5 }, (_, idx) => (
+                                    <div key={`timeline-line-skeleton-${idx}`} className='border-t border-border/60' />
+                                ))}
+                            </div>
+                            <div className='absolute inset-x-0 bottom-0 flex h-full items-end gap-3'>
+                                {Array.from({ length: 18 }, (_, idx) => (
+                                    <Skeleton
+                                        key={`timeline-bar-skeleton-${idx}`}
+                                        className={`w-full ${idx % 5 === 0 ? 'h-[4.5rem]' : idx % 4 === 0 ? 'h-[8rem]' : idx % 3 === 0 ? 'h-[11rem]' : idx % 2 === 0 ? 'h-[14rem]' : 'h-[6.5rem]'}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className='flex flex-wrap gap-3'>
+                        {Array.from({ length: 8 }, (_, idx) => (
+                            <div key={`timeline-legend-skeleton-${idx}`} className='flex items-center gap-2'>
+                                <Skeleton className='h-2 w-2' />
+                                <Skeleton className='h-3 w-20' />
+                            </div>
+                        ))}
+                    </div>
+                    <p className='sr-only'>{t('timeline.calculating')}</p>
+                </div>
             ) : errorMessage ? (
                 <p className='text-sm text-danger'>{errorMessage}</p>
             ) : timeline ? (
                 <>
                     <div className='flex flex-wrap items-center gap-2 text-xs text-text-muted'>
                         <span>{mode === 'teams' ? t('timeline.topTeams', { count: Math.min(chartUserLimit, seriesCount) }) : t('timeline.topUsers', { count: Math.min(chartUserLimit, seriesCount) })}</span>
+                        {showRefreshingOverlay ? <span className='font-mono uppercase tracking-[0.12em]'>{t('common.loading')}</span> : null}
                     </div>
                     {chartModel ? (
-                        <div className='mt-4'>
+                        <div className='relative mt-4'>
                             <div
                                 className='relative min-w-0 w-full overflow-hidden'
                                 ref={chartContainerRef}
@@ -260,7 +298,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
                                     </div>
                                 </div>
                                 <div
-                                    className={`pointer-events-none absolute z-10 w-60 max-w-[70vw] rounded-lg border border-border bg-surface/95 p-3 text-xs text-text shadow-xl ${tooltip ? '' : 'hidden'}`}
+                                    className={`pointer-events-none absolute z-10 w-60 max-w-[70vw] border border-border bg-surface/95 p-3 text-xs text-text shadow-xl ${tooltip ? '' : 'hidden'}`}
                                     ref={tooltipBoxRef}
                                     style={{ left: `${tooltip?.left ?? 0}px`, top: `${tooltip?.top ?? 0}px` }}
                                 >
@@ -280,6 +318,40 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
                                     ) : null}
                                 </div>
                             </div>
+                            {showRefreshingOverlay ? (
+                                <div className='pointer-events-none absolute inset-0 bg-background/34 p-3 backdrop-blur-[1px]'>
+                                    <div className='flex h-full flex-col justify-between'>
+                                        <div className='space-y-3'>
+                                            <Skeleton className='h-3 w-32' />
+                                            <div className='border border-border/50 bg-surface/55 p-4'>
+                                                <div className='relative h-72'>
+                                                    <div className='absolute inset-0 flex flex-col justify-between'>
+                                                        {Array.from({ length: 5 }, (_, idx) => (
+                                                            <div key={`timeline-refresh-line-${idx}`} className='border-t border-border/50' />
+                                                        ))}
+                                                    </div>
+                                                    <div className='absolute inset-x-0 bottom-0 flex h-full items-end gap-3'>
+                                                        {Array.from({ length: 18 }, (_, idx) => (
+                                                            <Skeleton
+                                                                key={`timeline-refresh-bar-${idx}`}
+                                                                className={`w-full ${idx % 5 === 0 ? 'h-[5rem]' : idx % 4 === 0 ? 'h-[9rem]' : idx % 3 === 0 ? 'h-[12rem]' : idx % 2 === 0 ? 'h-[15rem]' : 'h-[7rem]'}`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className='flex flex-wrap gap-3'>
+                                            {Array.from({ length: 8 }, (_, idx) => (
+                                                <div key={`timeline-refresh-legend-${idx}`} className='flex items-center gap-2'>
+                                                    <Skeleton className='h-2 w-2' />
+                                                    <Skeleton className='h-3 w-20' />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
                             <div className='mt-3 flex flex-wrap gap-3 text-xs text-text-muted'>
                                 {chartModel.series.map((series) =>
                                     mode === 'teams' ? (
@@ -290,7 +362,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
                                             onMouseEnter={() => setHoveredUserId(series.user_id)}
                                             onMouseLeave={() => setHoveredUserId(null)}
                                         >
-                                            <span className='h-2 w-2 rounded-full' style={{ backgroundColor: series.color }}></span>
+                                            <span className='h-2 w-2' style={{ backgroundColor: series.color }}></span>
                                             {series.username}
                                         </button>
                                     ) : (
@@ -302,7 +374,7 @@ const ScoreboardTimeline = ({ mode = 'users', refreshTrigger = 0, divisionId }: 
                                             onMouseLeave={() => setHoveredUserId(null)}
                                             onClick={() => navigate(`/users/${series.user_id}`)}
                                         >
-                                            <span className='h-2 w-2 rounded-full' style={{ backgroundColor: series.color }}></span>
+                                            <span className='h-2 w-2' style={{ backgroundColor: series.color }}></span>
                                             {series.username}
                                         </button>
                                     ),

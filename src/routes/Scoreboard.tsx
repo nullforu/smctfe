@@ -109,21 +109,30 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <section className='animate'>
-            <div>
-                <h2 className='text-3xl text-text'>{t('scoreboard.title')}</h2>
+        <section className='animate space-y-6'>
+            <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-7'>
+                <p className='font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent'>{t('nav.scoreboard')}</p>
+                <h2 className='mt-2 font-display text-3xl font-semibold uppercase tracking-[0.08em] text-text'>{t('scoreboard.title')}</h2>
             </div>
 
-            <div className='mt-6 space-y-3'>
+            <div className='space-y-3'>
                 <DivisionTabs divisions={divisions} selectedId={selectedDivisionId} onSelect={(id) => id && setSelectedDivisionId(id)} />
 
-                <div className='flex items-center justify-end gap-3'>
-                    <select value={viewMode} onChange={(e) => setViewMode(e.target.value as 'users' | 'teams')} className='p-1 text-xs text-text outline-none focus:border-accent'>
+                <div className='flex flex-wrap items-center justify-end gap-3'>
+                    <select
+                        value={viewMode}
+                        onChange={(e) => setViewMode(e.target.value as 'users' | 'teams')}
+                        className='border-2 border-border bg-surface px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text outline-none focus:border-accent'
+                    >
                         <option value='teams'>{t('scoreboard.teams')}</option>
                         <option value='users'>{t('scoreboard.users')}</option>
                     </select>
 
-                    <select value={liveUpdatesEnabled ? 'on' : 'off'} onChange={(e) => setLiveUpdatesEnabled(e.target.value === 'on')} className='p-1 text-xs text-text outline-none focus:border-accent'>
+                    <select
+                        value={liveUpdatesEnabled ? 'on' : 'off'}
+                        onChange={(e) => setLiveUpdatesEnabled(e.target.value === 'on')}
+                        className='border-2 border-border bg-surface px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-text outline-none focus:border-accent'
+                    >
                         <option value='on'>{t('scoreboard.liveOn')}</option>
                         <option value='off'>{t('scoreboard.liveOff')}</option>
                     </select>
