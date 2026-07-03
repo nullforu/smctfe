@@ -499,7 +499,7 @@ const ChallengeDetail = ({ routeParams = {} }: RouteProps) => {
                                             <p className='mt-1 text-text'>{vmInfo.ttl_expires_at ? formatTimestamp(vmInfo.ttl_expires_at) : t('common.pending')}</p>
                                         </div>
 
-                                        {vmInfo.external_ip && vmInfo.ports?.length > 0 ? (
+                                        {vmInfo.status.toLowerCase() === 'running' && vmInfo.external_ip && vmInfo.ports?.length > 0 ? (
                                             <div className='space-y-3'>
                                                 {vmInfo.ports.map((port, index) => {
                                                     const protocol = (port.protocol || '').toUpperCase()

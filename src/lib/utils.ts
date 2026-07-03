@@ -48,6 +48,17 @@ export const isZipFile = (file: File) => file.name.toLowerCase().endsWith('.zip'
 
 export const utf8ByteLength = (value: string) => new TextEncoder().encode(value).length
 
+// NAME_MAX_LEN bounds username, team name, and division name. Combined as
+// "division_team_username" (10+10+10 + two underscores) this fits Discord's
+// 32-character nickname limit exactly.
+export const NAME_MAX_LEN = 10
+
+// charLength counts Unicode code points (matching the backend's rune count),
+// so multi-byte characters such as Hangul count as one each.
+export const charLength = (value: string) => [...value].length
+
+export const trimToMaxChars = (value: string, maxChars: number) => [...value].slice(0, maxChars).join('')
+
 export const trimToMaxUtf8Bytes = (value: string, maxBytes: number) => {
     if (utf8ByteLength(value) <= maxBytes) return value
 

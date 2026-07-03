@@ -1,5 +1,6 @@
 import type { UserDetail } from '../../lib/types'
 import { getRoleKey, useT } from '../../lib/i18n'
+import { charLength, NAME_MAX_LEN, trimToMaxChars } from '../../lib/utils'
 
 interface AccountCardProps {
     user: UserDetail
@@ -30,7 +31,16 @@ const AccountCard = ({ user, authEmail, savingUsername, onSave, editingUsername,
 
                     {editingUsername ? (
                         <div className='flex items-center gap-2'>
-                            <input className='border-2 border-border bg-surface px-2 py-1 font-mono text-sm' value={usernameInput} onChange={(event) => onUsernameInputChange(event.target.value)} disabled={savingUsername} />
+                            <div className='flex flex-col items-end gap-1'>
+                                <input
+                                    className='border-2 border-border bg-surface px-2 py-1 font-mono text-sm'
+                                    maxLength={NAME_MAX_LEN}
+                                    value={usernameInput}
+                                    onChange={(event) => onUsernameInputChange(trimToMaxChars(event.target.value, NAME_MAX_LEN))}
+                                    disabled={savingUsername}
+                                />
+                                <span className='text-xs text-text-subtle'>{t('limits.charCounter', { current: charLength(usernameInput), max: NAME_MAX_LEN })}</span>
+                            </div>
                             <button
                                 className='border-2 border-accent bg-accent px-3 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-accent-foreground disabled:opacity-50 cursor-pointer'
                                 disabled={savingUsername}

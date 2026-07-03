@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import DivisionTabs from '../../components/DivisionTabs'
-import { formatApiError, formatDateTime, type FieldErrors } from '../../lib/utils'
+import { charLength, formatApiError, formatDateTime, NAME_MAX_LEN, trimToMaxChars, type FieldErrors } from '../../lib/utils'
 import type { TeamSummary } from '../../lib/types'
 import FormMessage from '../../components/FormMessage'
 import { getLocaleTag, useLocale, useT } from '../../lib/i18n'
@@ -97,10 +97,12 @@ const Teams = () => {
                                 id='admin-team-name'
                                 className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
+                                maxLength={NAME_MAX_LEN}
                                 value={teamName}
-                                onChange={(event) => setTeamName(event.target.value)}
+                                onChange={(event) => setTeamName(trimToMaxChars(event.target.value, NAME_MAX_LEN))}
                                 placeholder={t('admin.teams.placeholder')}
                             />
+                            <p className='mt-1 text-xs text-text-subtle'>{t('limits.charCounter', { current: charLength(teamName), max: NAME_MAX_LEN })}</p>
                             {createTeamFieldErrors.name ? (
                                 <p className='mt-2 text-xs text-danger'>
                                     {t('common.name')}: {createTeamFieldErrors.name}

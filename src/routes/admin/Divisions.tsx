@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatApiError, formatDateTime, type FieldErrors } from '../../lib/utils'
+import { charLength, formatApiError, formatDateTime, NAME_MAX_LEN, trimToMaxChars, type FieldErrors } from '../../lib/utils'
 import { getLocaleTag, useLocale, useT } from '../../lib/i18n'
 import FormMessage from '../../components/FormMessage'
 import { useDivision } from '../../lib/division'
@@ -68,10 +68,12 @@ const Divisions = () => {
                                 id='admin-division-name'
                                 className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
+                                maxLength={NAME_MAX_LEN}
                                 value={divisionName}
-                                onChange={(event) => setDivisionName(event.target.value)}
+                                onChange={(event) => setDivisionName(trimToMaxChars(event.target.value, NAME_MAX_LEN))}
                                 placeholder={t('admin.divisions.placeholder')}
                             />
+                            <p className='mt-1 text-xs text-text-subtle'>{t('limits.charCounter', { current: charLength(divisionName), max: NAME_MAX_LEN })}</p>
                             {createFieldErrors.name ? (
                                 <p className='mt-2 text-xs text-danger'>
                                     {t('common.name')}: {createFieldErrors.name}

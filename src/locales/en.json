@@ -427,6 +427,7 @@
     "errors.fileUploadFailed": "file upload failed",
     "errors.required": "required",
     "limits.maxBytes72": "Maximum 72 bytes allowed.",
+    "limits.charCounter": "{current}/{max} characters",
     "limits.byteCounter": "{current}/{max} bytes",
     "categories.web": "Web",
     "categories.web3": "Web3",

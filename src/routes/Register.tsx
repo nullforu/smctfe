@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatApiError, trimToMaxUtf8Bytes, utf8ByteLength, type FieldErrors } from '../lib/utils'
+import { charLength, formatApiError, NAME_MAX_LEN, trimToMaxChars, trimToMaxUtf8Bytes, utf8ByteLength, type FieldErrors } from '../lib/utils'
 import { navigate } from '../lib/router'
 import FormMessage from '../components/FormMessage'
 import { useT } from '../lib/i18n'
@@ -96,11 +96,13 @@ const Register = ({ routeParams = {} }: RouteProps) => {
                                 id='register-username'
                                 className='mt-2 w-full border-2 border-border bg-surface px-4 py-3 font-mono text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
+                                maxLength={NAME_MAX_LEN}
                                 value={username}
-                                onChange={(event) => setUsername(event.target.value)}
+                                onChange={(event) => setUsername(trimToMaxChars(event.target.value, NAME_MAX_LEN))}
                                 placeholder={t('auth.usernamePlaceholder')}
                                 autoComplete='username'
                             />
+                            <p className='mt-1 text-xs text-text-subtle'>{t('limits.charCounter', { current: charLength(username), max: NAME_MAX_LEN })}</p>
                             {fieldErrors.username ? (
                                 <p className='mt-2 text-xs text-danger'>
                                     {t('auth.usernameLabel')}: {fieldErrors.username}
