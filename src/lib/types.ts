@@ -16,11 +16,21 @@ export interface AuthUser {
 export interface Division {
     id: number
     name: string
+    discord_role_id?: string
+    discord_announce_channel_id?: string
     created_at: string
 }
 
 export interface DivisionCreatePayload {
     name: string
+    discord_role_id?: string
+    discord_announce_channel_id?: string
+}
+
+export interface DivisionUpdatePayload {
+    name: string
+    discord_role_id?: string
+    discord_announce_channel_id?: string
 }
 
 export interface RegisterPayload {

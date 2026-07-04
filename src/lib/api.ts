@@ -7,6 +7,7 @@ import type {
     CtfStateResponse,
     Division,
     DivisionCreatePayload,
+    DivisionUpdatePayload,
     Challenge,
     ChallengeDetail,
     ChallengesResponse,
@@ -279,6 +280,7 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
         me: () => request<AuthUser>(`/api/me`, { auth: true }),
         updateMe: (username: string) => request<AuthUser>(`/api/me`, { method: 'PUT', body: { username }, auth: true }),
         createDivision: (payload: DivisionCreatePayload) => request<Division>(`/api/admin/divisions`, { method: 'POST', body: payload, auth: true }),
+        updateDivision: (id: number, payload: DivisionUpdatePayload) => request<Division>(`/api/admin/divisions/${id}`, { method: 'PUT', body: payload, auth: true }),
         divisions: async () => {
             const data = await request<Division[]>(`/api/divisions`)
             if (isAdmin(getAuth().user)) return data
