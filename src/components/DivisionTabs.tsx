@@ -18,13 +18,13 @@ const DivisionTabs = ({ divisions, selectedId, onSelect, includeAll = false, cla
     }
 
     return (
-        <div className={`flex flex-wrap gap-3 border-b border-border/60 ${className}`}>
+        <div className={`flex flex-wrap gap-2 ${className}`}>
             {items.map((division) => {
                 const active = division.id === selectedId || (division.id === null && selectedId === null)
                 return (
                     <button
                         key={division.id === null ? 'all' : `div-${division.id}`}
-                        className={`-mb-px border-b-2 px-2 pb-3 text-sm font-semibold transition ${active ? 'border-accent text-text' : 'border-transparent text-text-muted hover:text-text'}`}
+                        className={` border px-4 py-2 text-sm font-semibold transition ${active ? 'border-accent/30 bg-accent/12 text-accent' : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'}`}
                         type='button'
                         onClick={() => onSelect(division.id)}
                     >

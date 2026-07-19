@@ -11,13 +11,13 @@ interface ThemeContextValue {
 const THEME_KEY = 'smctf.theme'
 
 const loadTheme = (): Theme => {
-    if (typeof localStorage === 'undefined') return 'light'
+    if (typeof localStorage === 'undefined') return 'dark'
 
     try {
         const saved = localStorage.getItem(THEME_KEY)
-        return saved === 'dark' ? 'dark' : 'light'
+        return saved === 'light' ? 'light' : 'dark'
     } catch {
-        return 'light'
+        return 'dark'
     }
 }
 

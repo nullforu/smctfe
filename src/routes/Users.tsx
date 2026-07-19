@@ -8,6 +8,7 @@ import { getRoleKey, useT } from '../lib/i18n'
 import { useApi } from '../lib/useApi'
 import { useDivision } from '../lib/division'
 import { useAuth } from '../lib/auth'
+import Skeleton from '../components/Skeleton'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -61,32 +62,66 @@ const Users = ({ routeParams = {} }: RouteProps) => {
         return <LoginRequired title={t('users.title')} />
     }
 
+    const tableSkeleton = (
+        <div>
+            <div className='overflow-hidden border-2 border-border bg-surface shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                <div className='overflow-x-auto'>
+                    <div className='min-w-[860px]'>
+                        <div className='grid grid-cols-[90px_1.2fr_1.2fr_1fr_140px_120px] gap-0 border-b border-border bg-surface-muted px-6 py-3'>
+                            {Array.from({ length: 6 }, (_, idx) => (
+                                <Skeleton key={`users-head-skeleton-${idx}`} className='h-3 w-16' />
+                            ))}
+                        </div>
+                        <div className='divide-y divide-border'>
+                            {Array.from({ length: 10 }, (_, idx) => (
+                                <div key={`users-row-skeleton-${idx}`} className='grid grid-cols-[90px_1.2fr_1.2fr_1fr_140px_120px] items-center gap-4 px-6 py-4'>
+                                    <Skeleton className='h-4 w-10' />
+                                    <Skeleton className='h-4 w-28' />
+                                    <Skeleton className='h-4 w-32' />
+                                    <Skeleton className='h-4 w-20' />
+                                    <Skeleton className='h-6 w-[4.5rem]' />
+                                    <Skeleton className='ml-auto h-4 w-12' />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+
     return (
-        <section className='animate'>
-            <div className='flex flex-wrap items-end justify-between gap-4'>
-                <div>
-                    <h2 className='text-3xl text-text'>{t('users.title')}</h2>
+        <section className='animate space-y-6'>
+            <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-7'>
+                <div className='flex flex-wrap items-end justify-between gap-4'>
+                    <div>
+                        <p className='font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent'>{t('common.users')}</p>
+                        <h2 className='mt-2 font-display text-3xl font-semibold uppercase tracking-[0.08em] text-text'>{t('users.title')}</h2>
+                    </div>
+                    <div className='border-2 border-border bg-surface px-4 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-text-muted shadow-[4px_4px_0_rgba(120,98,68,0.1)]'>
+                        {filteredUsers.length === 1 ? t('users.countSingular', { count: filteredUsers.length }) : t('users.countPlural', { count: filteredUsers.length })}
+                    </div>
                 </div>
             </div>
 
-            <div className='mt-6 space-y-4'>
+            <div className='space-y-4'>
                 <DivisionTabs divisions={divisions} selectedId={divisionFilter} onSelect={setDivisionFilter} includeAll />
                 <input
                     type='text'
                     placeholder={t('users.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className='w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder-text-subtle transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20'
+                    className='w-full border-2 border-border bg-surface px-4 py-2.5 font-mono text-sm text-text placeholder-text-subtle transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20'
                 />
             </div>
 
             {loading ? (
-                <p className='mt-6 text-sm text-text-muted'>{t('common.loading')}</p>
+                tableSkeleton
             ) : errorMessage ? (
-                <p className='mt-6 text-sm text-danger'>{errorMessage}</p>
+                <p className='text-sm text-danger'>{errorMessage}</p>
             ) : (
-                <div className='mt-6'>
-                    <div className='overflow-hidden rounded-2xl border border-border bg-surface'>
+                <div>
+                    <div className='overflow-hidden border-2 border-border bg-surface shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
                         <div className='overflow-x-auto'>
                             <table className='w-full'>
                                 <thead className='border-b border-border bg-surface-muted'>
@@ -108,7 +143,7 @@ const Users = ({ routeParams = {} }: RouteProps) => {
                                             <td className='whitespace-nowrap px-6 py-4 text-sm text-text-muted'>{user.division_name}</td>
                                             <td className='whitespace-nowrap px-6 py-4 text-sm'>
                                                 <span
-                                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
+                                                    className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium uppercase ${
                                                         user.role === 'admin' ? 'bg-secondary/20 text-secondary' : user.role === 'blocked' ? 'bg-danger/20 text-danger' : 'bg-accent/20 text-accent-strong'
                                                     }`}
                                                 >

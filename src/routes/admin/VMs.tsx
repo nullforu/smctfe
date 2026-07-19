@@ -128,17 +128,17 @@ const AdminVMs = () => {
                 <div className='-mx-4 space-y-2 px-4 md:mx-0 md:space-y-0 md:px-0'>
                     <div className='space-y-2 md:hidden'>
                         {Array.from({ length: VM_SKELETON_ROWS }, (_, idx) => (
-                            <div key={`admin-vms-mobile-skeleton-${idx}`} className='rounded-xl border border-border/70 bg-surface p-3'>
+                            <div key={`admin-vms-mobile-skeleton-${idx}`} className=' border border-border/70 bg-surface p-3'>
                                 <div className='animate-pulse space-y-2'>
-                                    <div className='h-3 w-32 rounded bg-surface-muted' />
-                                    <div className='h-4 w-2/3 rounded bg-surface-muted' />
-                                    <div className='h-3 w-1/2 rounded bg-surface-muted' />
-                                    <div className='h-8 w-full rounded bg-surface-muted' />
+                                    <div className='h-3 w-32 bg-surface-muted' />
+                                    <div className='h-4 w-2/3 bg-surface-muted' />
+                                    <div className='h-3 w-1/2 bg-surface-muted' />
+                                    <div className='h-8 w-full bg-surface-muted' />
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div className='hidden overflow-visible rounded-none bg-transparent md:block md:overflow-hidden md:rounded-xl md:bg-surface md:shadow-sm'>
+                    <div className='hidden overflow-visible bg-transparent md:block md:overflow-hidden md: md:bg-surface md:shadow-sm'>
                         <div className='overflow-x-auto'>
                             <div className='min-w-280'>
                                 <div className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] bg-surface-muted px-6 py-3 text-[12px] text-text-muted'>
@@ -152,13 +152,13 @@ const AdminVMs = () => {
                                 </div>
                                 {Array.from({ length: VM_SKELETON_ROWS }, (_, idx) => (
                                     <div key={`admin-vms-desktop-skeleton-${idx}`} className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] items-start px-6 py-4'>
-                                        <div className='h-3 w-24 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-4 w-2/3 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-3 w-1/2 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-3 w-16 rounded bg-surface-muted animate-pulse' />
-                                        <div className='h-7 w-full rounded bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-24 bg-surface-muted animate-pulse' />
+                                        <div className='h-4 w-2/3 bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-1/2 bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 bg-surface-muted animate-pulse' />
+                                        <div className='h-3 w-16 bg-surface-muted animate-pulse' />
+                                        <div className='h-7 w-full bg-surface-muted animate-pulse' />
                                     </div>
                                 ))}
                             </div>
@@ -178,7 +178,7 @@ const AdminVMs = () => {
                             const deleteLoading = deleteLoadingId === vm.vm_id
 
                             return (
-                                <div key={vm.vm_id} className='rounded-xl border border-border/70 bg-surface p-3'>
+                                <div key={vm.vm_id} className=' border border-border/70 bg-surface p-3'>
                                     <p className='break-all font-mono text-xs text-text'>#{vm.vm_id}</p>
                                     <p className='mt-1 truncate text-sm font-medium text-text'>{vm.challenge_title}</p>
                                     <p className='text-xs text-text-subtle'>
@@ -199,7 +199,7 @@ const AdminVMs = () => {
                                     </div>
                                     <div className='mt-3 flex gap-2'>
                                         <button
-                                            className='flex-1 rounded-md bg-surface-muted px-3 py-1.5 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
+                                            className='flex-1 bg-surface-muted px-3 py-1.5 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
                                             type='button'
                                             onClick={() => toggleDetails(vm.vm_id)}
                                             disabled={detailLoading}
@@ -207,7 +207,7 @@ const AdminVMs = () => {
                                             {detailLoading ? t('admin.vms.detailsLoading') : detailsOpen ? t('common.close') : t('common.view')}
                                         </button>
                                         <button
-                                            className='flex-1 rounded-md border border-danger/30 px-3 py-1.5 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
+                                            className='flex-1 border border-danger/30 px-3 py-1.5 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
                                             type='button'
                                             onClick={() => deleteVM(vm.vm_id)}
                                             disabled={deleteLoading}
@@ -217,7 +217,7 @@ const AdminVMs = () => {
                                     </div>
                                     {detailError ? <p className='mt-2 text-xs text-danger'>{detailError}</p> : null}
                                     {detailLoading || detail ? (
-                                        <div className='mt-3 rounded-lg bg-surface-muted/60 p-3'>
+                                        <div className='mt-3 bg-surface-muted/60 p-3'>
                                             {detailLoading ? (
                                                 <p className='text-xs text-text-subtle'>{t('admin.vms.detailsLoading')}</p>
                                             ) : detail ? (
@@ -247,7 +247,7 @@ const AdminVMs = () => {
                         })}
                     </div>
 
-                    <div className='hidden overflow-visible rounded-none bg-transparent md:block md:overflow-hidden md:rounded-xl md:bg-surface md:shadow-sm'>
+                    <div className='hidden overflow-visible bg-transparent md:block md:overflow-hidden md: md:bg-surface md:shadow-sm'>
                         <div className='overflow-x-auto'>
                             <div className='min-w-280'>
                                 <div className='grid min-w-280 grid-cols-[150px_minmax(170px,1fr)_170px_160px_160px_160px_120px] bg-surface-muted px-6 py-3 text-[12px] text-text-muted'>
@@ -291,7 +291,7 @@ const AdminVMs = () => {
                                                 </p>
                                                 <div className='flex items-center gap-2 whitespace-nowrap'>
                                                     <button
-                                                        className='rounded-md bg-surface-muted px-3 py-1 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
+                                                        className=' bg-surface-muted px-3 py-1 text-xs text-text transition hover:bg-surface-subtle disabled:opacity-60'
                                                         type='button'
                                                         onClick={() => toggleDetails(vm.vm_id)}
                                                         disabled={detailLoading}
@@ -299,7 +299,7 @@ const AdminVMs = () => {
                                                         {detailLoading ? t('admin.vms.detailsLoading') : detailsOpen ? t('common.close') : t('common.view')}
                                                     </button>
                                                     <button
-                                                        className='rounded-md border border-danger/30 px-3 py-1 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
+                                                        className=' border border-danger/30 px-3 py-1 text-xs text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60'
                                                         type='button'
                                                         onClick={() => deleteVM(vm.vm_id)}
                                                         disabled={deleteLoading}

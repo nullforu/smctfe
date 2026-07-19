@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { formatApiError, formatDateTime } from '../lib/utils'
 import type { Challenge, CtfState } from '../lib/types'
-import ChallengeModal from '../components/ChallengeModal'
 import ChallengesView from '../components/ChallengesView'
 import LoginRequired from '../components/LoginRequired'
 import { getLocaleTag, getCategoryKey, useLocale, useT } from '../lib/i18n'
@@ -9,6 +8,7 @@ import { useApi } from '../lib/useApi'
 import { useConfig } from '../lib/config'
 import { CHALLENGE_CATEGORIES } from '../lib/constants'
 import { useAuth } from '../lib/auth'
+import { navigate } from '../lib/router'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -42,11 +42,12 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const localeTag = useMemo(() => getLocaleTag(locale), [locale])
     const [challenges, setChallenges] = useState<Challenge[]>([])
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [solvedIds, setSolvedIds] = useState<Set<number>>(new Set())
-    const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
     const [ctfState, setCtfState] = useState<CtfState>('active')
     const [groupByCategory, setGroupByCategory] = useState<boolean>(() => loadGroupByCategory())
+    const isAdmin = auth.user?.role?.toLowerCase() === 'admin'
 
     const activeChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active !== false : true)), [challenges])
     const inactiveChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active === false : false)), [challenges])
@@ -78,7 +79,12 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     }
 
     const loadChallenges = async () => {
-        setLoading(true)
+        const hasChallengeData = challenges.length > 0
+        if (hasChallengeData) {
+            setRefreshing(true)
+        } else {
+            setLoading(true)
+        }
         setErrorMessage('')
 
         try {
@@ -93,6 +99,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
             setErrorMessage(formatApiError(error, t).message)
         } finally {
             setLoading(false)
+            setRefreshing(false)
         }
     }
 
@@ -119,8 +126,8 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
         persistGroupByCategory(groupByCategory)
     }, [groupByCategory])
 
-    const showSolvedSummary = ctfState !== 'not_started'
-    const showNotStarted = ctfState === 'not_started'
+    const showSolvedSummary = ctfState !== 'not_started' || isAdmin
+    const showNotStarted = ctfState === 'not_started' && !isAdmin
     const showEnded = ctfState === 'ended'
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
     const inactiveSummary = inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''
@@ -151,6 +158,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
                 toggleLabel={t('challenges.groupByCategory')}
                 onGroupByCategoryChange={setGroupByCategory}
                 loading={loading}
+                refreshing={refreshing}
                 loadingText={t('challenges.loading')}
                 errorMessage={errorMessage}
                 notStarted={showNotStarted}
@@ -164,10 +172,9 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
                 challenges={challenges}
                 groupedCategories={groupedCategories}
                 solvedIds={solvedIds}
-                onSelectChallenge={setSelectedChallenge}
+                stackSummaryText={vmSummaryText}
+                onSelectChallenge={(challenge) => navigate(`/challenges/${challenge.id}`)}
             />
-
-            {selectedChallenge ? <ChallengeModal challenge={selectedChallenge} isSolved={solvedIds.has(selectedChallenge.id)} ctfState={ctfState} onClose={() => setSelectedChallenge(null)} onSolved={loadSolved} /> : null}
         </section>
     )
 }

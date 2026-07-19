@@ -190,7 +190,7 @@ const SiteConfig = () => {
             <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={loadSiteConfig} disabled={configLoading}>
                 {configLoading ? t('common.loading') : t('common.refresh')}
             </button>
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <div className='flex items-center justify-between'>
                     <div>
                         <h3 className='text-lg text-text'>{t('admin.site.title')}</h3>
@@ -207,7 +207,7 @@ const SiteConfig = () => {
                             <div className='mt-2 space-y-2'>
                                 <input
                                     id='admin-header-title'
-                                    className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                    className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                     type='text'
                                     value={headerTitle}
                                     onChange={(event) => setHeaderTitle(event.target.value)}
@@ -216,7 +216,7 @@ const SiteConfig = () => {
                                 />
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('header_title')}
                                         disabled={configLoading}
@@ -224,7 +224,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('header_title')}
                                         disabled={configLoading}
@@ -234,7 +234,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{headerTitle ? headerTitle : t('admin.site.unset')}</span>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('header_title')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
@@ -251,12 +251,12 @@ const SiteConfig = () => {
                         <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.site.headerDescription')}</p>
                         {editingField === 'header_description' ? (
                             <div className='mt-2 space-y-2'>
-                                <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                <div className='w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                                     <MonacoEditor language='markdown' value={headerDescription} onChange={(value) => setHeaderDescription(value)} readonly={configLoading} />
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('header_description')}
                                         disabled={configLoading}
@@ -264,7 +264,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('header_description')}
                                         disabled={configLoading}
@@ -274,7 +274,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-start justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <p className='whitespace-pre-wrap'>{headerDescription ? headerDescription : t('admin.site.unset')}</p>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('header_description')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
@@ -295,7 +295,7 @@ const SiteConfig = () => {
                             <div className='mt-2 space-y-2'>
                                 <input
                                     id='admin-site-title'
-                                    className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                    className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                     type='text'
                                     value={configTitle}
                                     onChange={(event) => setConfigTitle(event.target.value)}
@@ -304,7 +304,7 @@ const SiteConfig = () => {
                                 />
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('title')}
                                         disabled={configLoading}
@@ -312,7 +312,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('title')}
                                         disabled={configLoading}
@@ -322,7 +322,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{configTitle ? configTitle : t('admin.site.unset')}</span>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('title')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
@@ -343,7 +343,7 @@ const SiteConfig = () => {
                             <div className='mt-2 space-y-2'>
                                 <input
                                     id='admin-ctf-start-at'
-                                    className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                    className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                     type='datetime-local'
                                     value={ctfStartAt}
                                     onChange={(event) => setCtfStartAt(event.target.value)}
@@ -352,7 +352,7 @@ const SiteConfig = () => {
                                 />
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('ctf_start_at')}
                                         disabled={configLoading}
@@ -360,7 +360,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('ctf_start_at')}
                                         disabled={configLoading}
@@ -368,7 +368,7 @@ const SiteConfig = () => {
                                         {t('common.cancel')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('ctf_start_at', '')}
                                         disabled={configLoading}
@@ -378,7 +378,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{ctfStartAt ? ctfStartAt : t('admin.site.unset')}</span>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('ctf_start_at')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
@@ -399,7 +399,7 @@ const SiteConfig = () => {
                             <div className='mt-2 space-y-2'>
                                 <input
                                     id='admin-ctf-end-at'
-                                    className='w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                    className='w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                     type='datetime-local'
                                     value={ctfEndAt}
                                     onChange={(event) => setCtfEndAt(event.target.value)}
@@ -408,7 +408,7 @@ const SiteConfig = () => {
                                 />
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('ctf_end_at')}
                                         disabled={configLoading}
@@ -416,7 +416,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('ctf_end_at')}
                                         disabled={configLoading}
@@ -424,7 +424,7 @@ const SiteConfig = () => {
                                         {t('common.cancel')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('ctf_end_at', '')}
                                         disabled={configLoading}
@@ -434,7 +434,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-center justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <span>{ctfEndAt ? ctfEndAt : t('admin.site.unset')}</span>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('ctf_end_at')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}
@@ -452,12 +452,12 @@ const SiteConfig = () => {
                         <p className='text-xs uppercase tracking-wide text-text-muted'>{t('admin.site.description')}</p>
                         {editingField === 'description' ? (
                             <div className='mt-2 space-y-2'>
-                                <div className='w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                <div className='w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                                     <MonacoEditor template='markdown' language='markdown' value={configDescription} onChange={(value) => setConfigDescription(value)} readonly={configLoading} />
                                 </div>
                                 <div className='flex flex-wrap items-center gap-3'>
                                     <button
-                                        className='rounded-lg bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                                        className=' bg-accent px-3 py-2 text-xs font-medium text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => saveField('description')}
                                         disabled={configLoading}
@@ -465,7 +465,7 @@ const SiteConfig = () => {
                                         {configLoading ? t('admin.site.saving') : t('common.save')}
                                     </button>
                                     <button
-                                        className='rounded-lg border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
+                                        className=' border border-border px-3 py-2 text-xs text-text transition hover:border-border disabled:opacity-60 cursor-pointer'
                                         type='button'
                                         onClick={() => cancelEdit('description')}
                                         disabled={configLoading}
@@ -475,7 +475,7 @@ const SiteConfig = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='mt-2 flex items-start justify-between gap-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text'>
+                            <div className='mt-2 flex items-start justify-between gap-4 border border-border bg-surface px-4 py-3 text-sm text-text'>
                                 <p className='whitespace-pre-wrap'>{configDescription ? configDescription : t('admin.site.unset')}</p>
                                 <button className='text-xs text-accent hover:underline cursor-pointer disabled:opacity-60' type='button' onClick={() => beginEdit('description')} disabled={configLoading || editingField !== null}>
                                     {t('common.edit')}

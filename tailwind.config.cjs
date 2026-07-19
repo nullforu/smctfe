@@ -5,8 +5,8 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui'],
-                body: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui'],
+                display: ['"Space Grotesk"', '"IBM Plex Sans"', 'ui-sans-serif', 'system-ui'],
+                body: ['"IBM Plex Sans"', '"Noto Sans KR"', 'ui-sans-serif', 'system-ui'],
             },
             colors: {
                 background: 'rgb(var(--app-bg) / <alpha-value>)',

@@ -12,6 +12,7 @@ import { getLocaleTag, useLocale, useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 import { useApi } from '../lib/useApi'
 import LoginRequired from '../components/LoginRequired'
+import Skeleton from '../components/Skeleton'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -40,6 +41,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
 
     const routeUserId = useMemo(() => parseRouteId(routeParams.id), [routeParams.id])
     const isOwnProfile = useMemo(() => (auth.user ? !routeUserId || routeUserId === auth.user.id : false), [auth.user, routeUserId])
+    const isAdmin = auth.user?.role?.toLowerCase() === 'admin'
     const showBackButton = !!routeParams.id
     const activeVMs = useMemo(() => vms.filter((vm) => !['stopped', 'failed', 'node_deleted'].includes(vm.status)), [vms])
     const targetUserId = routeUserId ?? auth.user?.id ?? null
@@ -149,8 +151,66 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
         loadVMs()
     }, [auth.user, isOwnProfile, loadVMs])
 
+    const profileSkeleton = (
+        <div className='space-y-6'>
+            <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-7'>
+                <Skeleton className='h-3 w-20' />
+                <Skeleton className='mt-3 h-10 w-48' />
+                <Skeleton className='mt-3 h-4 w-32' />
+            </div>
+            <div className='grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]'>
+                <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                    <div className='space-y-3'>
+                        <Skeleton className='h-5 w-36' />
+                        <Skeleton className='h-16 w-full' />
+                    </div>
+                </div>
+                <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                    <div className='grid gap-3 sm:grid-cols-2'>
+                        {Array.from({ length: 4 }, (_, idx) => (
+                            <Skeleton key={`user-profile-stat-skeleton-${idx}`} className='h-20 w-full' />
+                        ))}
+                    </div>
+                </div>
+            </div>
+            {isOwnProfile ? (
+                <>
+                    <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                        <div className='space-y-3'>
+                            <Skeleton className='h-5 w-32' />
+                            <Skeleton className='h-12 w-full' />
+                            <Skeleton className='h-12 w-full' />
+                        </div>
+                    </div>
+                    <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                        <div className='space-y-3'>
+                            <Skeleton className='h-5 w-40' />
+                            <Skeleton className='h-12 w-full' />
+                        </div>
+                    </div>
+                    <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                        <div className='space-y-3'>
+                            <Skeleton className='h-5 w-28' />
+                            {Array.from({ length: 3 }, (_, idx) => (
+                                <Skeleton key={`user-profile-vm-skeleton-${idx}`} className='h-18 w-full' />
+                            ))}
+                        </div>
+                    </div>
+                </>
+            ) : null}
+            <div className='border-2 border-border bg-surface p-5 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
+                <div className='space-y-3'>
+                    <Skeleton className='h-5 w-40' />
+                    {Array.from({ length: 6 }, (_, idx) => (
+                        <Skeleton key={`user-profile-solved-skeleton-${idx}`} className='h-16 w-full' />
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+
     return (
-        <section className='animate'>
+        <section className='animate space-y-6'>
             {showBackButton ? (
                 <div className='mb-6'>
                     <button className='inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent cursor-pointer' onClick={() => navigate('/users')}>
@@ -165,15 +225,19 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
             {!auth.user ? (
                 <LoginRequired title={t('profile.title')} />
             ) : loading ? (
-                <div className='rounded-2xl border border-border bg-surface p-8'>
-                    <p className='text-center text-sm text-text-muted'>{t('common.loading')}</p>
-                </div>
+                profileSkeleton
             ) : errorMessage ? (
-                <div className='rounded-2xl border border-danger/30 bg-danger/10 p-8'>
+                <div className=' border border-danger/30 bg-danger/10 p-8'>
                     <p className='text-center text-sm text-danger'>{errorMessage}</p>
                 </div>
             ) : user ? (
-                <div>
+                <div className='space-y-6'>
+                    <div className=' border border-border bg-linear-to-br from-surface via-surface to-surface-muted px-5 py-6 shadow-sm sm:px-7'>
+                        <p className='text-xs font-semibold uppercase tracking-[0.18em] text-accent'>{t('common.profile')}</p>
+                        <h2 className='mt-2 text-3xl font-semibold tracking-tight text-text'>{user.username}</h2>
+                        <p className='mt-2 text-sm text-text-muted'>{isOwnProfile ? auth.user?.email : user.team_name}</p>
+                    </div>
+
                     <ProfileHeader user={user} />
 
                     {isOwnProfile ? (
@@ -197,6 +261,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                                 vmsLoading={vmsLoading}
                                 vmDeletingId={vmDeletingId}
                                 ctfState={vmsCtfState}
+                                isAdmin={isAdmin}
                                 onRefresh={loadVMs}
                                 onDelete={deleteVM}
                                 formatOptionalDateTime={formatOptionalDateTime}

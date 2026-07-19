@@ -183,7 +183,7 @@ const AdminUsers = () => {
                     placeholder={t('admin.users.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className='w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder-text-subtle transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20'
+                    className='w-full border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder-text-subtle transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20'
                 />
             </div>
 
@@ -193,7 +193,7 @@ const AdminUsers = () => {
             {loading ? (
                 <p className='text-sm text-text-muted'>{t('admin.users.loading')}</p>
             ) : (
-                <div className='overflow-hidden rounded-2xl border border-border bg-surface'>
+                <div className='overflow-hidden border border-border bg-surface'>
                     <div className='overflow-x-auto'>
                         <table className='w-full'>
                             <thead className='border-b border-border bg-surface-muted'>
@@ -227,7 +227,7 @@ const AdminUsers = () => {
                                                 <div className='mt-1 text-sm'>{user.team_name}</div>
                                                 <div className='mt-3 flex flex-wrap items-center gap-2'>
                                                     <select
-                                                        className='min-w-40 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text focus:border-accent focus:outline-none'
+                                                        className='min-w-40 border border-border bg-surface px-3 py-2 text-xs text-text focus:border-accent focus:outline-none'
                                                         value={teamSelections[user.id] ?? ''}
                                                         onChange={(event) =>
                                                             setTeamSelections((prev) => ({
@@ -248,7 +248,7 @@ const AdminUsers = () => {
                                                         )}
                                                     </select>
                                                     <button
-                                                        className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
+                                                        className=' border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
                                                         onClick={() => handleMoveTeam(user)}
                                                         disabled={pendingMove || teams.length === 0}
                                                         type='button'
@@ -260,7 +260,7 @@ const AdminUsers = () => {
                                             <td className='px-6 py-4 text-sm text-text-muted'>{user.division_name}</td>
                                             <td className='px-6 py-4 text-sm'>
                                                 <span
-                                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
+                                                    className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium uppercase ${
                                                         user.role === 'admin' ? 'bg-secondary/20 text-secondary' : user.role === 'blocked' ? 'bg-danger/20 text-danger' : 'bg-accent/20 text-accent-strong'
                                                     }`}
                                                 >
@@ -287,7 +287,7 @@ const AdminUsers = () => {
                                                     <p className='text-xs text-text-subtle'>{t('admin.users.adminLocked')}</p>
                                                 ) : isBlocked ? (
                                                     <button
-                                                        className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
+                                                        className=' border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
                                                         onClick={() => handleUnblockUser(user)}
                                                         disabled={pendingUnblock}
                                                         type='button'
@@ -306,10 +306,10 @@ const AdminUsers = () => {
                                                                     [user.id]: event.target.value,
                                                                 }))
                                                             }
-                                                            className='w-full min-w-50 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text placeholder-text-subtle focus:border-accent focus:outline-none'
+                                                            className='w-full min-w-50 border border-border bg-surface px-3 py-2 text-xs text-text placeholder-text-subtle focus:border-accent focus:outline-none'
                                                         />
                                                         <button
-                                                            className='rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
+                                                            className=' border border-border bg-surface px-3 py-2 text-xs text-text transition hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
                                                             onClick={() => handleBlockUser(user)}
                                                             disabled={pendingBlock}
                                                             type='button'

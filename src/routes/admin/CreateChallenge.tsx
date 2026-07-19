@@ -126,7 +126,7 @@ const CreateChallenge = () => {
 
     return (
         <div className='space-y-4'>
-            <div className='rounded-3xl border border-border bg-surface p-4 md:p-8'>
+            <div className=' border border-border bg-surface p-4 md:p-8'>
                 <form
                     className='space-y-5'
                     onSubmit={(event) => {
@@ -140,7 +140,7 @@ const CreateChallenge = () => {
                         </label>
                         <input
                             id='admin-title'
-                            className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                            className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                             type='text'
                             value={title}
                             onChange={(event) => setTitle(event.target.value)}
@@ -153,7 +153,7 @@ const CreateChallenge = () => {
                     </div>
                     <div>
                         <p className='text-xs uppercase tracking-wide text-text-muted'>{t('common.description')}</p>
-                        <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                        <div className='mt-2 w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                             <MonacoEditor template='markdown' language='markdown' value={description} onChange={(value) => setDescription(value)} />
                         </div>
                         {fieldErrors.description ? (
@@ -169,7 +169,7 @@ const CreateChallenge = () => {
                             </label>
                             <select
                                 id='admin-category'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 value={category}
                                 onChange={(event) => setCategory(event.target.value)}
                             >
@@ -191,7 +191,7 @@ const CreateChallenge = () => {
                             </label>
                             <input
                                 id='admin-points'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='number'
                                 min={1}
                                 value={points}
@@ -209,7 +209,7 @@ const CreateChallenge = () => {
                             </label>
                             <input
                                 id='admin-minimum-points'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='number'
                                 min={0}
                                 value={minimumPoints}
@@ -227,7 +227,7 @@ const CreateChallenge = () => {
                             </label>
                             <input
                                 id='admin-flag'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='text'
                                 maxLength={72}
                                 value={flag}
@@ -246,7 +246,7 @@ const CreateChallenge = () => {
                             </label>
                             <select
                                 id='admin-previous-challenge'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 value={previousChallengeId === '' ? '' : String(previousChallengeId)}
                                 onChange={(event) => {
                                     const value = event.target.value
@@ -272,7 +272,7 @@ const CreateChallenge = () => {
                             </label>
                             <input
                                 id='admin-file'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
                                 type='file'
                                 accept='.zip'
                                 ref={fileInputRef}
@@ -286,12 +286,12 @@ const CreateChallenge = () => {
                         </div>
                     </div>
                     <label className='flex items-center gap-3 text-sm text-text'>
-                        <input type='checkbox' checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className='h-4 w-4 rounded border-border' />
+                        <input type='checkbox' checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className='h-4 w-4 border-border' />
                         {t('admin.create.createActive')}
                     </label>
-                    <div className='rounded-2xl border border-border bg-surface/60 p-4'>
+                    <div className=' border border-border bg-surface/60 p-4'>
                         <label className='flex items-center gap-3 text-sm text-text'>
-                            <input type='checkbox' checked={vmEnabled} onChange={(event) => setVMEnabled(event.target.checked)} className='h-4 w-4 rounded border-border' />
+                            <input type='checkbox' checked={vmEnabled} onChange={(event) => setVMEnabled(event.target.checked)} className='h-4 w-4 border-border' />
                             {t('admin.create.provideVM')}
                         </label>
                         {vmEnabled ? (
@@ -300,7 +300,7 @@ const CreateChallenge = () => {
                                     <label className='text-xs uppercase tracking-wide text-text-muted' htmlFor='admin-vm-spec'>
                                         {t('admin.create.spec')}
                                     </label>
-                                    <div className='mt-2 w-full rounded-xl border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
+                                    <div className='mt-2 w-full border border-border bg-surface py-4 text-sm text-text focus-within:border-accent'>
                                         <MonacoEditor template='yaml' language='yaml' value={vmSpec} onChange={(value) => setVMSpec(value)} />
                                     </div>
                                     {fieldErrors.vm_spec ? (
@@ -316,7 +316,7 @@ const CreateChallenge = () => {
                     {errorMessage ? <FormMessage variant='error' message={errorMessage} /> : null}
                     {successMessage ? <FormMessage variant='success' message={successMessage} /> : null}
 
-                    <button className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={loading || challengeFileUploading}>
+                    <button className='w-full bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={loading || challengeFileUploading}>
                         {loading ? t('auth.creating') : challengeFileUploading ? t('admin.create.uploading') : t('admin.create.createChallenge')}
                     </button>
                 </form>

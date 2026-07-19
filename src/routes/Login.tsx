@@ -39,13 +39,19 @@ const Login = ({ routeParams = {} }: RouteProps) => {
     }
 
     return (
-        <section className='animate'>
+        <section className='animate space-y-6'>
+            <div className='border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-6 py-8 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:px-8'>
+                <p className='font-mono text-xs font-semibold uppercase tracking-[0.2em] text-accent'>{t('auth.login')}</p>
+                <h1 className='mt-3 font-display text-3xl font-semibold uppercase tracking-[0.08em] text-text'>{t('auth.login')}</h1>
+                <p className='mt-2 text-sm text-text-muted'>{t('auth.needHelp')}</p>
+            </div>
+
             <div className='grid gap-8 md:grid-cols-[1.1fr_1fr]'>
-                <div className='rounded-3xl border border-border bg-surface p-10'>
-                    <h2 className='text-3xl text-text'>{t('auth.login')}</h2>
+                <div className='border-2 border-border bg-surface p-8 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:p-10'>
+                    <h2 className='font-display text-3xl uppercase tracking-[0.08em] text-text'>{t('auth.login')}</h2>
 
                     {auth.user ? (
-                        <div className='mt-6 rounded-xl border border-accent/40 bg-accent/10 p-4 text-sm text-accent-strong'>
+                        <div className='mt-6 border-2 border-accent/40 bg-accent/10 p-4 text-sm text-accent-strong'>
                             {t('auth.alreadyLoggedIn', { username: auth.user.username })}{' '}
                             <a className='ml-2 underline cursor-pointer' href='/challenges' onClick={(e) => navigate('/challenges', e)}>
                                 {t('auth.goToChallenges')}
@@ -66,7 +72,7 @@ const Login = ({ routeParams = {} }: RouteProps) => {
                             </label>
                             <input
                                 id='login-email'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border-2 border-border bg-surface px-4 py-3 font-mono text-sm text-text focus:border-accent focus:outline-none'
                                 type='email'
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
@@ -85,7 +91,7 @@ const Login = ({ routeParams = {} }: RouteProps) => {
                             </label>
                             <input
                                 id='login-password'
-                                className='mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:border-accent focus:outline-none'
+                                className='mt-2 w-full border-2 border-border bg-surface px-4 py-3 font-mono text-sm text-text focus:border-accent focus:outline-none'
                                 type='password'
                                 value={password}
                                 onChange={(event) => setPassword(event.target.value)}
@@ -101,14 +107,18 @@ const Login = ({ routeParams = {} }: RouteProps) => {
 
                         {errorMessage ? <FormMessage variant='error' message={errorMessage} /> : null}
 
-                        <button className='w-full rounded-xl bg-accent py-3 text-sm text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer' type='submit' disabled={loading}>
+                        <button
+                            className='w-full border-2 border-accent bg-accent py-3 font-mono text-xs uppercase tracking-[0.16em] text-contrast-foreground transition hover:bg-accent-strong disabled:opacity-60 cursor-pointer'
+                            type='submit'
+                            disabled={loading}
+                        >
                             {loading ? t('auth.loggingIn') : t('auth.login')}
                         </button>
                     </form>
                 </div>
 
-                <div className='rounded-3xl border border-border bg-surface p-10'>
-                    <h3 className='text-lg text-text'>{t('auth.needHelp')}</h3>
+                <div className='border-2 border-border bg-surface p-8 shadow-[5px_5px_0_rgba(120,98,68,0.12)] sm:p-10'>
+                    <h3 className='font-display text-lg uppercase tracking-[0.08em] text-text'>{t('auth.needHelp')}</h3>
                     <ul className='mt-4 space-y-3 text-sm text-text'>
                         <li>
                             {t('auth.noAccount')}{' '}

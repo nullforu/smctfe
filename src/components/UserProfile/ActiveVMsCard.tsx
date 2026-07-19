@@ -7,12 +7,13 @@ interface ActiveVMsCardProps {
     vmsLoading: boolean
     vmDeletingId: number | null
     ctfState: CtfState
+    isAdmin: boolean
     onRefresh: () => void
     onDelete: (challengeId: number) => void
     formatOptionalDateTime: (value?: string | null) => string
 }
 
-const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState, onRefresh, onDelete, formatOptionalDateTime }: ActiveVMsCardProps) => {
+const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState, isAdmin, onRefresh, onDelete, formatOptionalDateTime }: ActiveVMsCardProps) => {
     const t = useT()
     const formatPorts = (vm: VM) => {
         if (!vm.ports.length) return t('common.pending')
@@ -27,37 +28,37 @@ const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState
     }
 
     return (
-        <div className='mt-6 rounded-none border-0 bg-transparent p-0 shadow-none md:rounded-lg md:border md:border-border md:bg-surface md:p-6'>
+        <div className='mt-6 border-2 border-border bg-surface p-6 shadow-[5px_5px_0_rgba(120,98,68,0.12)]'>
             <div className='flex flex-wrap items-center justify-between gap-4'>
-                <h3 className='text-lg text-text'>{t('profile.activeVMs')}</h3>
-                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={onRefresh} disabled={vmsLoading}>
+                <h3 className='font-display text-lg uppercase tracking-[0.08em] text-text'>{t('profile.activeVMs')}</h3>
+                <button className='border-b-2 border-border font-mono text-[11px] uppercase tracking-[0.16em] text-text-subtle hover:text-text disabled:opacity-60 cursor-pointer' onClick={onRefresh} disabled={vmsLoading}>
                     {vmsLoading ? t('common.loading') : t('common.refresh')}
                 </button>
             </div>
 
             {vmsError ? (
-                <p className='mt-4 rounded-none border-0 bg-danger/10 px-3 py-2 text-xs text-danger md:rounded-xl md:border md:border-danger/40 md:px-4'>{vmsError}</p>
-            ) : ctfState === 'not_started' ? (
-                <div className='mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning-strong'>{t('profile.vmsNotStarted')}</div>
+                <p className='mt-4 border-2 border-danger/40 bg-danger/10 px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] text-danger'>{vmsError}</p>
+            ) : ctfState === 'not_started' && !isAdmin ? (
+                <div className='mt-4 border-2 border-warning/40 bg-warning/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-warning-strong'>{t('profile.vmsNotStarted')}</div>
             ) : activeVMs.length === 0 ? (
-                <div className='mt-4 rounded-none border-0 bg-surface-muted p-4 text-center md:rounded-xl md:border md:border-border md:p-5'>
+                <div className='mt-4 border-2 border-border bg-surface-muted p-5 text-center'>
                     <p className='text-sm text-text-muted'>{t('profile.noActiveVMs')}</p>
                 </div>
             ) : (
                 <div className='mt-4 divide-y divide-border/50 md:divide-y-0 md:space-y-3'>
                     {activeVMs.map((vm) => (
-                        <div key={vm.challenge_id} className='rounded-none border-0 bg-transparent p-3 md:rounded-xl md:border md:border-border md:bg-surface-muted md:p-5'>
+                        <div key={vm.challenge_id} className='border-2 border-border bg-surface-muted p-5'>
                             <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                                 <div>
-                                    <p className='text-sm font-medium text-text'>{formatChallengeTitle(vm)}</p>
-                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.statusLabel', { status: vm.status })}</p>
-                                    <p className='mt-1 text-xs text-text-subtle'>{t('profile.createdBy', { username: vm.created_by_username })}</p>
+                                    <p className='font-display text-sm font-medium uppercase tracking-[0.06em] text-text'>{formatChallengeTitle(vm)}</p>
+                                    <p className='mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-text-subtle'>{t('profile.statusLabel', { status: vm.status })}</p>
+                                    <p className='mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-text-subtle'>{t('profile.createdBy', { username: vm.created_by_username })}</p>
                                     {vm.last_error ? <p className='mt-1 text-xs text-danger'>{vm.last_error}</p> : null}
                                 </div>
-                                <div className='flex w-full flex-col gap-2 text-xs text-text-muted sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3'>
+                                <div className='flex w-full flex-col gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-muted sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3'>
                                     <span className='break-all'>{formatPorts(vm)}</span>
                                     <button
-                                        className='w-full rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 sm:w-auto cursor-pointer'
+                                        className='w-full border-2 border-danger/30 bg-danger/10 px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-danger transition hover:border-danger/50 hover:text-danger-strong disabled:opacity-60 sm:w-auto cursor-pointer'
                                         type='button'
                                         onClick={() => onDelete(vm.challenge_id)}
                                         disabled={vmDeletingId === vm.challenge_id || vmsLoading}
@@ -66,7 +67,7 @@ const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState
                                     </button>
                                 </div>
                             </div>
-                            <div className='mt-2 text-xs text-text-subtle'>{t('profile.ttlLabel', { time: formatOptionalDateTime(vm.ttl_expires_at) })}</div>
+                            <div className='mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-text-subtle'>{t('profile.ttlLabel', { time: formatOptionalDateTime(vm.ttl_expires_at) })}</div>
                         </div>
                     ))}
                 </div>
