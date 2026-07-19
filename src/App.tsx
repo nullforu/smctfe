@@ -75,6 +75,7 @@ const normalizePath = (path: string) => {
 }
 
 const App = () => {
+    const showEndedNotice = false
     const t = useT()
     const { state: auth, setAuthUser, clearAuth } = useAuth()
     const { theme } = useTheme()
@@ -180,8 +181,20 @@ const App = () => {
     return (
         <div className='app-shell relative flex min-h-dvh flex-col overflow-hidden bg-background font-body'>
             <ParticlesBackground revealKey={routeKey} />
-            <Header user={auth.user} />
-            <main className={`relative z-10 mx-auto flex w-full flex-1 flex-col ${isAdminPage ? 'max-w-[1600px]' : 'max-w-7xl'} px-4 py-5 md:px-6 md:py-6`}>{content}</main>
+            {showEndedNotice ? null : <Header user={auth.user} />}
+            <main className={`relative z-10 mx-auto flex w-full flex-1 flex-col ${isAdminPage ? 'max-w-400' : 'max-w-7xl'} px-4 py-5 md:px-6 md:py-6`}>
+                {showEndedNotice ? (
+                    <section className='flex flex-1 items-center justify-center py-8 md:py-12'>
+                        <div className='w-full max-w-3xl border-2 border-border bg-linear-to-br from-surface via-surface to-surface-muted px-6 py-12 text-center shadow-[6px_6px_0_rgba(120,98,68,0.14)] sm:px-10 sm:py-16'>
+                            <p className='font-mono text-xs font-semibold uppercase tracking-[0.22em] text-accent'>2026 SCA CTF</p>
+                            <h1 className='mt-4 font-display text-3xl font-semibold uppercase tracking-[0.08em] text-text sm:text-4xl break-keep'>대회가 종료되었습니다.</h1>
+                            <p className='mt-4 text-sm text-text-muted sm:text-base break-keep'>문의는 디스코드로 부탁드리며, 많은 참여 감사드립니다. SCA CTF 운영진 올림.</p>
+                        </div>
+                    </section>
+                ) : (
+                    content
+                )}
+            </main>
             <footer className='relative z-10 border-t-2 border-border bg-surface-muted py-5 text-center text-[11px] uppercase tracking-[0.18em] text-text-subtle'>
                 <p className='mx-auto max-w-7xl px-4 md:px-6'>{t('footer.copyright')}</p>
             </footer>

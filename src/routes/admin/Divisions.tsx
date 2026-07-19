@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { charLength, formatApiError, formatDateTime, NAME_MAX_LEN, trimToMaxChars, type FieldErrors } from '../../lib/utils'
+import { useMemo, useRef, useState } from 'react'
+import { charLength, downloadJsonFile, formatApiError, formatDateTime, NAME_MAX_LEN, trimToMaxChars, type FieldErrors } from '../../lib/utils'
 import { getLocaleTag, useLocale, useT } from '../../lib/i18n'
 import FormMessage from '../../components/FormMessage'
 import { useDivision } from '../../lib/division'
@@ -21,6 +21,10 @@ const Divisions = () => {
     const [createErrorMessage, setCreateErrorMessage] = useState('')
     const [createSuccessMessage, setCreateSuccessMessage] = useState('')
     const [createFieldErrors, setCreateFieldErrors] = useState<FieldErrors>({})
+    const [selectedDivisionIDs, setSelectedDivisionIDs] = useState<number[]>([])
+    const [bulkLoading, setBulkLoading] = useState(false)
+    const importInputRef = useRef<HTMLInputElement | null>(null)
+    const allSelected = divisions.length > 0 && selectedDivisionIDs.length === divisions.length
 
     const [editingId, setEditingId] = useState<number | null>(null)
     const [editName, setEditName] = useState('')
@@ -61,6 +65,52 @@ const Divisions = () => {
         }
     }
 
+    const toggleDivisionSelection = (divisionID: number) => {
+        setSelectedDivisionIDs((prev) => (prev.includes(divisionID) ? prev.filter((id) => id !== divisionID) : [...prev, divisionID]))
+    }
+
+    const toggleAllDivisions = () => {
+        setSelectedDivisionIDs((prev) => (prev.length === divisions.length ? [] : divisions.map((division) => division.id)))
+    }
+
+    const exportDivisions = async (ids?: number[]) => {
+        setBulkLoading(true)
+        setCreateErrorMessage('')
+        setCreateSuccessMessage('')
+        try {
+            const bundle = await api.exportDivisions(ids && ids.length > 0 ? ids : undefined)
+            const suffix = ids && ids.length > 0 ? `selected-${ids.length}` : 'all'
+            const timestamp = new Date().toISOString().replaceAll(':', '-')
+            downloadJsonFile(`smctf-divisions-${suffix}-${timestamp}.json`, bundle)
+            setCreateSuccessMessage(ids && ids.length > 0 ? t('admin.divisions.exportSelectedSuccess', { count: ids.length }) : t('admin.divisions.exportAllSuccess', { count: bundle.divisions.length }))
+        } catch (error) {
+            setCreateErrorMessage(formatApiError(error, t).message)
+        } finally {
+            setBulkLoading(false)
+        }
+    }
+
+    const importDivisions = async (file: File) => {
+        setBulkLoading(true)
+        setCreateErrorMessage('')
+        setCreateSuccessMessage('')
+        try {
+            const payload = JSON.parse(await file.text())
+            const response = await api.importDivisions(payload)
+            await refresh()
+            setSelectedDivisionIDs([])
+            setCreateSuccessMessage(t('admin.divisions.importSuccess', { count: response.imported.length }))
+        } catch (error) {
+            const formatted = formatApiError(error, t)
+            setCreateErrorMessage(error instanceof SyntaxError ? t('admin.divisions.invalidImportFile') : formatted.message)
+        } finally {
+            if (importInputRef.current) {
+                importInputRef.current.value = ''
+            }
+            setBulkLoading(false)
+        }
+    }
+
     const beginEdit = (division: Division) => {
         setEditingId(division.id)
         setEditName(division.name)
@@ -94,10 +144,48 @@ const Divisions = () => {
 
     return (
         <section className='space-y-4'>
-            <div className='flex items-center justify-between'>
-                <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer' onClick={refresh} disabled={loading}>
-                    {loading ? t('common.loading') : t('common.refresh')}
-                </button>
+            <div className='flex flex-col gap-3 border border-border bg-surface p-4'>
+                <div className='flex flex-wrap items-center gap-3'>
+                    <button className='text-xs uppercase tracking-wide text-text-subtle hover:text-text cursor-pointer disabled:opacity-60' onClick={refresh} disabled={loading || bulkLoading}>
+                        {loading ? t('common.loading') : t('common.refresh')}
+                    </button>
+                    <button
+                        className='border border-border px-3 py-2 text-xs text-text transition hover:border-accent disabled:opacity-60 cursor-pointer'
+                        type='button'
+                        onClick={() => exportDivisions()}
+                        disabled={loading || bulkLoading || divisions.length === 0}
+                    >
+                        {bulkLoading ? t('common.loading') : t('admin.divisions.exportAll')}
+                    </button>
+                    <button
+                        className='border border-border px-3 py-2 text-xs text-text transition hover:border-accent disabled:opacity-60 cursor-pointer'
+                        type='button'
+                        onClick={() => exportDivisions(selectedDivisionIDs)}
+                        disabled={loading || bulkLoading || selectedDivisionIDs.length === 0}
+                    >
+                        {bulkLoading ? t('common.loading') : t('admin.divisions.exportSelected', { count: selectedDivisionIDs.length })}
+                    </button>
+                    <button
+                        className='border border-border px-3 py-2 text-xs text-text transition hover:border-accent disabled:opacity-60 cursor-pointer'
+                        type='button'
+                        onClick={() => importInputRef.current?.click()}
+                        disabled={loading || bulkLoading}
+                    >
+                        {bulkLoading ? t('common.loading') : t('admin.divisions.import')}
+                    </button>
+                    <input
+                        ref={importInputRef}
+                        className='hidden'
+                        type='file'
+                        accept='application/json,.json'
+                        onChange={(event) => {
+                            const file = event.target.files?.[0]
+                            if (!file) return
+                            void importDivisions(file)
+                        }}
+                    />
+                </div>
+                <p className='text-xs text-text-subtle'>{selectedDivisionIDs.length > 0 ? t('admin.divisions.selectedCount', { count: selectedDivisionIDs.length }) : t('admin.divisions.importHint')}</p>
             </div>
 
             <div className=' border border-border bg-surface p-4 md:p-8'>
@@ -192,6 +280,9 @@ const Divisions = () => {
                         <table className='w-full text-left text-sm text-text'>
                             <thead className='text-xs uppercase tracking-wide text-text-subtle'>
                                 <tr>
+                                    <th className='py-2 pr-4'>
+                                        <input type='checkbox' checked={allSelected} onChange={toggleAllDivisions} disabled={loading || bulkLoading || divisions.length === 0} />
+                                    </th>
                                     <th className='py-2 pr-4'>{t('common.id')}</th>
                                     <th className='py-2 pr-4'>{t('common.name')}</th>
                                     <th className='py-2 pr-4'>{t('admin.divisions.discordRole')}</th>
@@ -204,6 +295,9 @@ const Divisions = () => {
                                 {divisions.map((division) =>
                                     editingId === division.id ? (
                                         <tr key={division.id} className='border-t border-border/70'>
+                                            <td className='py-3 pr-4'>
+                                                <input type='checkbox' checked={selectedDivisionIDs.includes(division.id)} onChange={() => toggleDivisionSelection(division.id)} disabled={bulkLoading || savingEdit} />
+                                            </td>
                                             <td className='py-3 pr-4'>{division.id}</td>
                                             <td className='py-3 pr-4'>
                                                 <input
@@ -249,6 +343,9 @@ const Divisions = () => {
                                         </tr>
                                     ) : (
                                         <tr key={division.id} className='border-t border-border/70'>
+                                            <td className='py-3 pr-4'>
+                                                <input type='checkbox' checked={selectedDivisionIDs.includes(division.id)} onChange={() => toggleDivisionSelection(division.id)} disabled={bulkLoading} />
+                                            </td>
                                             <td className='py-3 pr-4'>{division.id}</td>
                                             <td className='py-3 pr-4'>{division.name}</td>
                                             <td className='py-3 pr-4 font-mono text-xs'>{division.discord_role_id ?? t('admin.divisions.none')}</td>

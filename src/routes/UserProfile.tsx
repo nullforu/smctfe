@@ -41,6 +41,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
 
     const routeUserId = useMemo(() => parseRouteId(routeParams.id), [routeParams.id])
     const isOwnProfile = useMemo(() => (auth.user ? !routeUserId || routeUserId === auth.user.id : false), [auth.user, routeUserId])
+    const isAdmin = auth.user?.role?.toLowerCase() === 'admin'
     const showBackButton = !!routeParams.id
     const activeVMs = useMemo(() => vms.filter((vm) => !['stopped', 'failed', 'node_deleted'].includes(vm.status)), [vms])
     const targetUserId = routeUserId ?? auth.user?.id ?? null
@@ -191,7 +192,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                         <div className='space-y-3'>
                             <Skeleton className='h-5 w-28' />
                             {Array.from({ length: 3 }, (_, idx) => (
-                                <Skeleton key={`user-profile-vm-skeleton-${idx}`} className='h-[4.5rem] w-full' />
+                                <Skeleton key={`user-profile-vm-skeleton-${idx}`} className='h-18 w-full' />
                             ))}
                         </div>
                     </div>
@@ -260,6 +261,7 @@ const UserProfile = ({ routeParams = {} }: RouteProps) => {
                                 vmsLoading={vmsLoading}
                                 vmDeletingId={vmDeletingId}
                                 ctfState={vmsCtfState}
+                                isAdmin={isAdmin}
                                 onRefresh={loadVMs}
                                 onDelete={deleteVM}
                                 formatOptionalDateTime={formatOptionalDateTime}

@@ -268,8 +268,8 @@ const Home = ({ routeParams = {} }: RouteProps) => {
                         <div className='border-2 border-border/70 bg-surface px-4 py-4'>
                             <p className='font-mono text-[11px] uppercase tracking-[0.16em] text-text-subtle'>후원</p>
                             <div className='mt-3 flex flex-wrap gap-2'>
-                                <span className='border-2 border-accent/35 bg-accent/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-accent'>Dreamhack</span>
                                 <span className='border-2 border-secondary/35 bg-secondary/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-secondary'>HSPACE</span>
+                                <span className='border-2 border-accent/35 bg-accent/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-accent'>Dreamhack</span>
                             </div>
                         </div>
                     </div>

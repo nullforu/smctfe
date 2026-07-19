@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import DivisionTabs from '../components/DivisionTabs'
 import ScoreboardTimeline from '../components/ScoreboardTimeline'
 import ScoreboardLeaderboard from '../components/ScoreboardLeaderboard'
@@ -6,6 +6,7 @@ import LoginRequired from '../components/LoginRequired'
 import { useT } from '../lib/i18n'
 import { useDivision } from '../lib/division'
 import { useAuth } from '../lib/auth'
+import { useConfig } from '../lib/config'
 
 interface RouteProps {
     routeParams?: Record<string, string>
@@ -15,12 +16,19 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
     void routeParams
     const t = useT()
     const { state: auth } = useAuth()
+    const { config } = useConfig()
     const { divisions, selectedDivisionId, setSelectedDivisionId } = useDivision()
     const [viewMode, setViewMode] = useState<'users' | 'teams'>('teams')
     const [refreshTrigger, setRefreshTrigger] = useState(0)
     const [liveUpdatesEnabled, setLiveUpdatesEnabled] = useState(true)
     const reconnectTimeoutRef = useRef<number | null>(null)
     const eventSourceRef = useRef<EventSource | null>(null)
+    const isBeforeStart = useMemo(() => {
+        if (!config.ctf_start_at) return false
+        const startAt = new Date(config.ctf_start_at).getTime()
+        if (Number.isNaN(startAt)) return false
+        return Date.now() < startAt
+    }, [config.ctf_start_at])
 
     useEffect(() => {
         if (!auth.user) {
@@ -140,7 +148,7 @@ const Scoreboard = ({ routeParams = {} }: RouteProps) => {
 
                 <div className='grid min-w-0 grid-cols-1 gap-6'>
                     <ScoreboardTimeline mode={viewMode} refreshTrigger={refreshTrigger} divisionId={selectedDivisionId ?? undefined} />
-                    <ScoreboardLeaderboard mode={viewMode} refreshTrigger={refreshTrigger} divisionId={selectedDivisionId ?? undefined} />
+                    <ScoreboardLeaderboard mode={viewMode} refreshTrigger={refreshTrigger} divisionId={selectedDivisionId ?? undefined} isBeforeStart={isBeforeStart} />
                 </div>
             </div>
         </section>

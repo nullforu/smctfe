@@ -47,6 +47,7 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
     const [solvedIds, setSolvedIds] = useState<Set<number>>(new Set())
     const [ctfState, setCtfState] = useState<CtfState>('active')
     const [groupByCategory, setGroupByCategory] = useState<boolean>(() => loadGroupByCategory())
+    const isAdmin = auth.user?.role?.toLowerCase() === 'admin'
 
     const activeChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active !== false : true)), [challenges])
     const inactiveChallenges = useMemo(() => challenges.filter((challenge) => ('is_active' in challenge ? challenge.is_active === false : false)), [challenges])
@@ -125,8 +126,8 @@ const Challenges = ({ routeParams = {} }: RouteProps) => {
         persistGroupByCategory(groupByCategory)
     }, [groupByCategory])
 
-    const showSolvedSummary = ctfState !== 'not_started'
-    const showNotStarted = ctfState === 'not_started'
+    const showSolvedSummary = ctfState !== 'not_started' || isAdmin
+    const showNotStarted = ctfState === 'not_started' && !isAdmin
     const showEnded = ctfState === 'ended'
     const solvedSummary = t('challenges.solvedSummary', { solved: solvedCount, total: activeChallenges.length })
     const inactiveSummary = inactiveChallenges.length > 0 ? t('challenges.inactiveCount', { count: inactiveChallenges.length }) : ''

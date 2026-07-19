@@ -10,13 +10,14 @@ interface ScoreboardLeaderboardProps {
     mode?: 'users' | 'teams'
     refreshTrigger?: number
     divisionId?: number
+    isBeforeStart?: boolean
 }
 
 type UserEntryView = ScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type TeamEntryView = TeamScoreEntry & { solveMap: Map<number, LeaderboardSolve> }
 type EntryView = UserEntryView | TeamEntryView
 
-const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId }: ScoreboardLeaderboardProps) => {
+const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId, isBeforeStart = false }: ScoreboardLeaderboardProps) => {
     const t = useT()
     const api = useApi()
     const [challenges, setChallenges] = useState<LeaderboardChallenge[]>([])
@@ -125,12 +126,14 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId 
     }, [api, divisionId, mode, refreshTrigger, t])
 
     const entries = mode === 'teams' ? teamScores : scores
+    const challengeColumnsHidden = isBeforeStart && challenges.length === 0
+    const challengeCountLabel = challengeColumnsHidden ? t('leaderboard.challengeColumnsHiddenCount') : t('leaderboard.challengesCount', { count: challenges.length })
 
     return (
         <div className='min-w-0 border border-border bg-surface p-4 sm:p-6'>
             <div className='flex items-center justify-between'>
                 <h3 className='text-lg text-text'>{mode === 'teams' ? t('leaderboard.teamTitle') : t('leaderboard.title')}</h3>
-                <span className='text-xs text-text-subtle'>{t('leaderboard.challengesCount', { count: challenges.length })}</span>
+                <span className='text-xs text-text-subtle'>{challengeCountLabel}</span>
             </div>
             {loading ? (
                 <div className='mt-4 overflow-x-auto'>
@@ -162,6 +165,7 @@ const ScoreboardLeaderboard = ({ mode = 'users', refreshTrigger = 0, divisionId 
                 <p className='mt-4 text-sm text-danger'>{errorMessage}</p>
             ) : (
                 <div className='mt-4 overflow-x-auto'>
+                    {challengeColumnsHidden ? <div className='mb-4 border border-border bg-surface-muted px-4 py-3 text-sm text-text-muted'>{t('leaderboard.challengeColumnsHidden')}</div> : null}
                     <div className='min-w-max'>
                         <div className='grid items-end gap-3 border-b border-border pb-3 text-[11px] uppercase tracking-wide text-text-subtle' style={{ gridTemplateColumns: gridTemplate(challenges.length) }}>
                             <span className='px-1'>#</span>

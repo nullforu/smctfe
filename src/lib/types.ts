@@ -33,6 +33,21 @@ export interface DivisionUpdatePayload {
     discord_announce_channel_id?: string
 }
 
+export interface DivisionExportItem {
+    id: number
+    name: string
+    discord_role_id?: string | null
+    discord_announce_channel_id?: string | null
+    created_at: string
+}
+
+export interface DivisionExportBundle {
+    version: number
+    exported_at: string
+    requested_ids?: number[]
+    divisions: DivisionExportItem[]
+}
+
 export interface RegisterPayload {
     email: string
     username: string
@@ -187,6 +202,35 @@ export interface ChallengeUpdatePayload {
     previous_challenge_id?: number | null
     vm_enabled?: boolean
     vm_spec?: string
+}
+
+export interface ChallengeExportItem {
+    id: number
+    title: string
+    description: string
+    category: string
+    points: number
+    minimum_points: number
+    flag_hash: string
+    previous_challenge_id?: number | null
+    is_active: boolean
+    file_key?: string | null
+    vm_enabled: boolean
+    vm_spec?: string | null
+    created_at: string
+    file_name?: string | null
+    file_uploaded_at?: string | null
+}
+
+export interface ChallengeExportBundle {
+    version: number
+    exported_at: string
+    requested_ids?: number[]
+    challenges: ChallengeExportItem[]
+}
+
+export interface ChallengeImportResponse {
+    imported: ChallengeDetail[]
 }
 
 export interface VMEntry {
@@ -390,6 +434,21 @@ export interface RegistrationKey {
     uses?: RegistrationKeyUse[]
 }
 
+export interface RegistrationKeyExportItem {
+    id: number
+    code: string
+    team_name: string
+    max_uses: number
+    created_at: string
+}
+
+export interface RegistrationKeyExportBundle {
+    version: number
+    exported_at: string
+    requested_ids?: number[]
+    registration_keys: RegistrationKeyExportItem[]
+}
+
 export interface RegistrationKeyUse {
     used_by: number
     used_by_username: string
@@ -414,6 +473,20 @@ export interface Team {
 export interface TeamCreatePayload {
     name: string
     division_id: number
+}
+
+export interface TeamExportItem {
+    id: number
+    name: string
+    division_name: string
+    created_at: string
+}
+
+export interface TeamExportBundle {
+    version: number
+    exported_at: string
+    requested_ids?: number[]
+    teams: TeamExportItem[]
 }
 
 export interface TeamSummary {

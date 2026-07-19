@@ -7,12 +7,13 @@ interface ActiveVMsCardProps {
     vmsLoading: boolean
     vmDeletingId: number | null
     ctfState: CtfState
+    isAdmin: boolean
     onRefresh: () => void
     onDelete: (challengeId: number) => void
     formatOptionalDateTime: (value?: string | null) => string
 }
 
-const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState, onRefresh, onDelete, formatOptionalDateTime }: ActiveVMsCardProps) => {
+const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState, isAdmin, onRefresh, onDelete, formatOptionalDateTime }: ActiveVMsCardProps) => {
     const t = useT()
     const formatPorts = (vm: VM) => {
         if (!vm.ports.length) return t('common.pending')
@@ -37,7 +38,7 @@ const ActiveVMsCard = ({ activeVMs, vmsError, vmsLoading, vmDeletingId, ctfState
 
             {vmsError ? (
                 <p className='mt-4 border-2 border-danger/40 bg-danger/10 px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] text-danger'>{vmsError}</p>
-            ) : ctfState === 'not_started' ? (
+            ) : ctfState === 'not_started' && !isAdmin ? (
                 <div className='mt-4 border-2 border-warning/40 bg-warning/10 px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-warning-strong'>{t('profile.vmsNotStarted')}</div>
             ) : activeVMs.length === 0 ? (
                 <div className='mt-4 border-2 border-border bg-surface-muted p-5 text-center'>

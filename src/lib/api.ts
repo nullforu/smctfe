@@ -7,6 +7,7 @@ import type {
     CtfStateResponse,
     Division,
     DivisionCreatePayload,
+    DivisionExportBundle,
     DivisionUpdatePayload,
     Challenge,
     ChallengeDetail,
@@ -15,6 +16,8 @@ import type {
     ChallengeCreateResponse,
     ChallengeUpdatePayload,
     ChallengeFileUploadResponse,
+    ChallengeExportBundle,
+    ChallengeImportResponse,
     AdminChallengeDetail,
     AdminReportResponse,
     AdminVMDeleteResponse,
@@ -28,6 +31,7 @@ import type {
     VMsResponse,
     Team,
     TeamCreatePayload,
+    TeamExportBundle,
     TeamSummary,
     TeamDetail,
     TeamMember,
@@ -36,6 +40,7 @@ import type {
     LoginPayload,
     RegistrationKey,
     RegistrationKeyCreatePayload,
+    RegistrationKeyExportBundle,
     RegisterPayload,
     RegisterResponse,
     SolvedChallenge,
@@ -281,6 +286,11 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
         updateMe: (username: string) => request<AuthUser>(`/api/me`, { method: 'PUT', body: { username }, auth: true }),
         createDivision: (payload: DivisionCreatePayload) => request<Division>(`/api/admin/divisions`, { method: 'POST', body: payload, auth: true }),
         updateDivision: (id: number, payload: DivisionUpdatePayload) => request<Division>(`/api/admin/divisions/${id}`, { method: 'PUT', body: payload, auth: true }),
+        exportDivisions: (ids?: number[]) => {
+            const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : ''
+            return request<DivisionExportBundle>(`/api/admin/divisions/export${query}`, { auth: true, noCache: true })
+        },
+        importDivisions: (bundle: DivisionExportBundle) => request<{ imported: Division[] }>(`/api/admin/divisions/import`, { method: 'POST', body: bundle, auth: true }),
         divisions: async () => {
             const data = await request<Division[]>(`/api/divisions`)
             if (isAdmin(getAuth().user)) return data
@@ -325,6 +335,16 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
             const data = await request<ChallengeDetail>(`/api/admin/challenges/${id}`, { method: 'PUT', body: serializeChallengePayload(payload), auth: true })
             return normalizeChallenge(data) as ChallengeDetail
         },
+        exportChallenges: (ids?: number[]) => {
+            const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : ''
+            return request<ChallengeExportBundle>(`/api/admin/challenges/export${query}`, { auth: true, noCache: true })
+        },
+        importChallenges: async (bundle: ChallengeExportBundle) => {
+            const data = await request<ChallengeImportResponse>(`/api/admin/challenges/import`, { method: 'POST', body: bundle, auth: true })
+            return {
+                imported: Array.isArray(data?.imported) ? (normalizeChallenges(data.imported) as ChallengeDetail[]) : [],
+            } as ChallengeImportResponse
+        },
         deleteChallenge: (id: number) => request<void>(`/api/admin/challenges/${id}`, { method: 'DELETE', auth: true }),
         requestChallengeFileUpload: (id: number, filename: string) =>
             request<ChallengeFileUploadResponse>(`/api/admin/challenges/${id}/file/upload`, {
@@ -368,7 +388,17 @@ export const createApi = ({ getAuth, setAuthUser, clearAuth, translate }: ApiDep
         adminReport: () => request<AdminReportResponse>(`/api/admin/report`, { auth: true, noCache: true }),
         registrationKeys: () => request<RegistrationKey[]>(`/api/admin/registration-keys`, { auth: true }),
         createRegistrationKeys: (payload: RegistrationKeyCreatePayload) => request<RegistrationKey[]>(`/api/admin/registration-keys`, { method: 'POST', body: payload, auth: true }),
+        exportRegistrationKeys: (ids?: number[]) => {
+            const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : ''
+            return request<RegistrationKeyExportBundle>(`/api/admin/registration-keys/export${query}`, { auth: true, noCache: true })
+        },
+        importRegistrationKeys: (bundle: RegistrationKeyExportBundle) => request<{ imported: RegistrationKey[] }>(`/api/admin/registration-keys/import`, { method: 'POST', body: bundle, auth: true }),
         createTeam: (payload: TeamCreatePayload) => request<Team>(`/api/admin/teams`, { method: 'POST', body: payload, auth: true }),
+        exportTeams: (ids?: number[]) => {
+            const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : ''
+            return request<TeamExportBundle>(`/api/admin/teams/export${query}`, { auth: true, noCache: true })
+        },
+        importTeams: (bundle: TeamExportBundle) => request<{ imported: Team[] }>(`/api/admin/teams/import`, { method: 'POST', body: bundle, auth: true }),
         moveUserTeam: (id: number, team_id: number) => request<AuthUser>(`/api/admin/users/${id}/team`, { method: 'POST', body: { team_id }, auth: true }),
         blockUser: (id: number, reason: string) => request<AuthUser>(`/api/admin/users/${id}/block`, { method: 'POST', body: { reason }, auth: true }),
         unblockUser: (id: number) => request<AuthUser>(`/api/admin/users/${id}/unblock`, { method: 'POST', auth: true }),
